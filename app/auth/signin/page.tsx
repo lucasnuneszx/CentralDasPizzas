@@ -41,23 +41,23 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Central Das Pizzas</h1>
-          <p className="mt-2 text-sm text-gray-600">Sistema PDV</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 fade-in">
+        <div className="text-center slide-in">
+          <h1 className="text-3xl font-bold text-gray-900 hover-lift">Central Das Pizzas</h1>
+          <p className="mt-2 text-sm text-gray-600 fade-in">Sistema PDV</p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Entrar</CardTitle>
-            <CardDescription>
+        <Card className="card-hover">
+          <CardHeader className="slide-in">
+            <CardTitle className="bounce-in">Entrar</CardTitle>
+            <CardDescription className="fade-in">
               Digite suas credenciais para acessar o sistema
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="slide-in">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className="fade-in">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -66,10 +66,11 @@ export default function SignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="seu@email.com"
+                  className="input-focus"
                 />
               </div>
               
-              <div>
+              <div className="fade-in">
                 <Label htmlFor="password">Senha</Label>
                 <Input
                   id="password"
@@ -78,18 +79,26 @@ export default function SignIn() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Sua senha"
+                  className="input-focus"
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full button-hover gradient-hover" 
+                disabled={isLoading}
+              >
                 {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
             
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center fade-in">
               <p className="text-sm text-gray-600">
                 Não tem uma conta?{' '}
-                <Link href="/auth/signup" className="text-primary hover:underline">
+                <Link 
+                  href="/auth/signup" 
+                  className="text-primary hover:underline hover:text-primary/80 transition-colors duration-200"
+                >
                   Cadastre-se
                 </Link>
               </p>
