@@ -5,7 +5,7 @@
 /* Animações e transições globais */
 @layer base {
   * {
-    @apply transition-all duration-300 ease-in-out;
+    transition: all 0.3s ease-in-out;
   }
   
   html {
@@ -13,50 +13,104 @@
   }
   
   body {
-    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 /* Efeitos de hover e animações customizadas */
 @layer components {
   .hover-lift {
-    @apply transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg;
+    transform: translateY(0);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .hover-lift:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   }
   
   .hover-glow {
-    @apply transition-all duration-300 ease-in-out hover:shadow-xl hover:shadow-primary/25;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
   }
   
   .fade-in {
-    @apply animate-in fade-in duration-500;
+    animation: fadeIn 0.5s ease-in-out;
   }
   
   .slide-in {
-    @apply animate-in slide-in-from-bottom-4 duration-500;
+    animation: slideIn 0.5s ease-in-out;
   }
   
   .bounce-in {
-    @apply animate-in zoom-in-95 duration-500;
-  }
-  
-  .pulse-glow {
-    @apply animate-pulse hover:animate-none hover:shadow-lg hover:shadow-primary/50;
-  }
-  
-  .gradient-hover {
-    @apply bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300;
+    animation: bounceIn 0.5s ease-in-out;
   }
   
   .card-hover {
-    @apply transform transition-all duration-300 ease-in-out hover:scale-102 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   }
   
   .button-hover {
-    @apply transform transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg active:scale-95;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .button-hover:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .button-hover:active {
+    transform: scale(0.95);
   }
   
   .input-focus {
-    @apply transition-all duration-200 ease-in-out focus:ring-2 focus:ring-primary/50 focus:border-primary;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .input-focus:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+/* Animações keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
