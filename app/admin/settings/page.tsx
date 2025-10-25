@@ -103,11 +103,18 @@ export default function SettingsPage() {
     }
   }
 
-  const handleImageUpload = (field: 'restaurantLogo' | 'restaurantBanner', url: string) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: url
-    }))
+  const handleImageUpload = (field: 'restaurantLogo' | 'restaurantBanner', file: File) => {
+    // Por enquanto, vamos apenas simular o upload
+    // Em produção, você implementaria o upload real para um serviço como Cloudinary, AWS S3, etc.
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const url = e.target?.result as string
+      setSettings(prev => ({
+        ...prev,
+        [field]: url
+      }))
+    }
+    reader.readAsDataURL(file)
   }
 
   if (loading) {
@@ -198,9 +205,8 @@ export default function SettingsPage() {
                 <Label>Logo da Loja</Label>
                 <div className="mt-2">
                   <ImageUpload
-                    onUpload={(url) => handleImageUpload('restaurantLogo', url)}
+                    onImageSelect={(file) => handleImageUpload('restaurantLogo', file)}
                     currentImage={settings.restaurantLogo}
-                    placeholder="Clique para fazer upload da logo"
                   />
                 </div>
               </div>
@@ -209,9 +215,8 @@ export default function SettingsPage() {
                 <Label>Banner da Loja</Label>
                 <div className="mt-2">
                   <ImageUpload
-                    onUpload={(url) => handleImageUpload('restaurantBanner', url)}
+                    onImageSelect={(file) => handleImageUpload('restaurantBanner', file)}
                     currentImage={settings.restaurantBanner}
-                    placeholder="Clique para fazer upload do banner"
                   />
                 </div>
               </div>
