@@ -272,7 +272,7 @@ export default function MenuPage() {
       {/* Carrinho flutuante */}
       {getCartItemsCount() > 0 && (
         <div className="fixed bottom-4 right-4 z-50">
-          <Link href="/client/checkout">
+          <Link href="/client/checkout-public">
             <Button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full shadow-lg">
               <ShoppingCart className="h-5 w-5 mr-2" />
               Ver Carrinho ({getCartItemsCount()})

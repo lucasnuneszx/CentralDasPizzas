@@ -44,25 +44,26 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Não autorizado' },
-        { status: 401 }
-      )
-    }
+    const { items, deliveryType, paymentMethod, addressId, notes, total, customer, address } = await request.json()
 
-    const { items, deliveryType, paymentMethod, addressId, notes, total } = await request.json()
+    let userId = session?.user?.id
+
+    // Se não estiver logado, criar um usuário temporário ou usar um ID padrão
+    if (!userId) {
+      // Para pedidos públicos, vamos usar um usuário padrão ou criar um temporário
+      // Por simplicidade, vamos usar um ID fixo para pedidos públicos
+      userId = 'public-user'
+    }
 
     // Criar o pedido
     const order = await prisma.order.create({
       data: {
-        userId: session.user.id,
+        userId: userId,
         addressId: deliveryType === 'DELIVERY' ? addressId : null,
         total,
         deliveryType,
         paymentMethod,
-        notes,
+        notes: notes || '',
         status: 'PENDING'
       }
     })
