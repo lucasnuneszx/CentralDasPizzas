@@ -144,7 +144,7 @@ export default function CheckoutPublic() {
         deliveryType: formData.deliveryType,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
-        total: getTotalPrice(),
+        total: getFinalTotal(),
         customer: {
           name: formData.customerName,
           phone: formData.customerPhone,
@@ -152,6 +152,8 @@ export default function CheckoutPublic() {
         },
         address: formData.deliveryType === DeliveryType.DELIVERY ? formData.address : null
       }
+
+      console.log('Dados do pedido sendo enviados:', orderData)
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -162,11 +164,14 @@ export default function CheckoutPublic() {
       })
 
       if (response.ok) {
+        const result = await response.json()
+        console.log('Pedido criado com sucesso:', result)
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
         router.push('/client/menu')
       } else {
         const error = await response.json()
+        console.error('Erro na resposta:', error)
         toast.error(error.message || 'Erro ao realizar pedido')
       }
     } catch (error) {

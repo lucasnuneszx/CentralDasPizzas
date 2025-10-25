@@ -48,12 +48,43 @@ export async function POST(request: NextRequest) {
 
     let userId = session?.user?.id
 
-    // Se não estiver logado, criar um usuário temporário ou usar um ID padrão
+    // Se não estiver logado, criar ou buscar usuário público
     if (!userId) {
-      // Para pedidos públicos, vamos usar um usuário padrão ou criar um temporário
-      // Por simplicidade, vamos usar um ID fixo para pedidos públicos
-      userId = 'public-user'
+      try {
+        // Buscar ou criar usuário público
+        let publicUser = await prisma.user.findUnique({
+          where: { email: 'public@centraldaspizzas.com' }
+        })
+
+        if (!publicUser) {
+          publicUser = await prisma.user.create({
+            data: {
+              email: 'public@centraldaspizzas.com',
+              name: 'Cliente Público',
+              role: 'CLIENT',
+              isActive: true
+            }
+          })
+        }
+
+        userId = publicUser.id
+      } catch (error) {
+        console.error('Erro ao criar/buscar usuário público:', error)
+        return NextResponse.json(
+          { message: 'Erro interno do servidor' },
+          { status: 500 }
+        )
+      }
     }
+
+    console.log('Dados do pedido recebidos:', {
+      userId,
+      items,
+      deliveryType,
+      paymentMethod,
+      total,
+      notes
+    })
 
     // Criar o pedido
     const order = await prisma.order.create({
@@ -68,15 +99,26 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('Pedido criado:', order.id)
+
     // Criar os itens do pedido
-    await prisma.orderItem.createMany({
-      data: items.map((item: any) => ({
-        orderId: order.id,
-        comboId: item.comboId,
-        quantity: item.quantity,
-        price: item.price
-      }))
-    })
+    if (items && items.length > 0) {
+      await prisma.orderItem.createMany({
+        data: items.map((item: any) => ({
+          orderId: order.id,
+          comboId: item.comboId,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })
+      console.log('Itens do pedido criados:', items.length)
+    } else {
+      console.error('Nenhum item encontrado no pedido')
+      return NextResponse.json(
+        { message: 'Nenhum item encontrado no pedido' },
+        { status: 400 }
+      )
+    }
 
     // Registrar venda no caixa
     try {
