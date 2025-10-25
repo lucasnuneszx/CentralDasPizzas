@@ -83,24 +83,31 @@ export default function CheckoutPublic() {
     loadCartFromStorage()
   }, [])
 
-  const loadCartFromStorage = () => {
+  const loadCartFromStorage = async () => {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
       try {
         const cartData = JSON.parse(savedCart)
-        // Converter formato do carrinho para o formato esperado
-        const formattedCart = Object.entries(cartData).map(([comboId, quantity]) => {
-          // Buscar dados do combo (você pode implementar uma API para isso)
-          return {
-            combo: {
-              id: comboId,
-              name: `Produto ${comboId}`,
-              price: 25.00 // Preço padrão, você pode buscar da API
-            },
-            quantity: quantity as number
-          }
-        })
-        setCart(formattedCart)
+        // Buscar dados dos combos da API
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const categories = await response.json()
+          const allCombos = categories.flatMap((cat: any) => cat.combos)
+          
+          // Converter formato do carrinho para o formato esperado
+          const formattedCart = Object.entries(cartData).map(([comboId, quantity]) => {
+            const combo = allCombos.find((c: any) => c.id === comboId)
+            return {
+              combo: {
+                id: comboId,
+                name: combo?.name || `Produto ${comboId}`,
+                price: combo?.price || 25.00
+              },
+              quantity: quantity as number
+            }
+          })
+          setCart(formattedCart)
+        }
       } catch (error) {
         console.error('Erro ao carregar carrinho:', error)
       }

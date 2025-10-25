@@ -51,7 +51,19 @@ export default function MenuPage() {
   useEffect(() => {
     fetchSettings()
     fetchCategories()
+    loadCartFromStorage()
   }, [])
+
+  const loadCartFromStorage = () => {
+    try {
+      const savedCart = localStorage.getItem('cart')
+      if (savedCart) {
+        setCart(JSON.parse(savedCart))
+      }
+    } catch (error) {
+      console.error('Erro ao carregar carrinho do localStorage:', error)
+    }
+  }
 
   const fetchSettings = async () => {
     try {
@@ -80,10 +92,17 @@ export default function MenuPage() {
   }
 
   const addToCart = (comboId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [comboId]: (prev[comboId] || 0) + 1
-    }))
+    console.log('Adicionando ao carrinho:', comboId)
+    setCart(prev => {
+      const newCart = {
+        ...prev,
+        [comboId]: (prev[comboId] || 0) + 1
+      }
+      console.log('Novo carrinho:', newCart)
+      // Salvar no localStorage
+      localStorage.setItem('cart', JSON.stringify(newCart))
+      return newCart
+    })
   }
 
   const removeFromCart = (comboId: string) => {
@@ -94,6 +113,8 @@ export default function MenuPage() {
       } else {
         delete newCart[comboId]
       }
+      // Salvar no localStorage
+      localStorage.setItem('cart', JSON.stringify(newCart))
       return newCart
     })
   }
