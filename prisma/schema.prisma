@@ -118,6 +118,7 @@ model Combo {
   category Category @relation(fields: [categoryId], references: [id])
   items    OrderItem[]
 
+  @@unique([name, categoryId])
   @@map("combos")
 }
 
@@ -174,6 +175,11 @@ model SystemSettings {
   restaurantAddress String?
   restaurantPhone   String?
   restaurantEmail   String?
+  restaurantLogo    String?
+  restaurantBanner  String?
+  deliveryEstimate  String?  @default("35 - 70min")
+  isOpen            Boolean  @default(true)
+  openingHours      String?
   ifoodApiKey       String?
   ifoodApiSecret    String?
   printerIp         String?

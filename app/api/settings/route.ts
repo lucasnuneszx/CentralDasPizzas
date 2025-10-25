@@ -6,12 +6,6 @@ import { UserRole } from '@/lib/constants'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
-    }
-
     // Buscar configurações do banco ou retornar padrões
     const settings = await prisma.systemSettings.findFirst()
     
@@ -25,6 +19,11 @@ export async function GET() {
       restaurantAddress: '',
       restaurantPhone: '',
       restaurantEmail: '',
+      restaurantLogo: '',
+      restaurantBanner: '',
+      deliveryEstimate: '35 - 70min',
+      isOpen: true,
+      openingHours: '',
       ifoodApiKey: '',
       ifoodApiSecret: '',
       printerIp: '',

@@ -17,6 +17,9 @@ export default function Home() {
 
     if (session) {
       router.push('/dashboard')
+    } else {
+      // Redirecionar para o cardápio público se não estiver logado
+      router.push('/client/menu')
     }
   }, [session, status, router])
 

@@ -7,6 +7,16 @@ export async function GET() {
       where: {
         isActive: true
       },
+      include: {
+        combos: {
+          where: {
+            isActive: true
+          },
+          orderBy: {
+            name: 'asc'
+          }
+        }
+      },
       orderBy: {
         name: 'asc'
       }

@@ -1,0 +1,34 @@
+# Railway Environment Variables
+# Copie este arquivo para .env.local e configure as variáveis
+
+# Database
+DATABASE_URL="file:./dev.db"
+
+# NextAuth
+NEXTAUTH_URL="https://seu-app.railway.app"
+NEXTAUTH_SECRET="seu-secret-super-seguro-aqui"
+
+# iFood API (opcional)
+IFOOD_API_KEY=""
+IFOOD_API_SECRET=""
+
+# Configurações da Loja
+RESTAURANT_NAME="Central Das Pizzas Avenida Sul"
+RESTAURANT_PHONE="(11) 99999-9999"
+RESTAURANT_EMAIL="contato@centraldaspizzas.com"
+RESTAURANT_ADDRESS="Avenida Sul, Centro"
+
+# Configurações de Delivery
+DELIVERY_FEE=5.00
+MIN_ORDER_VALUE=25.00
+TAX_RATE=0.00
+
+# Configurações de Impressão
+PRINTER_IP=""
+PRINTER_PORT="9100"
+AUTO_PRINT=true
+
+# Status da Loja
+IS_OPEN=true
+DELIVERY_ESTIMATE="35 - 70min"
+OPENING_HOURS="Seg-Dom: 18h-23h"
