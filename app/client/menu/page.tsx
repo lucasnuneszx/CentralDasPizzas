@@ -338,7 +338,7 @@ export default function MenuPage() {
                 </span>
               </Button>
               {getQuickFilterCategories().map((category) => {
-                const getCategoryIcon = (name) => {
+                const getCategoryIcon = (name: string) => {
                   if (name.includes('Combo')) return '🍽️'
                   if (name.includes('Pizza')) return '🍕'
                   if (name.includes('Hambúrguer')) return '🍔'
