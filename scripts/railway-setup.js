@@ -1,10 +1,30 @@
 const { PrismaClient } = require('@prisma/client')
+const { exec } = require('child_process')
 
 const prisma = new PrismaClient()
 
 async function railwaySetup() {
   try {
     console.log('🚀 Configurando aplicação para Railway...')
+    
+    // Detectar se estamos em produção (Railway)
+    const isProduction = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('postgres')
+    
+    if (isProduction) {
+      console.log('📦 Ambiente de produção detectado (PostgreSQL)')
+      console.log('🔄 Aplicando migração do banco de dados...')
+      
+      // Aplicar migrations
+      await exec('npx prisma migrate deploy', (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Erro ao aplicar migrations:', error)
+        } else {
+          console.log('✅ Migrations aplicadas com sucesso')
+        }
+      })
+    } else {
+      console.log('💾 Ambiente de desenvolvimento detectado (SQLite)')
+    }
 
     // Verificar se já existem configurações
     const existingSettings = await prisma.systemSettings.findFirst()
