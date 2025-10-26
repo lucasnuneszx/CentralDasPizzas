@@ -71,6 +71,28 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:scale-105">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <Menu className="h-8 w-8" />
+                  <Filter className="h-5 w-5 opacity-80" />
+                </div>
+                <CardTitle className="text-white text-lg">Categorias</CardTitle>
+                <CardDescription className="text-indigo-100">
+                  Gerenciar categorias do cardápio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => router.push('/admin/categories')}
+                >
+                  Acessar
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">

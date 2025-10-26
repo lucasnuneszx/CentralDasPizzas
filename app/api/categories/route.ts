@@ -39,13 +39,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, description, image } = await request.json()
+    const { name, description, image, isActive, order } = await request.json()
 
     const category = await prisma.category.create({
       data: {
         name,
         description,
-        image
+        image,
+        isActive: isActive ?? true,
+        order: order || 0
       }
     })
 
