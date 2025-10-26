@@ -49,9 +49,9 @@ async function railwaySetup() {
         // Criar configurações padrão para Railway
         await prisma.systemSettings.create({
           data: {
-            restaurantName: process.env.RESTAURANT_NAME || 'Central Das Pizzas Avenida Sul',
-            restaurantAddress: process.env.RESTAURANT_ADDRESS || 'Avenida Sul, Centro',
-            restaurantPhone: process.env.RESTAURANT_PHONE || '(11) 99999-9999',
+            restaurantName: process.env.RESTAURANT_NAME || 'Central das Pizzas Av Sul',
+            restaurantAddress: process.env.RESTAURANT_ADDRESS || 'Av. Sul, 104 - Verdes Horizontes, Camaçari - BA, 42810-021',
+            restaurantPhone: process.env.RESTAURANT_PHONE || '(71) 99156-5893',
             restaurantEmail: process.env.RESTAURANT_EMAIL || 'contato@centraldaspizzas.com',
             deliveryEstimate: process.env.DELIVERY_ESTIMATE || '35 - 70min',
             isOpen: process.env.IS_OPEN === 'true' || true,

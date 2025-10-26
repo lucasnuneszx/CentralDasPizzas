@@ -209,14 +209,27 @@ export default function MenuPage() {
               
               <div className="flex flex-wrap items-center gap-2">
                 {settings?.restaurantPhone && (
-                  <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs md:text-sm"
+                    onClick={() => window.open(`tel:${settings.restaurantPhone?.replace(/\D/g, '')}`, '_self')}
+                  >
                     <Phone className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                     <span className="hidden md:inline">{settings.restaurantPhone}</span>
                     <span className="md:hidden">Telefone</span>
                   </Button>
                 )}
                 {settings?.restaurantAddress && (
-                  <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs md:text-sm"
+                    onClick={() => {
+                      const address = encodeURIComponent(settings.restaurantAddress || '')
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank')
+                    }}
+                  >
                     <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                     Endereço
                   </Button>
