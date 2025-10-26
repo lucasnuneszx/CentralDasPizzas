@@ -38,6 +38,7 @@ export default function AdminCombos() {
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCombo, setEditingCombo] = useState<Combo | null>(null)
+  const [showCategoryForm, setShowCategoryForm] = useState(false)
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -50,6 +51,15 @@ export default function AdminCombos() {
     isPizza: false
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
+
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    description: '',
+    image: '',
+    isActive: true,
+    order: 0
+  })
+  const [selectedCategoryImage, setSelectedCategoryImage] = useState<File | null>(null)
 
   useEffect(() => {
     fetchCombos()
@@ -177,6 +187,64 @@ export default function AdminCombos() {
     resetForm()
   }
 
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      // Se há uma imagem selecionada, converter para base64
+      let imageData = categoryFormData.image
+      if (selectedCategoryImage) {
+        imageData = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(selectedCategoryImage)
+        })
+      }
+
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...categoryFormData,
+          image: imageData
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('Categoria criada com sucesso!')
+        setShowCategoryForm(false)
+        resetCategoryForm()
+        fetchCategories() // Recarregar categorias
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao criar categoria')
+      }
+    } catch (error) {
+      toast.error('Erro ao criar categoria')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const resetCategoryForm = () => {
+    setCategoryFormData({
+      name: '',
+      description: '',
+      image: '',
+      isActive: true,
+      order: 0
+    })
+    setSelectedCategoryImage(null)
+  }
+
+  const handleCancelCategory = () => {
+    setShowCategoryForm(false)
+    resetCategoryForm()
+  }
+
   return (
     <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER]}>
       <div className="min-h-screen bg-gray-50">
@@ -197,10 +265,20 @@ export default function AdminCombos() {
                 </h1>
               </div>
               
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Combo
-              </Button>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => setShowCategoryForm(true)}
+                  variant="outline"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Categoria
+                </Button>
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Combo
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -317,6 +395,90 @@ export default function AdminCombos() {
                       </Button>
                       <Button type="submit" disabled={isLoading}>
                         {isLoading ? 'Salvando...' : editingCombo ? 'Atualizar' : 'Criar'}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {showCategoryForm ? (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Nova Categoria</CardTitle>
+                  <CardDescription>
+                    Crie uma nova categoria para organizar seus produtos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCategorySubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="categoryName">Nome da Categoria</Label>
+                        <Input
+                          id="categoryName"
+                          value={categoryFormData.name}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                          required
+                          placeholder="Ex: Lanches, Sobremesas, Açaí"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="categoryOrder">Ordem de Exibição</Label>
+                        <Input
+                          id="categoryOrder"
+                          type="number"
+                          value={categoryFormData.order}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, order: parseInt(e.target.value) || 0 })}
+                          placeholder="0"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Número menor = aparece primeiro (1 = primeiro, 2 = segundo, etc.)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="categoryDescription">Descrição</Label>
+                      <textarea
+                        id="categoryDescription"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        rows={3}
+                        value={categoryFormData.description}
+                        onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                        placeholder="Descreva a categoria..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Imagem da Categoria</Label>
+                      <ImageUpload
+                        onImageSelect={setSelectedCategoryImage}
+                        currentImage={categoryFormData.image}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="categoryIsActive"
+                          checked={categoryFormData.isActive}
+                          onChange={(e) => setCategoryFormData({ ...categoryFormData, isActive: e.target.checked })}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="categoryIsActive">Categoria ativa</Label>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                      <Button type="button" variant="outline" onClick={handleCancelCategory}>
+                        Cancelar
+                      </Button>
+                      <Button type="submit" disabled={isLoading}>
+                        {isLoading ? 'Criando...' : 'Criar Categoria'}
                       </Button>
                     </div>
                   </form>
