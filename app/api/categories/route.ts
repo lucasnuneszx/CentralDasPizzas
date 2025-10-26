@@ -16,13 +16,18 @@ export async function GET() {
             name: 'asc'
           }
         }
-      },
-      orderBy: {
-        name: 'asc'
       }
     })
 
-    return NextResponse.json(categories)
+    // Ordenar categorias por campo order, depois por nome
+    const sortedCategories = categories.sort((a, b) => {
+      if (a.order !== b.order) {
+        return a.order - b.order
+      }
+      return a.name.localeCompare(b.name)
+    })
+
+    return NextResponse.json(sortedCategories)
   } catch (error) {
     console.error('Erro ao buscar categorias:', error)
     return NextResponse.json(
@@ -53,6 +58,7 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
 
 
 
