@@ -9,45 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Plus, Minus, X, ShoppingCart, ChefHat } from 'lucide-react'
 import Image from 'next/image'
-
-interface PizzaFlavor {
-  id: string
-  name: string
-  description: string
-  type: 'TRADICIONAL' | 'PREMIUM' | 'ESPECIAL'
-}
-
-interface PizzaSize {
-  id: string
-  name: string
-  slices: number
-  maxFlavors: number
-  basePrice: number
-}
-
-interface Combo {
-  id: string
-  name: string
-  description: string
-  price: number
-  image?: string
-  isPizza: boolean
-  category: {
-    id: string
-    name: string
-  }
-}
-
-interface CustomizedItem {
-  id: string
-  combo: Combo
-  quantity: number
-  size?: PizzaSize
-  flavors?: PizzaFlavor[]
-  observations: string
-  stuffedCrust: boolean
-  totalPrice: number
-}
+import { CustomizedItem, PizzaFlavor, PizzaSize, Combo } from '@/types/cart'
 
 interface ItemCustomizerProps {
   item: Combo

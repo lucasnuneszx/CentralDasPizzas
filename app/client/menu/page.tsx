@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ItemCustomizer from '@/components/item-customizer'
 import CartItem from '@/components/cart-item'
+import { CustomizedItem, Combo } from '@/types/cart'
 
 interface SystemSettings {
   id: string
@@ -22,40 +23,6 @@ interface SystemSettings {
   openingHours?: string
 }
 
-interface Combo {
-  id: string
-  name: string
-  description: string
-  price: number
-  image?: string
-  isActive: boolean
-  isPizza: boolean
-  category: {
-    id: string
-    name: string
-  }
-}
-
-interface CustomizedItem {
-  id: string
-  combo: Combo
-  quantity: number
-  size?: {
-    id: string
-    name: string
-    slices: number
-    maxFlavors: number
-    basePrice: number
-  }
-  flavors?: {
-    id: string
-    name: string
-    type: 'TRADICIONAL' | 'PREMIUM' | 'ESPECIAL'
-  }[]
-  observations: string
-  stuffedCrust: boolean
-  totalPrice: number
-}
 
 interface Category {
   id: string
@@ -78,9 +45,9 @@ export default function MenuPage() {
     fetchSettings()
     fetchCategories()
     loadCartFromStorage()
-  }, [])
+  }, [loadCartFromStorage])
 
-  const loadCartFromStorage = () => {
+  const loadCartFromStorage = useCallback(() => {
     try {
       const savedCart = localStorage.getItem('cart')
       if (savedCart) {
@@ -113,7 +80,7 @@ export default function MenuPage() {
     } catch (error) {
       console.error('Erro ao carregar carrinho do localStorage:', error)
     }
-  }
+  }, [categories])
 
   const fetchSettings = async () => {
     try {

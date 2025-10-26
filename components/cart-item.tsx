@@ -6,41 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Minus, X, Edit3 } from 'lucide-react'
 import Image from 'next/image'
-
-interface PizzaFlavor {
-  id: string
-  name: string
-  type: 'TRADICIONAL' | 'PREMIUM' | 'ESPECIAL'
-}
-
-interface PizzaSize {
-  id: string
-  name: string
-  slices: number
-}
-
-interface CustomizedItem {
-  id: string
-  combo: {
-    id: string
-    name: string
-    description: string
-    price: number
-    image?: string
-    isPizza: boolean
-    isActive: boolean
-    category: {
-      id: string
-      name: string
-    }
-  }
-  quantity: number
-  size?: PizzaSize
-  flavors?: PizzaFlavor[]
-  observations: string
-  stuffedCrust: boolean
-  totalPrice: number
-}
+import { CustomizedItem, PizzaFlavor, PizzaSize } from '@/types/cart'
 
 interface CartItemProps {
   item: CustomizedItem
