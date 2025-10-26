@@ -41,12 +41,6 @@ export default function MenuPage() {
   const [customizingItem, setCustomizingItem] = useState<Combo | null>(null)
   const [editingItem, setEditingItem] = useState<CustomizedItem | null>(null)
 
-  useEffect(() => {
-    fetchSettings()
-    fetchCategories()
-    loadCartFromStorage()
-  }, [loadCartFromStorage])
-
   const loadCartFromStorage = useCallback(() => {
     try {
       const savedCart = localStorage.getItem('cart')
@@ -81,6 +75,12 @@ export default function MenuPage() {
       console.error('Erro ao carregar carrinho do localStorage:', error)
     }
   }, [categories])
+
+  useEffect(() => {
+    fetchSettings()
+    fetchCategories()
+    loadCartFromStorage()
+  }, [loadCartFromStorage])
 
   const fetchSettings = async () => {
     try {
