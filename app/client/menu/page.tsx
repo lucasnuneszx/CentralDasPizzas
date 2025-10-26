@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus, ChefHat } from 'lucide-react'
+import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus, ChefHat, Search, Filter, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ItemCustomizer from '@/components/item-customizer'
@@ -40,6 +40,8 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [customizingItem, setCustomizingItem] = useState<Combo | null>(null)
   const [editingItem, setEditingItem] = useState<CustomizedItem | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const loadCartFromStorage = useCallback(() => {
     try {
@@ -151,6 +153,30 @@ export default function MenuPage() {
 
   const getCartItemsCount = () => {
     return cart.reduce((total, item) => total + item.quantity, 0)
+  }
+
+  // Filtrar categorias e combos baseado na seleção e busca
+  const filteredCategories = categories.filter(category => {
+    if (selectedCategory && category.id !== selectedCategory) return false
+    
+    const filteredCombos = category.combos.filter(combo => {
+      if (searchTerm) {
+        return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               combo.description.toLowerCase().includes(searchTerm.toLowerCase())
+      }
+      return true
+    })
+    
+    return filteredCombos.length > 0
+  })
+
+  // Obter categorias para os filtros rápidos
+  const getQuickFilterCategories = () => {
+    return categories.map(category => ({
+      id: category.id,
+      name: category.name,
+      count: category.combos.length
+    }))
   }
 
   if (loading) {
@@ -265,9 +291,106 @@ export default function MenuPage() {
 
       {/* Conteúdo principal */}
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Filtros e Busca */}
+        <div className="mb-8 space-y-4">
+          {/* Barra de Busca */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Buscar por nome ou descrição..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-500"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Filtros Rápidos por Categoria */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-5 w-5 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Filtrar por categoria:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+                className={selectedCategory === null ? "bg-red-500 text-white hover:bg-red-600" : "border-gray-300 text-gray-700 hover:bg-gray-50"}
+              >
+                Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})
+              </Button>
+              {getQuickFilterCategories().map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={selectedCategory === category.id ? "bg-red-500 text-white hover:bg-red-600" : "border-gray-300 text-gray-700 hover:bg-gray-50"}
+                >
+                  {category.name} ({category.count})
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Resultados da Busca */}
+          {searchTerm && (
+            <div className="text-sm text-gray-600">
+              {filteredCategories.length > 0 ? (
+                <span>
+                  Encontrados {filteredCategories.reduce((total, cat) => total + cat.combos.length, 0)} itens para "{searchTerm}"
+                </span>
+              ) : (
+                <span className="text-red-500">
+                  Nenhum item encontrado para "{searchTerm}"
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Botão para limpar filtros */}
+          {(selectedCategory || searchTerm) && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedCategory(null)
+                  setSearchTerm('')
+                }}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* Categorias e produtos */}
         <div className="space-y-8">
-          {categories.map((category) => (
+          {filteredCategories.map((category) => {
+            // Filtrar combos dentro da categoria baseado na busca
+            const filteredCombos = category.combos.filter(combo => {
+              if (searchTerm) {
+                return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       combo.description.toLowerCase().includes(searchTerm.toLowerCase())
+              }
+              return true
+            })
+
+            return (
             <div key={category.id} className="space-y-4">
               <div className="flex items-center space-x-3">
                 {category.image && (
@@ -289,7 +412,7 @@ export default function MenuPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {category.combos.map((combo) => (
+                {filteredCombos.map((combo) => (
                   <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     {combo.image && (
                       <div className="h-48 relative">
@@ -337,7 +460,8 @@ export default function MenuPage() {
                 ))}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </main>
 
