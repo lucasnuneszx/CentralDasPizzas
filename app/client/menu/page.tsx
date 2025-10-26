@@ -40,8 +40,18 @@ interface CustomizedItem {
   id: string
   combo: Combo
   quantity: number
-  size?: any
-  flavors?: any[]
+  size?: {
+    id: string
+    name: string
+    slices: number
+    maxFlavors: number
+    basePrice: number
+  }
+  flavors?: {
+    id: string
+    name: string
+    type: 'TRADICIONAL' | 'PREMIUM' | 'ESPECIAL'
+  }[]
   observations: string
   stuffedCrust: boolean
   totalPrice: number
@@ -86,7 +96,10 @@ export default function MenuPage() {
             if (combo) {
               newCart.push({
                 id: `${comboId}-${Date.now()}`,
-                combo,
+                combo: {
+                  ...combo,
+                  isActive: true
+                },
                 quantity: quantity as number,
                 observations: '',
                 stuffedCrust: false,

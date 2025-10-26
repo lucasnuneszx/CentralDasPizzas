@@ -28,6 +28,7 @@ interface CustomizedItem {
     price: number
     image?: string
     isPizza: boolean
+    isActive: boolean
     category: {
       id: string
       name: string
