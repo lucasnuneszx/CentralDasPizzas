@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import PizzaCustomizer from '@/components/pizza-customizer'
+import ItemCustomizer from '@/components/item-customizer'
+import CartItem from '@/components/cart-item'
 
 interface SystemSettings {
   id: string
@@ -28,10 +29,22 @@ interface Combo {
   price: number
   image?: string
   isActive: boolean
+  isPizza: boolean
   category: {
     id: string
     name: string
   }
+}
+
+interface CustomizedItem {
+  id: string
+  combo: Combo
+  quantity: number
+  size?: any
+  flavors?: any[]
+  observations: string
+  stuffedCrust: boolean
+  totalPrice: number
 }
 
 interface Category {
@@ -46,9 +59,10 @@ interface Category {
 export default function MenuPage() {
   const [settings, setSettings] = useState<SystemSettings | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
-  const [cart, setCart] = useState<{[key: string]: number}>({})
+  const [cart, setCart] = useState<CustomizedItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showPizzaCustomizer, setShowPizzaCustomizer] = useState(false)
+  const [customizingItem, setCustomizingItem] = useState<Combo | null>(null)
+  const [editingItem, setEditingItem] = useState<CustomizedItem | null>(null)
 
   useEffect(() => {
     fetchSettings()
@@ -60,7 +74,28 @@ export default function MenuPage() {
     try {
       const savedCart = localStorage.getItem('cart')
       if (savedCart) {
-        setCart(JSON.parse(savedCart))
+        const parsedCart = JSON.parse(savedCart)
+        // Converter formato antigo para novo se necessário
+        if (Array.isArray(parsedCart)) {
+          setCart(parsedCart)
+        } else {
+          // Converter formato antigo {id: quantity} para novo formato
+          const newCart: CustomizedItem[] = []
+          Object.entries(parsedCart).forEach(([comboId, quantity]) => {
+            const combo = categories.flatMap(cat => cat.combos).find(c => c.id === comboId)
+            if (combo) {
+              newCart.push({
+                id: `${comboId}-${Date.now()}`,
+                combo,
+                quantity: quantity as number,
+                observations: '',
+                stuffedCrust: false,
+                totalPrice: combo.price * (quantity as number)
+              })
+            }
+          })
+          setCart(newCart)
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar carrinho do localStorage:', error)
@@ -93,58 +128,49 @@ export default function MenuPage() {
     }
   }
 
-  const addToCart = (comboId: string) => {
-    console.log('Adicionando ao carrinho:', comboId)
+  const handleItemCustomize = (combo: Combo) => {
+    setCustomizingItem(combo)
+  }
+
+  const handleItemEdit = (item: CustomizedItem) => {
+    setEditingItem(item)
+    setCustomizingItem(item.combo)
+  }
+
+  const handleAddToCart = (customizedItem: CustomizedItem) => {
     setCart(prev => {
-      const newCart = {
-        ...prev,
-        [comboId]: (prev[comboId] || 0) + 1
-      }
-      console.log('Novo carrinho:', newCart)
-      // Salvar no localStorage
+      const newCart = [...prev, customizedItem]
+      localStorage.setItem('cart', JSON.stringify(newCart))
+      return newCart
+    })
+    setCustomizingItem(null)
+    setEditingItem(null)
+  }
+
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+    setCart(prev => {
+      const newCart = prev.map(item => 
+        item.id === itemId ? { ...item, quantity } : item
+      )
       localStorage.setItem('cart', JSON.stringify(newCart))
       return newCart
     })
   }
 
-  const removeFromCart = (comboId: string) => {
+  const handleRemoveItem = (itemId: string) => {
     setCart(prev => {
-      const newCart = { ...prev }
-      if (newCart[comboId] > 1) {
-        newCart[comboId] -= 1
-      } else {
-        delete newCart[comboId]
-      }
-      // Salvar no localStorage
+      const newCart = prev.filter(item => item.id !== itemId)
       localStorage.setItem('cart', JSON.stringify(newCart))
       return newCart
     })
   }
 
   const getCartTotal = () => {
-    return Object.entries(cart).reduce((total, [comboId, quantity]) => {
-      const combo = categories.flatMap(cat => cat.combos).find(c => c.id === comboId)
-      return total + (combo ? combo.price * quantity : 0)
-    }, 0)
+    return cart.reduce((total, item) => total + item.totalPrice, 0)
   }
 
   const getCartItemsCount = () => {
-    return Object.values(cart).reduce((total, quantity) => total + quantity, 0)
-  }
-
-  const handleCustomPizzaAdd = (customPizza: any) => {
-    // Adicionar pizza personalizada ao carrinho
-    const pizzaId = `custom-${Date.now()}`
-    setCart(prev => {
-      const newCart = {
-        ...prev,
-        [pizzaId]: 1
-      }
-      // Salvar no localStorage
-      localStorage.setItem('cart', JSON.stringify(newCart))
-      return newCart
-    })
-    setShowPizzaCustomizer(false)
+    return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
   if (loading) {
@@ -258,26 +284,7 @@ export default function MenuPage() {
       </header>
 
       {/* Conteúdo principal */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Botão para personalizar pizza */}
-        <div className="mb-8 text-center">
-          <Button
-            onClick={() => setShowPizzaCustomizer(true)}
-            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full shadow-lg"
-            size="lg"
-          >
-            <ChefHat className="h-5 w-5 mr-2" />
-            Monte sua Pizza Personalizada
-          </Button>
-        </div>
-
-        {/* Personalizador de Pizza */}
-        {showPizzaCustomizer && (
-          <div className="mb-8">
-            <PizzaCustomizer onAddToCart={handleCustomPizzaAdd} />
-          </div>
-        )}
-
+      <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Categorias e produtos */}
         <div className="space-y-8">
           {categories.map((category) => (
@@ -301,7 +308,7 @@ export default function MenuPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {category.combos.map((combo) => (
                   <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     {combo.image && (
@@ -325,35 +332,25 @@ export default function MenuPage() {
                     <CardHeader>
                       <CardTitle className="text-lg">{combo.name}</CardTitle>
                       <CardDescription>{combo.description}</CardDescription>
+                      {combo.isPizza && (
+                        <Badge className="bg-orange-100 text-orange-800 w-fit">
+                          <ChefHat className="h-3 w-3 mr-1" />
+                          Personalizável
+                        </Badge>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
                         <div className="text-2xl font-bold text-red-600">
                           R$ {combo.price.toFixed(2).replace('.', ',')}
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {cart[combo.id] > 0 && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeFromCart(combo.id)}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <span className="w-8 text-center font-medium">
-                                {cart[combo.id]}
-                              </span>
-                            </>
-                          )}
-                          <Button
-                            onClick={() => addToCart(combo.id)}
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={() => handleItemCustomize(combo)}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          {combo.isPizza ? 'Personalizar' : 'Adicionar'}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -366,18 +363,45 @@ export default function MenuPage() {
 
       {/* Carrinho flutuante */}
       {getCartItemsCount() > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50">
-          <Link href="/client/checkout-public" className="block">
-            <Button className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-4 md:px-6 py-3 rounded-full shadow-lg">
-              <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-              <span className="hidden md:inline">Ver Carrinho</span>
-              <span className="md:hidden">Carrinho</span>
-              ({getCartItemsCount()})
-              <span className="ml-2 font-bold">
-                R$ {getCartTotal().toFixed(2).replace('.', ',')}
-              </span>
-            </Button>
-          </Link>
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
+          <div className="bg-white rounded-lg shadow-xl border max-h-96 overflow-hidden">
+            {/* Header do carrinho */}
+            <div className="p-4 border-b bg-gray-50">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">
+                  Carrinho ({getCartItemsCount()})
+                </h3>
+                <Link href="/client/checkout-public">
+                  <Button size="sm" className="bg-red-500 hover:bg-red-600">
+                    Finalizar
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Itens do carrinho */}
+            <div className="max-h-64 overflow-y-auto">
+              {cart.map((item) => (
+                <CartItem
+                  key={item.id}
+                  item={item}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemove={handleRemoveItem}
+                  onEdit={handleItemEdit}
+                />
+              ))}
+            </div>
+
+            {/* Total */}
+            <div className="p-4 border-t bg-gray-50">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-900">Total:</span>
+                <span className="text-xl font-bold text-red-600">
+                  R$ {getCartTotal().toFixed(2).replace('.', ',')}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -414,6 +438,18 @@ export default function MenuPage() {
           </div>
         </div>
       </footer>
+
+      {/* Modal de personalização */}
+      {customizingItem && (
+        <ItemCustomizer
+          item={customizingItem}
+          onAddToCart={handleAddToCart}
+          onClose={() => {
+            setCustomizingItem(null)
+            setEditingItem(null)
+          }}
+        />
+      )}
     </div>
   )
 }

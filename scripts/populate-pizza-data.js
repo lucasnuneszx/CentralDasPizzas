@@ -82,27 +82,41 @@ async function populatePizzaData() {
       })
     }
 
-    // Criar combo de pizza base
-    const pizzaCombo = await prisma.combo.upsert({
-      where: { 
-        name_categoryId: {
-          name: 'Pizza Personalizada',
-          categoryId: pizzaCategory.id
-        }
-      },
-      update: {
-        isPizza: true
-      },
-      create: {
-        name: 'Pizza Personalizada',
-        description: 'Escolha o tamanho e os sabores da sua pizza',
-        price: 0, // Preço será calculado dinamicamente
-        image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-        categoryId: pizzaCategory.id,
-        isPizza: true,
-        isActive: true
+    // Atualizar combos existentes para marcar pizzas
+    const existingCombos = await prisma.combo.findMany({
+      where: {
+        categoryId: pizzaCategory.id
       }
     })
+
+    for (const combo of existingCombos) {
+      await prisma.combo.update({
+        where: { id: combo.id },
+        data: { isPizza: true }
+      })
+    }
+
+    // Criar combo de pizza base se não existir
+    let pizzaCombo = await prisma.combo.findFirst({
+      where: { 
+        name: 'Pizza Personalizada',
+        categoryId: pizzaCategory.id
+      }
+    })
+
+    if (!pizzaCombo) {
+      pizzaCombo = await prisma.combo.create({
+        data: {
+          name: 'Pizza Personalizada',
+          description: 'Escolha o tamanho e os sabores da sua pizza',
+          price: 0, // Preço será calculado dinamicamente
+          image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
+          categoryId: pizzaCategory.id,
+          isPizza: true,
+          isActive: true
+        }
+      })
+    }
 
     // Limpar tamanhos existentes para esta pizza
     await prisma.pizzaSize.deleteMany({
