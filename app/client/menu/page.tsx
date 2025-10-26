@@ -349,11 +349,11 @@ export default function MenuPage() {
             <div className="text-sm text-gray-600">
               {filteredCategories.length > 0 ? (
                 <span>
-                  Encontrados {filteredCategories.reduce((total, cat) => total + cat.combos.length, 0)} itens para "{searchTerm}"
+                  Encontrados {filteredCategories.reduce((total, cat) => total + cat.combos.length, 0)} itens para &quot;{searchTerm}&quot;
                 </span>
               ) : (
                 <span className="text-red-500">
-                  Nenhum item encontrado para "{searchTerm}"
+                  Nenhum item encontrado para &quot;{searchTerm}&quot;
                 </span>
               )}
             </div>
