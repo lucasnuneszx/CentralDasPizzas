@@ -151,7 +151,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -166,7 +166,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               </div>
             )}
             <div>
-              <h2 className="text-lg font-semibold">{item.name}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
               <p className="text-sm text-gray-600">{item.description}</p>
             </div>
           </div>
@@ -183,21 +183,23 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         <div className="p-4 space-y-6">
           {/* Quantidade */}
           <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Quantidade</Label>
+            <Label className="text-base font-medium text-gray-900">Quantidade</Label>
             <div className="flex items-center space-x-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="w-8 text-center font-medium">{quantity}</span>
+              <span className="w-8 text-center font-medium text-gray-900">{quantity}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setQuantity(quantity + 1)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -209,18 +211,22 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             <>
               {/* Seleção de Tamanho */}
               <div>
-                <Label className="text-base font-medium mb-3 block">Tamanho da Pizza</Label>
+                <Label className="text-base font-medium mb-3 block text-gray-900">Tamanho da Pizza</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {sizes.map((size) => (
                     <Button
                       key={size.id}
                       variant={selectedSize?.id === size.id ? "default" : "outline"}
-                      className="h-auto p-3 flex flex-col items-center space-y-1"
+                      className={`h-auto p-3 flex flex-col items-center space-y-1 ${
+                        selectedSize?.id === size.id 
+                          ? "bg-red-500 text-white hover:bg-red-600" 
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
                       onClick={() => handleSizeSelect(size)}
                     >
                       <div className="font-semibold">{size.name}</div>
-                      <div className="text-xs text-gray-600">{size.slices} fatias</div>
-                      <div className="text-xs text-gray-600">Até {size.maxFlavors} sabores</div>
+                      <div className="text-xs opacity-80">{size.slices} fatias</div>
+                      <div className="text-xs opacity-80">Até {size.maxFlavors} sabores</div>
                       <div className="font-bold">R$ {size.basePrice.toFixed(2).replace('.', ',')}</div>
                     </Button>
                   ))}
@@ -230,7 +236,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               {/* Seleção de Sabores */}
               {selectedSize && (
                 <div>
-                  <Label className="text-base font-medium mb-3 block">
+                  <Label className="text-base font-medium mb-3 block text-gray-900">
                     Sabores da Pizza
                     <span className="text-sm text-gray-500 ml-2">
                       ({selectedFlavors.length}/{selectedSize.maxFlavors})
@@ -314,7 +320,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
           {/* Observações */}
           <div>
-            <Label className="text-base font-medium mb-2 block">
+            <Label className="text-base font-medium mb-2 block text-gray-900">
               Observações
             </Label>
             <Textarea
@@ -322,12 +328,13 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
               rows={3}
+              className="border-gray-300 text-gray-900 placeholder-gray-500 focus:border-red-500 focus:ring-red-500"
             />
           </div>
         </div>
 
         {/* Footer com preço e botão */}
-        <div className="sticky bottom-0 bg-white border-t p-4">
+        <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold text-red-600">
@@ -339,7 +346,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
             <Button
               onClick={handleAddToCart}
-              className="bg-red-500 hover:bg-red-600 px-6"
+              className="bg-red-500 hover:bg-red-600 text-white px-6 font-semibold"
               size="lg"
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
