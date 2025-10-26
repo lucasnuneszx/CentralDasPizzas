@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus } from 'lucide-react'
+import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import PizzaCustomizer from '@/components/pizza-customizer'
 
 interface SystemSettings {
   id: string
@@ -47,6 +48,7 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [cart, setCart] = useState<{[key: string]: number}>({})
   const [loading, setLoading] = useState(true)
+  const [showPizzaCustomizer, setShowPizzaCustomizer] = useState(false)
 
   useEffect(() => {
     fetchSettings()
@@ -128,6 +130,21 @@ export default function MenuPage() {
 
   const getCartItemsCount = () => {
     return Object.values(cart).reduce((total, quantity) => total + quantity, 0)
+  }
+
+  const handleCustomPizzaAdd = (customPizza: any) => {
+    // Adicionar pizza personalizada ao carrinho
+    const pizzaId = `custom-${Date.now()}`
+    setCart(prev => {
+      const newCart = {
+        ...prev,
+        [pizzaId]: 1
+      }
+      // Salvar no localStorage
+      localStorage.setItem('cart', JSON.stringify(newCart))
+      return newCart
+    })
+    setShowPizzaCustomizer(false)
   }
 
   if (loading) {
@@ -242,6 +259,25 @@ export default function MenuPage() {
 
       {/* Conteúdo principal */}
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Botão para personalizar pizza */}
+        <div className="mb-8 text-center">
+          <Button
+            onClick={() => setShowPizzaCustomizer(true)}
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full shadow-lg"
+            size="lg"
+          >
+            <ChefHat className="h-5 w-5 mr-2" />
+            Monte sua Pizza Personalizada
+          </Button>
+        </div>
+
+        {/* Personalizador de Pizza */}
+        {showPizzaCustomizer && (
+          <div className="mb-8">
+            <PizzaCustomizer onAddToCart={handleCustomPizzaAdd} />
+          </div>
+        )}
+
         {/* Categorias e produtos */}
         <div className="space-y-8">
           {categories.map((category) => (

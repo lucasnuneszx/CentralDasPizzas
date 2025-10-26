@@ -44,7 +44,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    const { items, deliveryType, paymentMethod, addressId, notes, total, customer, address } = await request.json()
+    const { items, deliveryType, paymentMethod, addressId, notes, total, customer, address, customPizzas } = await request.json()
 
     let userId = session?.user?.id
 
@@ -112,7 +112,32 @@ export async function POST(request: NextRequest) {
         }))
       })
       console.log('Itens do pedido criados:', items.length)
-    } else {
+    }
+
+    // Criar pizzas personalizadas
+    if (customPizzas && customPizzas.length > 0) {
+      for (const customPizza of customPizzas) {
+        await prisma.orderItem.create({
+          data: {
+            orderId: order.id,
+            comboId: 'custom-pizza', // ID especial para pizzas personalizadas
+            quantity: 1,
+            price: customPizza.totalPrice,
+            pizzaSizeId: customPizza.size.id,
+            selectedFlavors: JSON.stringify(customPizza.flavors.map((f: any) => f.id)),
+            observations: customPizza.observations,
+            extras: JSON.stringify({
+              stuffedCrust: customPizza.stuffedCrust,
+              premiumFlavors: customPizza.flavors.filter((f: any) => f.type === 'PREMIUM').length,
+              especialFlavors: customPizza.flavors.filter((f: any) => f.type === 'ESPECIAL').length
+            })
+          }
+        })
+      }
+      console.log('Pizzas personalizadas criadas:', customPizzas.length)
+    }
+
+    if ((!items || items.length === 0) && (!customPizzas || customPizzas.length === 0)) {
       console.error('Nenhum item encontrado no pedido')
       return NextResponse.json(
         { message: 'Nenhum item encontrado no pedido' },

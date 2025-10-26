@@ -112,14 +112,45 @@ model Combo {
   image       String?
   isActive    Boolean  @default(true)
   categoryId  String
+  isPizza     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   category Category @relation(fields: [categoryId], references: [id])
   items    OrderItem[]
+  sizes    PizzaSize[]
 
   @@unique([name, categoryId])
   @@map("combos")
+}
+
+model PizzaSize {
+  id        String @id @default(cuid())
+  comboId   String
+  name      String // "Pequena", "Média", "Grande", "Família"
+  slices    Int    // 4, 6, 8, 13
+  maxFlavors Int   // 2, 2, 3, 4
+  basePrice Float
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  combo      Combo       @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@map("pizza_sizes")
+}
+
+model PizzaFlavor {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  type        String // "TRADICIONAL", "PREMIUM", "ESPECIAL"
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("pizza_flavors")
 }
 
 model Order {
@@ -144,14 +175,19 @@ model Order {
 }
 
 model OrderItem {
-  id       String @id @default(cuid())
-  orderId  String
-  comboId  String
-  quantity Int
-  price    Float
+  id           String @id @default(cuid())
+  orderId      String
+  comboId      String
+  quantity     Int
+  price        Float
+  pizzaSizeId  String?
+  selectedFlavors String? // JSON array of flavor IDs
+  observations String?
+  extras       String?    // JSON for additional charges (premium, especial)
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  combo Combo @relation(fields: [comboId], references: [id])
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  combo     Combo     @relation(fields: [comboId], references: [id])
+  pizzaSize PizzaSize? @relation(fields: [pizzaSizeId], references: [id])
 
   @@map("order_items")
 }
@@ -190,6 +226,9 @@ model SystemSettings {
   minOrderValue     Float    @default(0)
   autoCloseTime     String?  @default("23:00")
   autoCloseEnabled  Boolean  @default(false)
+  premiumFlavorPrice Float   @default(15.00)
+  especialFlavorPrice Float  @default(20.00)
+  stuffedCrustPrice Float    @default(4.99)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
