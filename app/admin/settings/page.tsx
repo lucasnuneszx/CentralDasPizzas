@@ -103,18 +103,54 @@ export default function SettingsPage() {
     }
   }
 
-  const handleImageUpload = (field: 'restaurantLogo' | 'restaurantBanner', file: File) => {
-    // Por enquanto, vamos apenas simular o upload
-    // Em produção, você implementaria o upload real para um serviço como Cloudinary, AWS S3, etc.
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const url = e.target?.result as string
+  const handleImageUpload = async (field: 'restaurantLogo' | 'restaurantBanner', file: File) => {
+    // Verificar se é um arquivo vazio (removido)
+    if (file.size === 0) {
       setSettings(prev => ({
         ...prev,
-        [field]: url
+        [field]: ''
       }))
+      return
     }
-    reader.readAsDataURL(file)
+
+    try {
+      // Criar FormData para enviar o arquivo
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('field', field)
+
+      // Fazer upload para o servidor
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Atualizar o estado com a URL retornada
+        setSettings(prev => ({
+          ...prev,
+          [field]: data.url
+        }))
+        toast.success('Imagem enviada com sucesso!')
+      } else {
+        throw new Error('Erro ao fazer upload da imagem')
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error)
+      toast.error('Erro ao enviar imagem. Usando preview local.')
+      
+      // Fallback: usar base64 local
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const url = e.target?.result as string
+        setSettings(prev => ({
+          ...prev,
+          [field]: url
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   if (loading) {

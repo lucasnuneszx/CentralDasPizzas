@@ -50,6 +50,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const settingsData = await request.json()
+    
+    // Log para debug
+    console.log('Salvando configurações:', {
+      restaurantName: settingsData.restaurantName,
+      hasLogo: !!settingsData.restaurantLogo,
+      hasBanner: !!settingsData.restaurantBanner,
+      logoLength: settingsData.restaurantLogo?.length || 0,
+      bannerLength: settingsData.restaurantBanner?.length || 0
+    })
 
     // Verificar se já existem configurações
     const existingSettings = await prisma.systemSettings.findFirst()
@@ -60,17 +69,24 @@ export async function PUT(request: NextRequest) {
         where: { id: existingSettings.id },
         data: settingsData
       })
+      
+      console.log('Configurações atualizadas com sucesso')
       return NextResponse.json(updatedSettings)
     } else {
       // Criar novas configurações
       const newSettings = await prisma.systemSettings.create({
         data: settingsData
       })
+      
+      console.log('Configurações criadas com sucesso')
       return NextResponse.json(newSettings)
     }
   } catch (error) {
     console.error('Erro ao salvar configurações:', error)
-    return NextResponse.json({ message: 'Erro interno do servidor' }, { status: 500 })
+    return NextResponse.json({ 
+      message: 'Erro interno do servidor',
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    }, { status: 500 })
   }
 }
 

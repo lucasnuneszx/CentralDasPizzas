@@ -146,44 +146,60 @@ export default function MenuPage() {
       {/* Header com banner e informações da loja */}
       <header className="relative">
         {settings?.restaurantBanner && (
-          <div className="h-48 w-full relative overflow-hidden">
-            <Image
-              src={settings.restaurantBanner}
-              alt="Banner da loja"
-              fill
-              className="object-cover"
-            />
+          <div className="h-32 md:h-48 w-full relative overflow-hidden">
+            {settings.restaurantBanner.startsWith('data:') ? (
+              <img
+                src={settings.restaurantBanner}
+                alt="Banner da loja"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src={settings.restaurantBanner}
+                alt="Banner da loja"
+                fill
+                className="object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-black/30"></div>
           </div>
         )}
         
         <div className="bg-white shadow-sm">
-          <div className="max-w-4xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
+          <div className="max-w-4xl mx-auto px-4 py-4 md:py-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center space-x-4">
                 {settings?.restaurantLogo && (
-                  <div className="w-16 h-16 relative rounded-full overflow-hidden">
-                    <Image
-                      src={settings.restaurantLogo}
-                      alt="Logo da loja"
-                      fill
-                      className="object-cover"
-                    />
+                  <div className="w-12 h-12 md:w-16 md:h-16 relative rounded-full overflow-hidden flex-shrink-0">
+                    {settings.restaurantLogo.startsWith('data:') ? (
+                      <img
+                        src={settings.restaurantLogo}
+                        alt="Logo da loja"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={settings.restaurantLogo}
+                        alt="Logo da loja"
+                        fill
+                        className="object-cover"
+                      />
+                    )}
                   </div>
                 )}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                     {settings?.restaurantName || 'Central Das Pizzas'}
                   </h1>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-gray-600">
                     {settings?.deliveryEstimate && (
                       <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>Entrega {settings.deliveryEstimate}</span>
+                        <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="text-xs md:text-sm">Entrega {settings.deliveryEstimate}</span>
                       </div>
                     )}
                     {settings?.isOpen !== undefined && (
-                      <Badge variant={settings.isOpen ? "default" : "destructive"}>
+                      <Badge variant={settings.isOpen ? "default" : "destructive"} className="text-xs">
                         {settings.isOpen ? "Aberto" : "Fechado"}
                       </Badge>
                     )}
@@ -191,16 +207,17 @@ export default function MenuPage() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {settings?.restaurantPhone && (
-                  <Button variant="outline" size="sm">
-                    <Phone className="h-4 w-4 mr-2" />
-                    {settings.restaurantPhone}
+                  <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                    <Phone className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                    <span className="hidden md:inline">{settings.restaurantPhone}</span>
+                    <span className="md:hidden">Telefone</span>
                   </Button>
                 )}
                 {settings?.restaurantAddress && (
-                  <Button variant="outline" size="sm">
-                    <MapPin className="h-4 w-4 mr-2" />
+                  <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                    <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                     Endereço
                   </Button>
                 )}
@@ -240,12 +257,20 @@ export default function MenuPage() {
                   <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     {combo.image && (
                       <div className="h-48 relative">
-                        <Image
-                          src={combo.image}
-                          alt={combo.name}
-                          fill
-                          className="object-cover"
-                        />
+                        {combo.image.startsWith('data:') ? (
+                          <img
+                            src={combo.image}
+                            alt={combo.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Image
+                            src={combo.image}
+                            alt={combo.name}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
                       </div>
                     )}
                     <CardHeader>
@@ -292,11 +317,13 @@ export default function MenuPage() {
 
       {/* Carrinho flutuante */}
       {getCartItemsCount() > 0 && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <Link href="/client/checkout-public">
-            <Button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full shadow-lg">
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Ver Carrinho ({getCartItemsCount()})
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50">
+          <Link href="/client/checkout-public" className="block">
+            <Button className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-4 md:px-6 py-3 rounded-full shadow-lg">
+              <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              <span className="hidden md:inline">Ver Carrinho</span>
+              <span className="md:hidden">Carrinho</span>
+              ({getCartItemsCount()})
               <span className="ml-2 font-bold">
                 R$ {getCartTotal().toFixed(2).replace('.', ',')}
               </span>
@@ -312,12 +339,20 @@ export default function MenuPage() {
             <div className="flex items-center justify-center mb-4">
               {settings?.restaurantLogo && (
                 <div className="w-8 h-8 relative rounded-lg overflow-hidden mr-3">
-                  <Image
-                    src={settings.restaurantLogo}
-                    alt="Logo da loja"
-                    fill
-                    className="object-cover"
-                  />
+                  {settings.restaurantLogo.startsWith('data:') ? (
+                    <img
+                      src={settings.restaurantLogo}
+                      alt="Logo da loja"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={settings.restaurantLogo}
+                      alt="Logo da loja"
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
               )}
               <span className="text-lg font-bold text-gray-900">

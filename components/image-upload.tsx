@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
@@ -15,6 +15,11 @@ export function ImageUpload({ onImageSelect, currentImage, className = '' }: Ima
   const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentImage || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Atualizar preview quando currentImage mudar
+  useEffect(() => {
+    setPreview(currentImage || null)
+  }, [currentImage])
 
   const handleFiles = (files: FileList | null) => {
     if (files && files[0]) {
@@ -68,11 +73,15 @@ export function ImageUpload({ onImageSelect, currentImage, className = '' }: Ima
     handleFiles(e.target.files)
   }
 
-  const removeImage = () => {
+  const removeImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setPreview(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+    // Criar um File vazio para notificar o componente pai
+    const emptyFile = new File([], '', { type: 'image/png' })
+    onImageSelect(emptyFile)
   }
 
   const openFileDialog = () => {
@@ -114,10 +123,7 @@ export function ImageUpload({ onImageSelect, currentImage, className = '' }: Ima
                 variant="destructive"
                 size="sm"
                 className="absolute top-2 right-2"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  removeImage()
-                }}
+                onClick={removeImage}
               >
                 <X className="w-4 h-4" />
               </Button>

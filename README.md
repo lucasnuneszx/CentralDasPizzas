@@ -45,7 +45,7 @@ Sistema completo de gestão para pizzaria com interface web responsiva, controle
 
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma ORM
-- **Banco de Dados**: PostgreSQL
+- **Banco de Dados**: SQLite (desenvolvimento) / PostgreSQL (produção)
 - **Autenticação**: NextAuth.js
 - **UI Components**: Radix UI, Lucide React
 - **Notificações**: React Hot Toast
@@ -53,15 +53,14 @@ Sistema completo de gestão para pizzaria com interface web responsiva, controle
 ## 📋 Pré-requisitos
 
 - Node.js 18+ 
-- PostgreSQL 12+
 - npm ou yarn
 
-## 🚀 Instalação
+## 🚀 Instalação Local
 
 1. **Clone o repositório**
 ```bash
 git clone <repository-url>
-cd central-das-pizzas-pdv
+cd pdvsystemcentral
 ```
 
 2. **Instale as dependências**
@@ -76,7 +75,7 @@ cp env.example .env.local
 
 Edite o arquivo `.env.local` com suas configurações:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/central_das_pizzas?schema=public"
+DATABASE_URL="file:./prisma/dev.db"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-here"
 
@@ -97,8 +96,8 @@ PRINTER_PORT="9100"
 
 4. **Configure o banco de dados**
 ```bash
-npx prisma generate
-npx prisma db push
+npm run db:generate
+npm run db:push
 ```
 
 5. **Execute o projeto**
@@ -113,11 +112,7 @@ O sistema estará disponível em `http://localhost:3000`
 1. Acesse `http://localhost:3000`
 2. Clique em "Cadastrar" para criar uma conta
 3. Após o cadastro, faça login
-4. Para criar usuários administrativos, edite diretamente no banco de dados:
-
-```sql
-UPDATE users SET role = 'ADMIN' WHERE email = 'seu@email.com';
-```
+4. Para criar usuários administrativos, edite diretamente no banco de dados
 
 ## 📱 Uso do Sistema
 
@@ -136,50 +131,128 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'seu@email.com';
 ### Para Administradores
 1. Acesse todas as funcionalidades
 2. Gerencie combos em `/admin/combos`
-3. Configure integrações em `/admin/settings`
+3. Configure o sistema em `/admin/settings`
 4. Visualize relatórios e estatísticas
+
+## 🚀 Deploy
+
+### Railway (Recomendado)
+
+1. **Crie uma conta no Railway**
+   - Acesse [railway.app](https://railway.app)
+   - Faça login com GitHub
+
+2. **Crie um novo projeto**
+   - Clique em "New Project"
+   - Selecione "Deploy from GitHub repo"
+   - Conecte seu repositório
+
+3. **Configure o banco de dados**
+   - No projeto, clique em "New" → "Database" → "Add PostgreSQL"
+   - Copie a variável `DATABASE_URL`
+
+4. **Configure as variáveis de ambiente**
+   - Vá em "Variables"
+   - Adicione as seguintes variáveis:
+   ```env
+   DATABASE_URL=<sua-url-do-postgres>
+   NEXTAUTH_URL=https://seu-app.railway.app
+   NEXTAUTH_SECRET=<gere-um-secret-aleatorio>
+   ```
+
+5. **Faça o deploy**
+   - Railway detectará automaticamente o `railway.json`
+   - O build será executado automaticamente
+   - A primeira instalação criará as tabelas necessárias
+
+6. **Acesse sua aplicação**
+   - Railway fornecerá uma URL pública
+   - Acesse `/auth/signup` para criar sua primeira conta
+   - Acesse `/admin/settings` para configurar a loja
+
+### Vercel
+
+1. **Conecte o repositório**
+   - Acesse [vercel.com](https://vercel.com)
+   - Importe seu repositório GitHub
+
+2. **Configure as variáveis de ambiente**
+   - Vá em "Settings" → "Environment Variables"
+   - Adicione todas as variáveis necessárias
+
+3. **Configure o banco de dados**
+   - Use Vercel Postgres ou outro provedor PostgreSQL
+   - Adicione a `DATABASE_URL` nas variáveis de ambiente
+
+4. **Deploy**
+   - Vercel fará o build automaticamente
+   - A URL será fornecida após o deploy
+
+### Outras Plataformas
+
+O sistema é compatível com qualquer plataforma que suporte Next.js:
+- **Netlify**: Configure build command: `npm run build` e publish directory: `.next`
+- **DigitalOcean**: Use App Platform com configuração Next.js
+- **AWS**: Use Amplify ou EC2 + Docker
 
 ## 🔧 Configurações Avançadas
 
+### Upload de Imagens
+- As imagens são salvas como base64 no banco de dados
+- Para produção, configure Cloudinary nas variáveis de ambiente
+- Acesse `/admin/settings` para fazer upload da logo e banner
+
 ### Integração com iFood
-1. Configure as variáveis `IFOOD_API_*` no `.env.local`
+1. Configure as variáveis `IFOOD_API_*` nas variáveis de ambiente
 2. Acesse `/admin/ifood` para gerenciar pedidos
 3. Use o botão "Sincronizar" para buscar novos pedidos
 
 ### Sistema de Impressão
-1. Configure `PRINTER_IP` e `PRINTER_PORT` no `.env.local`
+1. Configure `PRINTER_IP` e `PRINTER_PORT` nas variáveis de ambiente
 2. Use o componente `PrintOrder` em suas páginas
 3. Teste a impressão antes de usar em produção
 
-### Upload de Imagens
-1. Configure as variáveis `CLOUDINARY_*` no `.env.local`
-2. As imagens serão automaticamente otimizadas e hospedadas
+## 📊 Estrutura do Projeto
 
-## 📊 Estrutura do Banco de Dados
+```
+pdvsystemcentral/
+├── app/                    # Next.js app router
+│   ├── admin/             # Painel administrativo
+│   ├── api/               # API routes
+│   ├── client/            # Área do cliente
+│   ├── cashier/           # Área do caixa
+│   └── auth/              # Autenticação
+├── components/            # Componentes React
+├── lib/                   # Utilitários e configurações
+├── prisma/                # Schema do banco de dados
+└── scripts/               # Scripts utilitários
+```
 
-O sistema utiliza as seguintes tabelas principais:
-- `users` - Usuários do sistema
-- `categories` - Categorias de produtos
-- `combos` - Produtos/combos
-- `orders` - Pedidos
-- `order_items` - Itens dos pedidos
-- `addresses` - Endereços dos clientes
-- `cash_logs` - Movimentações do caixa
+## 📝 Scripts Disponíveis
 
-## 🚀 Deploy
+- `npm run dev` - Inicia o servidor de desenvolvimento
+- `npm run build` - Build para produção
+- `npm start` - Inicia o servidor de produção
+- `npm run db:generate` - Gera o Prisma Client
+- `npm run db:push` - Aplica mudanças no schema
+- `npm run db:migrate` - Cria migration
+- `npm run db:studio` - Abre Prisma Studio
 
-### Vercel (Recomendado)
-1. Conecte seu repositório ao Vercel
-2. Configure as variáveis de ambiente
-3. Configure o banco de dados PostgreSQL
-4. Execute o deploy
+## 🐛 Solução de Problemas
 
-### Outras Plataformas
-O sistema é compatível com qualquer plataforma que suporte Next.js:
-- Netlify
-- Railway
-- DigitalOcean
-- AWS
+### Erro ao fazer upload de imagens
+- Verifique se o banco de dados aceita campos grandes
+- Para PostgreSQL, os campos `TEXT` não têm limite de tamanho
+- Reduza o tamanho das imagens antes de fazer upload
+
+### Logo não aparece no cardápio
+- Verifique se a imagem foi salva corretamente em `/admin/settings`
+- Limpe o cache do navegador
+- Verifique o console do navegador para erros
+
+### Erro ao criar usuário admin
+- Use o script `make-admin.js`: `node make-admin.js`
+- Ou edite diretamente no banco de dados
 
 ## 📞 Suporte
 
