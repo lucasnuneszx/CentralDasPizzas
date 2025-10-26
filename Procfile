@@ -1,3 +1,3 @@
-web: node scripts/railway-setup.js && npm start
+web: npm start
 release: node scripts/railway-setup.js
 

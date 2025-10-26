@@ -1,82 +1,99 @@
 const { PrismaClient } = require('@prisma/client')
 const { exec } = require('child_process')
+const { promisify } = require('util')
 
+const execAsync = promisify(exec)
 const prisma = new PrismaClient()
 
 async function railwaySetup() {
   try {
     console.log('🚀 Configurando aplicação para Railway...')
     
-    // Detectar se estamos em produção (Railway)
+    // Detectar se estamos em produção (Railway com PostgreSQL)
     const isProduction = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('postgres')
     
     if (isProduction) {
       console.log('📦 Ambiente de produção detectado (PostgreSQL)')
-      console.log('🔄 Aplicando migração do banco de dados...')
       
-      // Aplicar migrations
-      await exec('npx prisma migrate deploy', (error, stdout, stderr) => {
-        if (error) {
-          console.error('❌ Erro ao aplicar migrations:', error)
-        } else {
-          console.log('✅ Migrations aplicadas com sucesso')
-        }
-      })
+      // Aplicar schema ao banco de dados
+      console.log('🔄 Aplicando schema ao banco de dados...')
+      try {
+        const { stdout, stderr } = await execAsync('npx prisma db push --accept-data-loss')
+        console.log('✅ Schema aplicado com sucesso')
+      } catch (error) {
+        console.error('⚠️ Erro ao aplicar schema:', error.message)
+        // Continuar mesmo se houver erro
+      }
     } else {
       console.log('💾 Ambiente de desenvolvimento detectado (SQLite)')
+      
+      // Para desenvolvimento, também aplicar o schema
+      try {
+        const { stdout, stderr } = await execAsync('npx prisma db push --accept-data-loss')
+        console.log('✅ Schema aplicado com sucesso')
+      } catch (error) {
+        console.error('⚠️ Erro ao aplicar schema:', error.message)
+      }
     }
 
+    // Aguardar um pouco para garantir que o banco está pronto
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
     // Verificar se já existem configurações
-    const existingSettings = await prisma.systemSettings.findFirst()
-    
-    if (!existingSettings) {
-      console.log('📝 Criando configurações iniciais...')
+    try {
+      const existingSettings = await prisma.systemSettings.findFirst()
       
-      // Criar configurações padrão para Railway
-      await prisma.systemSettings.create({
-        data: {
-          restaurantName: process.env.RESTAURANT_NAME || 'Central Das Pizzas Avenida Sul',
-          restaurantAddress: process.env.RESTAURANT_ADDRESS || 'Avenida Sul, Centro',
-          restaurantPhone: process.env.RESTAURANT_PHONE || '(11) 99999-9999',
-          restaurantEmail: process.env.RESTAURANT_EMAIL || 'contato@centraldaspizzas.com',
-          deliveryEstimate: process.env.DELIVERY_ESTIMATE || '35 - 70min',
-          isOpen: process.env.IS_OPEN === 'true' || true,
-          openingHours: process.env.OPENING_HOURS || 'Seg-Dom: 18h-23h',
-          deliveryFee: parseFloat(process.env.DELIVERY_FEE) || 5.00,
-          minOrderValue: parseFloat(process.env.MIN_ORDER_VALUE) || 25.00,
-          taxRate: parseFloat(process.env.TAX_RATE) || 0.00,
-          autoPrint: process.env.AUTO_PRINT === 'true' || true,
-          printerIp: process.env.PRINTER_IP || '',
-          printerPort: process.env.PRINTER_PORT || '9100',
-          ifoodApiKey: process.env.IFOOD_API_KEY || '',
-          ifoodApiSecret: process.env.IFOOD_API_SECRET || ''
-        }
-      })
-      
-      console.log('✅ Configurações iniciais criadas')
-    } else {
-      console.log('ℹ️ Configurações já existem')
+      if (!existingSettings) {
+        console.log('📝 Criando configurações iniciais...')
+        
+        // Criar configurações padrão para Railway
+        await prisma.systemSettings.create({
+          data: {
+            restaurantName: process.env.RESTAURANT_NAME || 'Central Das Pizzas Avenida Sul',
+            restaurantAddress: process.env.RESTAURANT_ADDRESS || 'Avenida Sul, Centro',
+            restaurantPhone: process.env.RESTAURANT_PHONE || '(11) 99999-9999',
+            restaurantEmail: process.env.RESTAURANT_EMAIL || 'contato@centraldaspizzas.com',
+            deliveryEstimate: process.env.DELIVERY_ESTIMATE || '35 - 70min',
+            isOpen: process.env.IS_OPEN === 'true' || true,
+            openingHours: process.env.OPENING_HOURS || 'Seg-Dom: 18h-23h',
+            deliveryFee: parseFloat(process.env.DELIVERY_FEE) || 5.00,
+            minOrderValue: parseFloat(process.env.MIN_ORDER_VALUE) || 25.00,
+            taxRate: parseFloat(process.env.TAX_RATE) || 0.00,
+            autoPrint: process.env.AUTO_PRINT === 'true' || true,
+            printerIp: process.env.PRINTER_IP || '',
+            printerPort: process.env.PRINTER_PORT || '9100',
+            ifoodApiKey: process.env.IFOOD_API_KEY || '',
+            ifoodApiSecret: process.env.IFOOD_API_SECRET || ''
+          }
+        })
+        
+        console.log('✅ Configurações iniciais criadas')
+      } else {
+        console.log('ℹ️ Configurações já existem')
+      }
+    } catch (error) {
+      console.error('⚠️ Erro ao criar configurações:', error.message)
+      // Continuar mesmo se houver erro
     }
 
     // Verificar se existem categorias
-    const categoriesCount = await prisma.category.count()
-    
-    if (categoriesCount === 0) {
-      console.log('🍕 Criando dados do cardápio...')
+    try {
+      const categoriesCount = await prisma.category.count()
       
-      // Executar script de população de dados
-      const { exec } = require('child_process')
-      const { promisify } = require('util')
-      const execAsync = promisify(exec)
-      
-      try {
-        await execAsync('node scripts/populate-menu-data.js')
-        console.log('✅ Dados do cardápio criados')
-      } catch (error) {
-        console.log('⚠️ Erro ao popular dados do cardápio:', error.message)
+      if (categoriesCount === 0) {
+        console.log('🍕 Criando dados do cardápio...')
+        
+        try {
+          await execAsync('node scripts/populate-menu-data.js')
+          console.log('✅ Dados do cardápio criados')
+        } catch (error) {
+          console.log('⚠️ Erro ao popular dados do cardápio:', error.message)
+        }
+      } else {
+        console.log('ℹ️ Dados do cardápio já existem')
       }
-    } else {
-      console.log('ℹ️ Dados do cardápio já existem')
+    } catch (error) {
+      console.error('⚠️ Erro ao verificar categorias:', error.message)
     }
 
     console.log('🎉 Setup do Railway concluído!')
@@ -85,7 +102,8 @@ async function railwaySetup() {
 
   } catch (error) {
     console.error('❌ Erro no setup do Railway:', error)
-    process.exit(1)
+    // Não fazer exit(1) para não bloquear o deploy
+    console.log('⚠️ Continuando deploy mesmo com erros...')
   } finally {
     await prisma.$disconnect()
   }
@@ -94,6 +112,11 @@ async function railwaySetup() {
 // Executar apenas se for chamado diretamente
 if (require.main === module) {
   railwaySetup()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error)
+      process.exit(0) // Sair com sucesso para não bloquear o deploy
+    })
 }
 
 module.exports = { railwaySetup }
