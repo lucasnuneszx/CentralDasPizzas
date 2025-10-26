@@ -165,7 +165,8 @@ export default function AdminCombos() {
       price: '',
       categoryId: '',
       image: '',
-      isActive: true
+      isActive: true,
+      isPizza: false
     })
     setSelectedImage(null)
   }
