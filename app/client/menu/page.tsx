@@ -295,20 +295,20 @@ export default function MenuPage() {
         <div className="mb-8 space-y-4">
           {/* Barra de Busca */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
               type="text"
               placeholder="Buscar por nome ou descrição..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-500"
+              className="w-full pl-12 pr-12 py-4 bg-white border-2 border-gray-200 rounded-full focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-500 shadow-sm hover:shadow-md transition-all duration-200"
             />
             {searchTerm && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full p-1"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -316,31 +316,55 @@ export default function MenuPage() {
           </div>
 
           {/* Filtros Rápidos por Categoria */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Filter className="h-5 w-5 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Filtrar por categoria:</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(null)}
-                className={selectedCategory === null ? "bg-red-500 text-white hover:bg-red-600" : "border-gray-300 text-gray-700 hover:bg-gray-50"}
+                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
+                  selectedCategory === null 
+                    ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700" 
+                    : "bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50"
+                }`}
               >
-                Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})
+                <span className="flex items-center space-x-2">
+                  <span>🍽️</span>
+                  <span>Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})</span>
+                </span>
               </Button>
-              {getQuickFilterCategories().map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={selectedCategory === category.id ? "bg-red-500 text-white hover:bg-red-600" : "border-gray-300 text-gray-700 hover:bg-gray-50"}
-                >
-                  {category.name} ({category.count})
-                </Button>
-              ))}
+              {getQuickFilterCategories().map((category) => {
+                const getCategoryIcon = (name) => {
+                  if (name.includes('Combo')) return '🍽️'
+                  if (name.includes('Pizza')) return '🍕'
+                  if (name.includes('Hambúrguer')) return '🍔'
+                  if (name.includes('Bebida')) return '🥤'
+                  return '🍽️'
+                }
+                
+                return (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
+                      selectedCategory === category.id 
+                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700" 
+                        : "bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    <span className="flex items-center space-x-2">
+                      <span>{getCategoryIcon(category.name)}</span>
+                      <span>{category.name} ({category.count})</span>
+                    </span>
+                  </Button>
+                )
+              })}
             </div>
           </div>
 
@@ -369,7 +393,7 @@ export default function MenuPage() {
                   setSelectedCategory(null)
                   setSearchTerm('')
                 }}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="px-6 py-2 bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50 rounded-full font-medium transition-all duration-200"
               >
                 <X className="h-4 w-4 mr-2" />
                 Limpar Filtros
