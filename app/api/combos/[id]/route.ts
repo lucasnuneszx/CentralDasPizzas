@@ -6,7 +6,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { name, description, price, categoryId, image, isActive } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza } = await request.json()
 
     // Verificar se a categoria existe
     if (categoryId) {
@@ -30,7 +30,8 @@ export async function PUT(
         price,
         categoryId,
         image,
-        isActive
+        isActive,
+        isPizza
       },
       include: {
         category: true

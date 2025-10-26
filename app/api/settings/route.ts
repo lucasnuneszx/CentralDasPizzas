@@ -57,7 +57,9 @@ export async function PUT(request: NextRequest) {
       hasLogo: !!settingsData.restaurantLogo,
       hasBanner: !!settingsData.restaurantBanner,
       logoLength: settingsData.restaurantLogo?.length || 0,
-      bannerLength: settingsData.restaurantBanner?.length || 0
+      bannerLength: settingsData.restaurantBanner?.length || 0,
+      isOpen: settingsData.isOpen,
+      deliveryEstimate: settingsData.deliveryEstimate
     })
 
     // Verificar se já existem configurações

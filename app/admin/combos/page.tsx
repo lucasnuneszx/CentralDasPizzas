@@ -19,6 +19,7 @@ interface Combo {
   price: number
   image?: string
   isActive: boolean
+  isPizza: boolean
   category: {
     id: string
     name: string
@@ -45,7 +46,8 @@ export default function AdminCombos() {
     price: '',
     categoryId: '',
     image: '',
-    isActive: true
+    isActive: true,
+    isPizza: false
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
 
@@ -131,7 +133,8 @@ export default function AdminCombos() {
       price: combo.price.toString(),
       categoryId: combo.category.id,
       image: combo.image || '',
-      isActive: combo.isActive
+      isActive: combo.isActive,
+      isPizza: combo.isPizza
     })
     setShowForm(true)
   }
@@ -283,15 +286,28 @@ export default function AdminCombos() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={formData.isActive}
-                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                        className="rounded border-gray-300"
-                      />
-                      <Label htmlFor="isActive">Combo ativo</Label>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isActive"
+                          checked={formData.isActive}
+                          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="isActive">Combo ativo</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isPizza"
+                          checked={formData.isPizza}
+                          onChange={(e) => setFormData({ ...formData, isPizza: e.target.checked })}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="isPizza">É uma pizza (permite personalização)</Label>
+                      </div>
                     </div>
 
                     <div className="flex justify-end space-x-2">
@@ -349,13 +365,20 @@ export default function AdminCombos() {
                       <span className="text-lg font-bold text-primary">
                         R$ {combo.price.toFixed(2)}
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        combo.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {combo.isActive ? 'Ativo' : 'Inativo'}
-                      </span>
+                      <div className="flex space-x-2">
+                        {combo.isPizza && (
+                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
+                            🍕 Pizza
+                          </span>
+                        )}
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          combo.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {combo.isActive ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
