@@ -411,45 +411,45 @@ export default function MenuPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCombos.map((combo) => (
-                  <Card key={combo.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={combo.id} className="product-card bg-white border border-gray-200">
                     {combo.image && (
-                      <div className="h-48 relative">
+                      <div className="h-56 product-image-container">
                         {combo.image.startsWith('data:') ? (
                           <img
                             src={combo.image}
                             alt={combo.name}
-                            className="w-full h-full object-cover"
+                            className="product-image p-4"
                           />
                         ) : (
                           <Image
                             src={combo.image}
                             alt={combo.name}
                             fill
-                            className="object-cover"
+                            className="product-image p-4"
                           />
                         )}
                       </div>
                     )}
-                    <CardHeader>
-                      <CardTitle className="text-lg">{combo.name}</CardTitle>
-                      <CardDescription>{combo.description}</CardDescription>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{combo.name}</CardTitle>
+                      <CardDescription className="text-sm text-gray-600 line-clamp-2">{combo.description}</CardDescription>
                       {combo.isPizza && (
-                        <Badge className="bg-orange-100 text-orange-800 w-fit">
+                        <Badge className="bg-orange-100 text-orange-800 w-fit mt-2">
                           <ChefHat className="h-3 w-3 mr-1" />
                           Personalizável
                         </Badge>
                       )}
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
+                    <CardContent className="pt-0">
+                      <div className="flex flex-col space-y-3">
                         <div className="text-2xl font-bold text-red-600">
                           R$ {combo.price.toFixed(2).replace('.', ',')}
                         </div>
                         <Button
                           onClick={() => handleItemCustomize(combo)}
-                          className="bg-red-500 hover:bg-red-600"
+                          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2"
                         >
                           <Plus className="h-4 w-4 mr-1" />
                           {combo.isPizza ? 'Personalizar' : 'Adicionar'}
