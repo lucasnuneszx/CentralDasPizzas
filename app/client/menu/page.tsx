@@ -415,21 +415,20 @@ export default function MenuPage() {
                 {filteredCombos.map((combo) => (
                   <Card key={combo.id} className="product-card bg-white border border-gray-200">
                     {combo.image && (
-                      <div className="h-56 product-image-container">
-                        {combo.image.startsWith('data:') ? (
-                          <img
-                            src={combo.image}
-                            alt={combo.name}
-                            className="product-image p-4"
-                          />
-                        ) : (
-                          <Image
-                            src={combo.image}
-                            alt={combo.name}
-                            fill
-                            className="product-image p-4"
-                          />
-                        )}
+                      <div className="h-64 relative bg-gray-50 flex items-center justify-center p-6">
+                        <img
+                          src={combo.image}
+                          alt={combo.name}
+                          className="max-w-full max-h-full object-contain"
+                          style={{ 
+                            maxWidth: '100%', 
+                            maxHeight: '100%',
+                            width: 'auto',
+                            height: 'auto',
+                            objectFit: 'contain',
+                            objectPosition: 'center'
+                          }}
+                        />
                       </div>
                     )}
                     <CardHeader className="pb-3">
