@@ -30,6 +30,7 @@ interface Category {
   id: string
   name: string
   description?: string
+  order?: number
 }
 
 export default function AdminCombos() {
