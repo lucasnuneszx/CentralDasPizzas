@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, MapPin, CreditCard, Truck, Home, User, Phone, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 interface CartItem {
   combo: {
@@ -41,6 +42,14 @@ const PaymentMethod: PaymentMethod = {
 }
 
 export default function CheckoutPublic() {
+  return (
+    <ErrorBoundary>
+      <CheckoutPublicContent />
+    </ErrorBoundary>
+  )
+}
+
+function CheckoutPublicContent() {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -88,35 +97,55 @@ export default function CheckoutPublic() {
     if (savedCart) {
       try {
         const cartData = JSON.parse(savedCart)
-        // Buscar dados dos combos da API
-        const response = await fetch('/api/categories')
-        if (response.ok) {
-          const categories = await response.json()
-          const allCombos = categories.flatMap((cat: any) => cat.combos)
-          
-          // Converter formato do carrinho para o formato esperado
-          const formattedCart = Object.entries(cartData).map(([comboId, quantity]) => {
-            const combo = allCombos.find((c: any) => c.id === comboId)
-            return {
-              combo: {
-                id: comboId,
-                name: combo?.name || `Produto ${comboId}`,
-                price: combo?.price || 25.00
-              },
-              quantity: quantity as number
-            }
-          })
-          setCart(formattedCart)
+        
+        // Verificar se é o formato novo (array) ou antigo (objeto)
+        if (Array.isArray(cartData)) {
+          // Formato novo - usar diretamente
+          setCart(cartData)
+        } else {
+          // Formato antigo - converter para novo formato
+          const response = await fetch('/api/categories')
+          if (response.ok) {
+            const categories = await response.json()
+            const allCombos = categories.flatMap((cat: any) => cat.combos)
+            
+            // Converter formato do carrinho para o formato esperado
+            const formattedCart = Object.entries(cartData).map(([comboId, quantity]) => {
+              const combo = allCombos.find((c: any) => c.id === comboId)
+              return {
+                combo: {
+                  id: comboId,
+                  name: combo?.name || `Produto ${comboId}`,
+                  price: combo?.price || 25.00
+                },
+                quantity: quantity as number
+              }
+            })
+            setCart(formattedCart)
+          } else {
+            console.error('Erro ao buscar categorias')
+            setCart([])
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar carrinho:', error)
+        setCart([])
       }
+    } else {
+      setCart([])
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    // Validar se há itens no carrinho
+    if (cart.length === 0) {
+      toast.error('Carrinho vazio')
+      setIsLoading(false)
+      return
+    }
 
     if (formData.deliveryType === DeliveryType.DELIVERY) {
       // Validar endereço
@@ -175,6 +204,7 @@ export default function CheckoutPublic() {
         toast.error(error.message || 'Erro ao realizar pedido')
       }
     } catch (error) {
+      console.error('Erro ao realizar pedido:', error)
       toast.error('Erro ao realizar pedido')
     } finally {
       setIsLoading(false)
@@ -182,7 +212,16 @@ export default function CheckoutPublic() {
   }
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.combo.price * item.quantity), 0)
+    try {
+      return cart.reduce((total, item) => {
+        const price = item.combo?.price || 0
+        const quantity = item.quantity || 0
+        return total + (price * quantity)
+      }, 0)
+    } catch (error) {
+      console.error('Erro ao calcular total:', error)
+      return 0
+    }
   }
 
   const getDeliveryFee = () => {
