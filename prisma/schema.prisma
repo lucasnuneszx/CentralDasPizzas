@@ -199,6 +199,7 @@ model OrderItem {
   order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   combo     Combo     @relation(fields: [comboId], references: [id])
   pizzaSize PizzaSize? @relation(fields: [pizzaSizeId], references: [id])
+  orderItemExtras OrderItemExtra[]
 
   @@map("order_items")
 }
@@ -295,4 +296,32 @@ model DeliveryPerson {
   updatedAt DateTime @updatedAt
 
   @@map("delivery_persons")
+}
+
+model ExtraItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  category    String   // "DRINK", "SIDE", "DESSERT", "SAUCE"
+  size        String?   // "300ML", "1L", "2L" para bebidas
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItemExtra[]
+
+  @@map("extra_items")
+}
+
+model OrderItemExtra {
+  id           String @id @default(cuid())
+  orderItemId  String
+  extraItemId  String
+  quantity     Int    @default(1)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  extraItem ExtraItem @relation(fields: [extraItemId], references: [id])
+
+  @@map("order_item_extras")
 }

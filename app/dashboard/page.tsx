@@ -97,6 +97,50 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:scale-105">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <ChefHat className="h-8 w-8" />
+                  <TrendingUp className="h-5 w-5 opacity-80" />
+                </div>
+                <CardTitle className="text-white text-lg">Sabores</CardTitle>
+                <CardDescription className="text-orange-100">
+                  Gerenciar sabores de pizza
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => router.push('/admin/flavors')}
+                >
+                  Gerenciar Sabores
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-teal-500 to-teal-600 text-white hover:scale-105">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <Package className="h-8 w-8" />
+                  <TrendingUp className="h-5 w-5 opacity-80" />
+                </div>
+                <CardTitle className="text-white text-lg">Extras</CardTitle>
+                <CardDescription className="text-teal-100">
+                  Bebidas e acompanhamentos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => router.push('/admin/extras')}
+                >
+                  Gerenciar Extras
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
