@@ -8,6 +8,7 @@ import { Clock, MapPin, Phone, Star, ShoppingCart, Plus, Minus, ChefHat, Search,
 import Image from 'next/image'
 import Link from 'next/link'
 import ItemCustomizer from '@/components/item-customizer'
+import PizzaSizeSelector from '@/components/pizza-size-selector'
 import CartItem from '@/components/cart-item'
 import { SiteLogo } from '@/components/site-logo'
 import { CustomizedItem, Combo } from '@/types/cart'
@@ -40,6 +41,7 @@ export default function MenuPage() {
   const [cart, setCart] = useState<CustomizedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [customizingItem, setCustomizingItem] = useState<Combo | null>(null)
+  const [selectingSize, setSelectingSize] = useState<Combo | null>(null)
   const [editingItem, setEditingItem] = useState<CustomizedItem | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -111,7 +113,25 @@ export default function MenuPage() {
     }
   }
 
-  const handleItemCustomize = (combo: Combo) => {
+  const handleItemCustomize = async (combo: Combo) => {
+    if (combo.isPizza) {
+      // Verificar se a pizza tem tamanhos configurados
+      try {
+        const response = await fetch(`/api/pizza-sizes?comboId=${combo.id}`)
+        if (response.ok) {
+          const sizes = await response.json()
+          if (sizes.length > 0) {
+            // Pizza com tamanhos - usar seletor simples
+            setSelectingSize(combo)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar tamanhos:', error)
+      }
+    }
+    
+    // Pizza sem tamanhos ou combo normal - usar personalizador completo
     setCustomizingItem(combo)
   }
 
@@ -128,6 +148,32 @@ export default function MenuPage() {
     })
     setCustomizingItem(null)
     setEditingItem(null)
+  }
+
+  const handleAddPizzaToCart = (item: {
+    id: string
+    combo: any
+    quantity: number
+    observations: string
+    selectedSize: any
+    totalPrice: number
+  }) => {
+    const customizedItem: CustomizedItem = {
+      id: item.id,
+      combo: item.combo,
+      quantity: item.quantity,
+      observations: item.observations,
+      stuffedCrust: false,
+      totalPrice: item.totalPrice,
+      selectedSize: item.selectedSize
+    }
+    
+    setCart(prev => {
+      const newCart = [...prev, customizedItem]
+      localStorage.setItem('cart', JSON.stringify(newCart))
+      return newCart
+    })
+    setSelectingSize(null)
   }
 
   const handleUpdateQuantity = (itemId: string, quantity: number) => {
@@ -564,6 +610,15 @@ export default function MenuPage() {
             setCustomizingItem(null)
             setEditingItem(null)
           }}
+        />
+      )}
+
+      {/* Modal de seleção de tamanhos de pizza */}
+      {selectingSize && (
+        <PizzaSizeSelector
+          combo={selectingSize}
+          onAddToCart={handleAddPizzaToCart}
+          onClose={() => setSelectingSize(null)}
         />
       )}
     </div>

@@ -39,7 +39,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     try {
       const [flavorsRes, sizesRes] = await Promise.all([
         fetch('/api/pizza-flavors'),
-        fetch('/api/pizza-sizes')
+        fetch(`/api/pizza-sizes?comboId=${item.id}`)
       ])
 
       if (flavorsRes.ok && sizesRes.ok) {

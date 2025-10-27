@@ -52,7 +52,9 @@ export default function AdminCombos() {
     categoryId: '',
     image: '',
     isActive: true,
-    isPizza: false
+    isPizza: false,
+    mediumPrice: '',
+    largePrice: ''
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
 
@@ -124,6 +126,40 @@ export default function AdminCombos() {
       })
 
       if (response.ok) {
+        const savedCombo = await response.json()
+        
+        // Se for uma pizza, criar/atualizar os tamanhos
+        if (formData.isPizza && (formData.mediumPrice || formData.largePrice)) {
+          try {
+            await fetch(`/api/pizza-sizes`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                comboId: savedCombo.id,
+                sizes: [
+                  ...(formData.mediumPrice ? [{
+                    name: 'Média',
+                    slices: 6,
+                    maxFlavors: 2,
+                    basePrice: parseFloat(formData.mediumPrice)
+                  }] : []),
+                  ...(formData.largePrice ? [{
+                    name: 'Grande',
+                    slices: 8,
+                    maxFlavors: 3,
+                    basePrice: parseFloat(formData.largePrice)
+                  }] : [])
+                ]
+              }),
+            })
+          } catch (error) {
+            console.error('Erro ao salvar tamanhos:', error)
+            toast.error('Combo salvo, mas houve erro ao salvar tamanhos')
+          }
+        }
+        
         toast.success(editingCombo ? 'Combo atualizado!' : 'Combo criado!')
         setShowForm(false)
         setEditingCombo(null)
@@ -140,8 +176,28 @@ export default function AdminCombos() {
     }
   }
 
-  const handleEdit = (combo: Combo) => {
+  const handleEdit = async (combo: Combo) => {
     setEditingCombo(combo)
+    
+    // Buscar tamanhos da pizza se for uma pizza
+    let mediumPrice = ''
+    let largePrice = ''
+    
+    if (combo.isPizza) {
+      try {
+        const response = await fetch(`/api/pizza-sizes?comboId=${combo.id}`)
+        if (response.ok) {
+          const sizes = await response.json()
+          const medium = sizes.find((s: any) => s.name === 'Média')
+          const large = sizes.find((s: any) => s.name === 'Grande')
+          mediumPrice = medium ? medium.basePrice.toString() : ''
+          largePrice = large ? large.basePrice.toString() : ''
+        }
+      } catch (error) {
+        console.error('Erro ao carregar tamanhos:', error)
+      }
+    }
+    
     setFormData({
       name: combo.name,
       description: combo.description,
@@ -149,7 +205,9 @@ export default function AdminCombos() {
       categoryId: combo.category.id,
       image: combo.image || '', // Preservar imagem existente
       isActive: combo.isActive,
-      isPizza: combo.isPizza
+      isPizza: combo.isPizza,
+      mediumPrice,
+      largePrice
     })
     setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
     setShowForm(true)
@@ -193,7 +251,9 @@ export default function AdminCombos() {
       categoryId: '',
       image: '',
       isActive: true,
-      isPizza: false
+      isPizza: false,
+      mediumPrice: '',
+      largePrice: ''
     })
     setSelectedImage(null)
     setEditingCombo(null) // Limpar referência de edição
@@ -422,6 +482,47 @@ export default function AdminCombos() {
                         <Label htmlFor="isPizza">É uma pizza (permite personalização)</Label>
                       </div>
                     </div>
+
+                    {/* Seção de Tamanhos de Pizza */}
+                    {formData.isPizza && (
+                      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">Tamanhos da Pizza</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Média</Label>
+                            <div className="flex space-x-2">
+                              <Input
+                                type="number"
+                                placeholder="Preço"
+                                value={formData.mediumPrice || ''}
+                                onChange={(e) => setFormData({ ...formData, mediumPrice: e.target.value })}
+                                className="flex-1"
+                              />
+                              <span className="text-sm text-gray-500 self-center">R$</span>
+                            </div>
+                            <p className="text-xs text-gray-500">6 fatias - Até 2 sabores</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Grande</Label>
+                            <div className="flex space-x-2">
+                              <Input
+                                type="number"
+                                placeholder="Preço"
+                                value={formData.largePrice || ''}
+                                onChange={(e) => setFormData({ ...formData, largePrice: e.target.value })}
+                                className="flex-1"
+                              />
+                              <span className="text-sm text-gray-500 self-center">R$</span>
+                            </div>
+                            <p className="text-xs text-gray-500">8 fatias - Até 3 sabores</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-2">
+                          💡 Os tamanhos serão criados automaticamente quando você salvar o combo
+                        </p>
+                      </div>
+                    )}
 
                     <div className="flex justify-end space-x-2">
                       <Button type="button" variant="outline" onClick={handleCancel}>

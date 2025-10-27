@@ -32,6 +32,7 @@ export interface CustomizedItem {
   combo: Combo
   quantity: number
   size?: PizzaSize
+  selectedSize?: PizzaSize
   flavors?: PizzaFlavor[]
   observations: string
   stuffedCrust: boolean
