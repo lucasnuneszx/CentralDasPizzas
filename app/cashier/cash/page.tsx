@@ -40,7 +40,10 @@ export default function CashControl() {
   const [summary, setSummary] = useState<CashSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showCloseModal, setShowCloseModal] = useState(false)
+  const [showOpenModal, setShowOpenModal] = useState(false)
   const [closeAmount, setCloseAmount] = useState('')
+  const [openAmount, setOpenAmount] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -49,10 +52,15 @@ export default function CashControl() {
 
   const fetchCashData = async () => {
     try {
+      setError(null)
       const [logsResponse, summaryResponse] = await Promise.all([
         fetch('/api/cash/logs'),
         fetch('/api/cash/summary')
       ])
+      
+      if (!logsResponse.ok || !summaryResponse.ok) {
+        throw new Error('Erro ao carregar dados do caixa')
+      }
       
       const logs = await logsResponse.json()
       const summaryData = await summaryResponse.json()
@@ -60,6 +68,8 @@ export default function CashControl() {
       setCashLogs(logs)
       setSummary(summaryData)
     } catch (error) {
+      console.error('Erro ao carregar dados do caixa:', error)
+      setError('Erro ao carregar dados do caixa')
       toast.error('Erro ao carregar dados do caixa')
     } finally {
       setIsLoading(false)
@@ -68,22 +78,26 @@ export default function CashControl() {
 
   const openCash = async () => {
     try {
+      const amount = parseFloat(openAmount) || 0
       const response = await fetch('/api/cash/open', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 0,
-          description: 'Abertura do caixa'
+          amount: amount,
+          description: `Abertura do caixa com R$ ${amount.toFixed(2)}`
         }),
       })
 
       if (response.ok) {
         toast.success('Caixa aberto com sucesso!')
+        setShowOpenModal(false)
+        setOpenAmount('')
         fetchCashData()
       } else {
-        toast.error('Erro ao abrir caixa')
+        const errorData = await response.json()
+        toast.error(errorData.message || 'Erro ao abrir caixa')
       }
     } catch (error) {
       toast.error('Erro ao abrir caixa')
@@ -161,7 +175,7 @@ export default function CashControl() {
                     Fechar Caixa
                   </Button>
                 ) : (
-                  <Button onClick={openCash}>
+                  <Button onClick={() => setShowOpenModal(true)}>
                     Abrir Caixa
                   </Button>
                 )}
@@ -172,6 +186,23 @@ export default function CashControl() {
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <p className="text-red-700">{error}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchCashData}
+                    className="ml-auto"
+                  >
+                    Tentar Novamente
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -384,6 +415,55 @@ export default function CashControl() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        )}
+
+        {/* Modal para Abrir Caixa */}
+        {showOpenModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Abrir Caixa</CardTitle>
+                <CardDescription>
+                  Informe o valor inicial em caixa
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Valor inicial em caixa
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      value={openAmount}
+                      onChange={(e) => setOpenAmount(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowOpenModal(false)
+                        setOpenAmount('')
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={openCash}
+                    >
+                      Abrir Caixa
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
