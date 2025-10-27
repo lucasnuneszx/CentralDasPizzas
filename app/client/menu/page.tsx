@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ItemCustomizer from '@/components/item-customizer'
 import CartItem from '@/components/cart-item'
+import { SiteLogo } from '@/components/site-logo'
 import { CustomizedItem, Combo } from '@/types/cart'
 
 interface SystemSettings {
@@ -535,33 +536,44 @@ export default function MenuPage() {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-16">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              {settings?.restaurantLogo && (
-                <div className="w-8 h-8 relative rounded-lg overflow-hidden mr-3">
-                  {settings.restaurantLogo.startsWith('data:') ? (
-                    <img
-                      src={settings.restaurantLogo}
-                      alt="Logo da loja"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image
-                      src={settings.restaurantLogo}
-                      alt="Logo da loja"
-                      fill
-                      className="object-cover"
-                    />
-                  )}
-                </div>
-              )}
-              <span className="text-lg font-bold text-gray-900">
-                {settings?.restaurantName || 'Central Das Pizzas'}
-              </span>
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Logo na parte inferior esquerda */}
+            <div className="flex items-center">
+              <SiteLogo />
             </div>
-            <p className="text-gray-600 text-sm">
-              &copy; 2024 {settings?.restaurantName || 'Central Das Pizzas'}. Todos os direitos reservados.
-            </p>
+            
+            {/* Informações centrais */}
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                {settings?.restaurantLogo && (
+                  <div className="w-8 h-8 relative rounded-lg overflow-hidden mr-3">
+                    {settings.restaurantLogo.startsWith('data:') ? (
+                      <img
+                        src={settings.restaurantLogo}
+                        alt="Logo da loja"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={settings.restaurantLogo}
+                        alt="Logo da loja"
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+                <span className="text-lg font-bold text-gray-900">
+                  {settings?.restaurantName || 'Central Das Pizzas'}
+                </span>
+              </div>
+              <p className="text-gray-600 text-sm">
+                &copy; 2024 {settings?.restaurantName || 'Central Das Pizzas'}. Todos os direitos reservados.
+              </p>
+            </div>
+            
+            {/* Espaço vazio para balancear o layout */}
+            <div className="w-32"></div>
           </div>
         </div>
       </footer>

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, MapPin, CreditCard, Truck, Home, User, Phone, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { SiteLogo } from '@/components/site-logo'
 
 interface CartItem {
   combo: {
@@ -764,6 +765,28 @@ function CheckoutPublicContent() {
           </form>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t mt-16">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Logo na parte inferior esquerda */}
+            <div className="flex items-center">
+              <SiteLogo />
+            </div>
+            
+            {/* Informações centrais */}
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">
+                &copy; 2024 Central das Pizzas. Todos os direitos reservados.
+              </p>
+            </div>
+            
+            {/* Espaço vazio para balancear o layout */}
+            <div className="w-32"></div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

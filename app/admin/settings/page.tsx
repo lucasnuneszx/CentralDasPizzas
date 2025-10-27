@@ -19,6 +19,7 @@ interface SystemSettings {
   restaurantEmail?: string
   restaurantLogo?: string
   restaurantBanner?: string
+  profileLogo?: string
   deliveryEstimate?: string
   isOpen: boolean
   openingHours?: string
@@ -42,6 +43,7 @@ export default function SettingsPage() {
     restaurantEmail: '',
     restaurantLogo: '',
     restaurantBanner: '',
+    profileLogo: '',
     deliveryEstimate: '35 - 70min',
     isOpen: true,
     openingHours: '',
@@ -103,7 +105,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleImageUpload = async (field: 'restaurantLogo' | 'restaurantBanner', file: File) => {
+  const handleImageUpload = async (field: 'restaurantLogo' | 'restaurantBanner' | 'profileLogo', file: File) => {
     // Verificar se é um arquivo vazio (removido)
     if (file.size === 0) {
       setSettings(prev => ({
@@ -253,6 +255,19 @@ export default function SettingsPage() {
                   <ImageUpload
                     onImageSelect={(file) => handleImageUpload('restaurantBanner', file)}
                     currentImage={settings.restaurantBanner}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Logo do Perfil (Site)</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Logo que será exibida na parte inferior esquerda do site
+                </p>
+                <div className="mt-2">
+                  <ImageUpload
+                    onImageSelect={(file) => handleImageUpload('profileLogo', file)}
+                    currentImage={settings.profileLogo}
                   />
                 </div>
               </div>

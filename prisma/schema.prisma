@@ -266,6 +266,7 @@ model SystemSettings {
   restaurantEmail   String?
   restaurantLogo    String?
   restaurantBanner  String?
+  profileLogo       String?  // Logo para exibir no site
   deliveryEstimate  String?  @default("35 - 70min")
   isOpen            Boolean  @default(true)
   openingHours      String?
