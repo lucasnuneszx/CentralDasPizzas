@@ -3,7 +3,15 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId } = await request.json()
+    const body = await request.json()
+    const { orderId, amount } = body
+
+    if (!orderId) {
+      return NextResponse.json(
+        { message: 'ID do pedido obrigatório' },
+        { status: 400 }
+      )
+    }
 
     // Buscar o pedido
     const order = await prisma.order.findUnique({
@@ -29,11 +37,18 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Se o caixa não estiver aberto, criar automaticamente um log de abertura
     if (!lastCashLog || lastCashLog.type === 'CLOSE') {
-      return NextResponse.json(
-        { message: 'Caixa não está aberto' },
-        { status: 400 }
-      )
+      console.log('Caixa não estava aberto, criando log de abertura automática')
+      
+      // Criar log de abertura automática
+      await prisma.cashLog.create({
+        data: {
+          type: 'OPEN',
+          amount: 0,
+          description: 'Abertura automática do caixa'
+        }
+      })
     }
 
     // Criar log de venda
@@ -41,7 +56,7 @@ export async function POST(request: NextRequest) {
       data: {
         orderId: order.id,
         type: 'ORDER',
-        amount: Number(order.total),
+        amount: Number(amount || order.total),
         description: `Venda - Pedido #${order.id.slice(-8)}`
       }
     })

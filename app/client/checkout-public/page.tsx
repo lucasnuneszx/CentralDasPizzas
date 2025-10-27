@@ -177,7 +177,7 @@ function CheckoutPublicContent() {
         customer: {
           name: formData.customerName,
           phone: formData.customerPhone,
-          email: formData.customerEmail
+          email: formData.customerEmail || ''
         },
         address: formData.deliveryType === DeliveryType.DELIVERY ? formData.address : null
       }
