@@ -33,14 +33,19 @@ export async function POST(request: NextRequest) {
 
     try {
       // Testar conexão com a API do iFood
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos de timeout
+      
       const response = await fetch(`${apiUrl}/merchants/${merchantId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000 // 10 segundos de timeout
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       if (response.ok) {
         const data = await response.json()
@@ -63,6 +68,17 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.error('Erro ao testar conexão com iFood:', error)
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        return NextResponse.json(
+          { 
+            success: false,
+            message: 'Timeout: A conexão com a API do iFood demorou muito para responder.' 
+          },
+          { status: 408 }
+        )
+      }
+      
       return NextResponse.json(
         { 
           success: false,
