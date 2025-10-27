@@ -43,14 +43,20 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== INÍCIO DO PROCESSAMENTO DE PEDIDO ===')
+    
     const session = await getServerSession(authOptions)
+    console.log('Session encontrada:', !!session)
+    
     const body = await request.json()
+    console.log('Body recebido:', JSON.stringify(body, null, 2))
     
     // Validar dados obrigatórios
     const { items, deliveryType, paymentMethod, addressId, notes, total, customer, address, customPizzas } = body
 
     // Validações críticas
     if (!items || !Array.isArray(items) || items.length === 0) {
+      console.error('ERRO: Nenhum item encontrado no pedido')
       return NextResponse.json(
         { message: 'Nenhum item encontrado no pedido' },
         { status: 400 }
@@ -58,6 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!deliveryType || !paymentMethod || !total) {
+      console.error('ERRO: Dados obrigatórios ausentes', { deliveryType, paymentMethod, total })
       return NextResponse.json(
         { message: 'Dados obrigatórios ausentes' },
         { status: 400 }
@@ -65,6 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (deliveryType === 'DELIVERY' && !addressId && !address) {
+      console.error('ERRO: Endereço obrigatório para entrega')
       return NextResponse.json(
         { message: 'Endereço obrigatório para entrega' },
         { status: 400 }
@@ -74,11 +82,15 @@ export async function POST(request: NextRequest) {
     let userId = session?.user?.id
     let orderAddressId = addressId
 
+    console.log('User ID da sessão:', userId)
+
     // Se não estiver logado, criar ou buscar usuário público
     if (!userId) {
+      console.log('Usuário não logado, criando/buscando usuário público')
       try {
         // Validar dados do cliente para pedidos públicos
         if (!customer || !customer.name || !customer.phone) {
+          console.error('ERRO: Dados do cliente obrigatórios')
           return NextResponse.json(
             { message: 'Dados do cliente obrigatórios' },
             { status: 400 }
@@ -91,6 +103,7 @@ export async function POST(request: NextRequest) {
         })
 
         if (!publicUser) {
+          console.log('Criando usuário público')
           publicUser = await prisma.user.create({
             data: {
               email: 'public@centraldaspizzas.com',
@@ -99,12 +112,16 @@ export async function POST(request: NextRequest) {
               isActive: true
             }
           })
+          console.log('Usuário público criado:', publicUser.id)
+        } else {
+          console.log('Usuário público encontrado:', publicUser.id)
         }
 
         userId = publicUser.id
 
         // Criar endereço se necessário para entrega
         if (deliveryType === 'DELIVERY' && address && !addressId) {
+          console.log('Criando endereço para entrega')
           const newAddress = await prisma.address.create({
             data: {
               userId: userId,
@@ -119,9 +136,10 @@ export async function POST(request: NextRequest) {
             }
           })
           orderAddressId = newAddress.id
+          console.log('Endereço criado:', orderAddressId)
         }
       } catch (error) {
-        console.error('Erro ao criar/buscar usuário público:', error)
+        console.error('ERRO ao criar/buscar usuário público:', error)
         return NextResponse.json(
           { message: 'Erro ao processar dados do cliente' },
           { status: 500 }
@@ -129,18 +147,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('Dados do pedido recebidos:', {
+    console.log('Dados do pedido:', {
       userId,
       items: items.length,
       deliveryType,
       paymentMethod,
       total,
-      notes: notes?.length || 0
+      notes: notes?.length || 0,
+      orderAddressId
     })
 
     // Validar itens do pedido
     for (const item of items) {
       if (!item.comboId || !item.quantity || !item.price) {
+        console.error('ERRO: Dados de item inválidos:', item)
         return NextResponse.json(
           { message: 'Dados de item inválidos' },
           { status: 400 }
@@ -149,6 +169,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar o pedido
+    console.log('Criando pedido no banco de dados...')
     const order = await prisma.order.create({
       data: {
         userId: userId,
@@ -161,9 +182,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Pedido criado:', order.id)
+    console.log('Pedido criado com sucesso:', order.id)
 
     // Criar os itens do pedido
+    console.log('Criando itens do pedido...')
     await prisma.orderItem.createMany({
       data: items.map((item: any) => ({
         orderId: order.id,
@@ -176,6 +198,7 @@ export async function POST(request: NextRequest) {
 
     // Criar pizzas personalizadas se existirem
     if (customPizzas && customPizzas.length > 0) {
+      console.log('Criando pizzas personalizadas...')
       for (const customPizza of customPizzas) {
         await prisma.orderItem.create({
           data: {
@@ -199,6 +222,7 @@ export async function POST(request: NextRequest) {
 
     // Registrar venda no caixa (não crítico se falhar)
     try {
+      console.log('Registrando venda no caixa...')
       const cashResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/cash/sale`, {
         method: 'POST',
         headers: {
@@ -212,12 +236,15 @@ export async function POST(request: NextRequest) {
       
       if (!cashResponse.ok) {
         console.warn('Erro ao registrar venda no caixa, mas pedido foi criado')
+      } else {
+        console.log('Venda registrada no caixa com sucesso')
       }
     } catch (error) {
       console.warn('Erro ao registrar venda no caixa:', error)
     }
 
     // Buscar o pedido completo para retornar
+    console.log('Buscando pedido completo...')
     const completeOrder = await prisma.order.findUnique({
       where: { id: order.id },
       include: {
@@ -238,8 +265,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('=== PEDIDO PROCESSADO COM SUCESSO ===')
     return NextResponse.json(completeOrder, { status: 201 })
   } catch (error) {
+    console.error('=== ERRO CRÍTICO NO PROCESSAMENTO DE PEDIDO ===')
     console.error('Erro ao criar pedido:', error)
     
     // Log detalhado do erro para debug

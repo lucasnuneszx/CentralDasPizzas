@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -51,8 +52,10 @@ export default function CheckoutPublic() {
 
 function CheckoutPublicContent() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [addresses, setAddresses] = useState<any[]>([])
   
   const [formData, setFormData] = useState<{
     deliveryType: string
@@ -61,6 +64,7 @@ function CheckoutPublicContent() {
     customerName: string
     customerPhone: string
     customerEmail: string
+    selectedAddressId: string
     address: {
       street: string
       number: string
@@ -77,6 +81,7 @@ function CheckoutPublicContent() {
     customerName: '',
     customerPhone: '',
     customerEmail: '',
+    selectedAddressId: '',
     address: {
       street: '',
       number: '',
@@ -88,9 +93,57 @@ function CheckoutPublicContent() {
     }
   })
 
+  const [settings, setSettings] = useState<any>(null)
+
+  const loadUserData = useCallback(() => {
+    if (session?.user) {
+      setFormData(prev => ({
+        ...prev,
+        customerName: session.user.name || '',
+        customerEmail: session.user.email || '',
+        customerPhone: (session.user as any).phone || ''
+      }))
+    }
+  }, [session?.user])
+
   useEffect(() => {
     loadCartFromStorage()
-  }, [])
+    loadSettings()
+    if (session?.user) {
+      loadUserData()
+      loadUserAddresses()
+    }
+  }, [session, loadUserData])
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/settings')
+      if (response.ok) {
+        const settingsData = await response.json()
+        setSettings(settingsData)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error)
+    }
+  }
+
+  const loadUserAddresses = async () => {
+    try {
+      const response = await fetch('/api/addresses')
+      if (response.ok) {
+        const userAddresses = await response.json()
+        setAddresses(userAddresses)
+        
+        // Selecionar endereço padrão automaticamente
+        const defaultAddress = userAddresses.find((addr: any) => addr.isDefault)
+        if (defaultAddress) {
+          setFormData(prev => ({ ...prev, selectedAddressId: defaultAddress.id }))
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar endereços:', error)
+    }
+  }
 
   const loadCartFromStorage = async () => {
     const savedCart = localStorage.getItem('cart')
@@ -148,11 +201,20 @@ function CheckoutPublicContent() {
     }
 
     if (formData.deliveryType === DeliveryType.DELIVERY) {
-      // Validar endereço
-      if (!formData.address.street || !formData.address.number || !formData.address.neighborhood || !formData.address.city || !formData.address.state || !formData.address.zipCode) {
-        toast.error('Preencha todos os campos do endereço para entrega')
-        setIsLoading(false)
-        return
+      // Para usuários logados, verificar se selecionou um endereço
+      if (session?.user) {
+        if (!formData.selectedAddressId) {
+          toast.error('Selecione um endereço para entrega')
+          setIsLoading(false)
+          return
+        }
+      } else {
+        // Para usuários não logados, validar endereço manual
+        if (!formData.address.street || !formData.address.number || !formData.address.neighborhood || !formData.address.city || !formData.address.state || !formData.address.zipCode) {
+          toast.error('Preencha todos os campos do endereço para entrega')
+          setIsLoading(false)
+          return
+        }
       }
     }
 
@@ -179,7 +241,9 @@ function CheckoutPublicContent() {
           phone: formData.customerPhone,
           email: formData.customerEmail || ''
         },
-        address: formData.deliveryType === DeliveryType.DELIVERY ? formData.address : null
+        // Para usuários logados, usar addressId; para não logados, usar address
+        addressId: session?.user && formData.selectedAddressId ? formData.selectedAddressId : null,
+        address: !session?.user && formData.deliveryType === DeliveryType.DELIVERY ? formData.address : null
       }
 
       console.log('Dados do pedido sendo enviados:', orderData)
@@ -225,7 +289,10 @@ function CheckoutPublicContent() {
   }
 
   const getDeliveryFee = () => {
-    return formData.deliveryType === DeliveryType.DELIVERY ? 5.00 : 0
+    if (formData.deliveryType === DeliveryType.DELIVERY) {
+      return settings?.deliveryFee || 5.00
+    }
+    return 0
   }
 
   const getFinalTotal = () => {
@@ -271,49 +338,52 @@ function CheckoutPublicContent() {
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Dados do Cliente */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Dados do Cliente
-                </CardTitle>
-                <CardDescription>
-                  Preencha seus dados para o pedido
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="customerName">Nome *</Label>
-                    <Input
-                      id="customerName"
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="customerPhone">Telefone *</Label>
-                    <Input
-                      id="customerPhone"
-                      value={formData.customerPhone}
-                      onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="customerEmail">E-mail (opcional)</Label>
-                  <Input
-                    id="customerEmail"
-                    type="email"
-                    value={formData.customerEmail}
-                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+             {/* Dados do Cliente */}
+             <Card>
+               <CardHeader>
+                 <CardTitle className="flex items-center gap-2">
+                   <User className="h-5 w-5" />
+                   Dados do Cliente
+                 </CardTitle>
+                 <CardDescription>
+                   {session?.user ? 'Seus dados estão preenchidos automaticamente' : 'Preencha seus dados para o pedido'}
+                 </CardDescription>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                     <Label htmlFor="customerName">Nome *</Label>
+                     <Input
+                       id="customerName"
+                       value={formData.customerName}
+                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                       required
+                       disabled={!!session?.user}
+                     />
+                   </div>
+                   <div>
+                     <Label htmlFor="customerPhone">Telefone *</Label>
+                     <Input
+                       id="customerPhone"
+                       value={formData.customerPhone}
+                       onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                       required
+                       disabled={!!session?.user}
+                     />
+                   </div>
+                 </div>
+                 <div>
+                   <Label htmlFor="customerEmail">E-mail (opcional)</Label>
+                   <Input
+                     id="customerEmail"
+                     type="email"
+                     value={formData.customerEmail}
+                     onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                     disabled={!!session?.user}
+                   />
+                 </div>
+               </CardContent>
+             </Card>
 
             {/* Resumo do Pedido */}
             <Card>
@@ -371,10 +441,10 @@ function CheckoutPublicContent() {
                       className="text-primary"
                     />
                     <MapPin className="h-5 w-5 text-primary" />
-                    <div>
-                      <div className="font-medium">Entrega</div>
-                      <div className="text-sm text-gray-600">Taxa: R$ 5,00</div>
-                    </div>
+                     <div>
+                       <div className="font-medium">Entrega</div>
+                       <div className="text-sm text-gray-600">Taxa: R$ {(settings?.deliveryFee || 5.00).toFixed(2).replace('.', ',')}</div>
+                     </div>
                   </label>
                   
                   <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
@@ -396,110 +466,144 @@ function CheckoutPublicContent() {
               </CardContent>
             </Card>
 
-            {/* Endereço de Entrega */}
-            {formData.deliveryType === DeliveryType.DELIVERY && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Endereço de Entrega
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="street">Rua *</Label>
-                    <Input
-                      id="street"
-                      value={formData.address.street}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        address: { ...formData.address, street: e.target.value }
-                      })}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="number">Número *</Label>
-                      <Input
-                        id="number"
-                        value={formData.address.number}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          address: { ...formData.address, number: e.target.value }
-                        })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="complement">Complemento</Label>
-                      <Input
-                        id="complement"
-                        value={formData.address.complement}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          address: { ...formData.address, complement: e.target.value }
-                        })}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="neighborhood">Bairro *</Label>
-                    <Input
-                      id="neighborhood"
-                      value={formData.address.neighborhood}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        address: { ...formData.address, neighborhood: e.target.value }
-                      })}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="city">Cidade *</Label>
-                      <Input
-                        id="city"
-                        value={formData.address.city}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          address: { ...formData.address, city: e.target.value }
-                        })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="state">Estado *</Label>
-                      <Input
-                        id="state"
-                        value={formData.address.state}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          address: { ...formData.address, state: e.target.value }
-                        })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="zipCode">CEP *</Label>
-                    <Input
-                      id="zipCode"
-                      value={formData.address.zipCode}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        address: { ...formData.address, zipCode: e.target.value }
-                      })}
-                      required
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+             {/* Endereço de Entrega */}
+             {formData.deliveryType === DeliveryType.DELIVERY && (
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <MapPin className="h-5 w-5" />
+                     Endereço de Entrega
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   {session?.user && addresses.length > 0 ? (
+                     // Usuário logado - mostrar endereços salvos
+                     <div className="space-y-3">
+                       <Label>Selecione um endereço:</Label>
+                       {addresses.map((address) => (
+                         <label key={address.id} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                           <input
+                             type="radio"
+                             name="selectedAddress"
+                             value={address.id}
+                             checked={formData.selectedAddressId === address.id}
+                             onChange={(e) => setFormData({ ...formData, selectedAddressId: e.target.value })}
+                             className="text-primary"
+                           />
+                           <div className="flex-1">
+                             <div className="font-medium">
+                               {address.street}, {address.number}
+                               {address.complement && ` - ${address.complement}`}
+                             </div>
+                             <div className="text-sm text-gray-600">
+                               {address.neighborhood}, {address.city} - {address.state}
+                             </div>
+                             <div className="text-sm text-gray-500">
+                               CEP: {address.zipCode}
+                             </div>
+                           </div>
+                         </label>
+                       ))}
+                     </div>
+                   ) : (
+                     // Usuário não logado - campos manuais
+                     <>
+                       <div>
+                         <Label htmlFor="street">Rua *</Label>
+                         <Input
+                           id="street"
+                           value={formData.address.street}
+                           onChange={(e) => setFormData({ 
+                             ...formData, 
+                             address: { ...formData.address, street: e.target.value }
+                           })}
+                           required
+                         />
+                       </div>
+                       
+                       <div className="grid grid-cols-2 gap-4">
+                         <div>
+                           <Label htmlFor="number">Número *</Label>
+                           <Input
+                             id="number"
+                             value={formData.address.number}
+                             onChange={(e) => setFormData({ 
+                               ...formData, 
+                               address: { ...formData.address, number: e.target.value }
+                             })}
+                             required
+                           />
+                         </div>
+                         <div>
+                           <Label htmlFor="complement">Complemento</Label>
+                           <Input
+                             id="complement"
+                             value={formData.address.complement}
+                             onChange={(e) => setFormData({ 
+                               ...formData, 
+                               address: { ...formData.address, complement: e.target.value }
+                             })}
+                           />
+                         </div>
+                       </div>
+                       
+                       <div>
+                         <Label htmlFor="neighborhood">Bairro *</Label>
+                         <Input
+                           id="neighborhood"
+                           value={formData.address.neighborhood}
+                           onChange={(e) => setFormData({ 
+                             ...formData, 
+                             address: { ...formData.address, neighborhood: e.target.value }
+                           })}
+                           required
+                         />
+                       </div>
+                       
+                       <div className="grid grid-cols-2 gap-4">
+                         <div>
+                           <Label htmlFor="city">Cidade *</Label>
+                           <Input
+                             id="city"
+                             value={formData.address.city}
+                             onChange={(e) => setFormData({ 
+                               ...formData, 
+                               address: { ...formData.address, city: e.target.value }
+                             })}
+                             required
+                           />
+                         </div>
+                         <div>
+                           <Label htmlFor="state">Estado *</Label>
+                           <Input
+                             id="state"
+                             value={formData.address.state}
+                             onChange={(e) => setFormData({ 
+                               ...formData, 
+                               address: { ...formData.address, state: e.target.value }
+                             })}
+                             required
+                           />
+                         </div>
+                       </div>
+                       
+                       <div>
+                         <Label htmlFor="zipCode">CEP *</Label>
+                         <Input
+                           id="zipCode"
+                           value={formData.address.zipCode}
+                           onChange={(e) => setFormData({ 
+                             ...formData, 
+                             address: { ...formData.address, zipCode: e.target.value }
+                           })}
+                           required
+                         />
+                       </div>
+                     </>
+                   )}
+                 </CardContent>
+               </Card>
+             )}
 
             {/* Forma de Pagamento */}
             <Card>
