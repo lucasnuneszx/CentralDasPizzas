@@ -28,7 +28,8 @@ import {
   Menu,
   X,
   Smartphone,
-  Filter
+  Filter,
+  Truck
 } from 'lucide-react'
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
 import { NotificationCenter } from '@/components/notification-center'

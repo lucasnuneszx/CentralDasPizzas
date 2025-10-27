@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -81,7 +81,7 @@ export default function OrdersHistory() {
 
   useEffect(() => {
     filterOrders()
-  }, [orders, searchTerm, statusFilter, dateFilter])
+  }, [filterOrders])
 
   const fetchOrders = async () => {
     try {
@@ -95,7 +95,7 @@ export default function OrdersHistory() {
     }
   }
 
-  const filterOrders = () => {
+  const filterOrders = useCallback(() => {
     let filtered = [...orders]
 
     // Filtro por termo de busca
@@ -137,7 +137,7 @@ export default function OrdersHistory() {
     }
 
     setFilteredOrders(filtered)
-  }
+  }, [orders, searchTerm, statusFilter, dateFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
