@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -97,13 +97,6 @@ export default function ComboCustomizationModal({
   const [extraItems, setExtraItems] = useState<ExtraItem[]>([])
   const [pizzaSizes, setPizzaSizes] = useState<PizzaSize[]>([])
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchPizzaData()
-      initializeCombo()
-    }
-  }, [isOpen, combo])
-
   const fetchPizzaData = async () => {
     try {
       const [flavorsResponse, extrasResponse, sizesResponse] = await Promise.all([
@@ -124,7 +117,7 @@ export default function ComboCustomizationModal({
     }
   }
 
-  const initializeCombo = () => {
+  const initializeCombo = useCallback(() => {
     const initialItems: { [key: string]: any } = {}
     
     // Inicializar itens obrigatórios
@@ -141,7 +134,14 @@ export default function ComboCustomizationModal({
       selectedItems: initialItems,
       totalPrice: combo.basePrice
     })
-  }
+  }, [combo])
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchPizzaData()
+      initializeCombo()
+    }
+  }, [isOpen, combo, initializeCombo])
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -105,12 +105,6 @@ export default function ComboCustomizationManagement() {
   }, [])
 
   useEffect(() => {
-    if (selectedCombo) {
-      fetchCustomizationItems()
-    }
-  }, [selectedCombo])
-
-  useEffect(() => {
     const comboId = searchParams.get('combo')
     if (comboId && combos.length > 0) {
       const combo = combos.find(c => c.id === comboId)
@@ -132,7 +126,7 @@ export default function ComboCustomizationManagement() {
     }
   }
 
-  const fetchCustomizationItems = async () => {
+  const fetchCustomizationItems = useCallback(async () => {
     if (!selectedCombo) return
     
     try {
@@ -142,7 +136,13 @@ export default function ComboCustomizationManagement() {
     } catch (error) {
       toast.error('Erro ao carregar itens de personalização')
     }
-  }
+  }, [selectedCombo])
+
+  useEffect(() => {
+    if (selectedCombo) {
+      fetchCustomizationItems()
+    }
+  }, [selectedCombo, fetchCustomizationItems])
 
   const handleAddItem = async () => {
     if (!selectedCombo || !itemFormData.name.trim()) {
@@ -802,8 +802,21 @@ export default function ComboCustomizationManagement() {
                           Foto do Item
                         </label>
                         <ImageUpload
-                          value={itemFormData.image}
-                          onChange={(url) => setItemFormData({ ...itemFormData, image: url })}
+                          currentImage={itemFormData.image}
+                          onImageSelect={(file) => {
+                            // Handle file upload and update the image URL
+                            if (file.size === 0) {
+                              setItemFormData({ ...itemFormData, image: '' })
+                            } else {
+                              // Create a preview URL for immediate display
+                              const reader = new FileReader()
+                              reader.onload = (e) => {
+                                const url = e.target?.result as string
+                                setItemFormData({ ...itemFormData, image: url })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
                         />
                       </div>
                       
@@ -926,8 +939,21 @@ export default function ComboCustomizationManagement() {
                           Foto da Opção
                         </label>
                         <ImageUpload
-                          value={optionFormData.image}
-                          onChange={(url) => setOptionFormData({ ...optionFormData, image: url })}
+                          currentImage={optionFormData.image}
+                          onImageSelect={(file) => {
+                            // Handle file upload and update the image URL
+                            if (file.size === 0) {
+                              setOptionFormData({ ...optionFormData, image: '' })
+                            } else {
+                              // Create a preview URL for immediate display
+                              const reader = new FileReader()
+                              reader.onload = (e) => {
+                                const url = e.target?.result as string
+                                setOptionFormData({ ...optionFormData, image: url })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
                         />
                       </div>
                       
