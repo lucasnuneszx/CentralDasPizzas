@@ -90,14 +90,14 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
     }
   }
 
-  const getSourceLogo = (source: string) => {
+  const getSourceLogo = (source: string): string | undefined => {
     switch (source) {
       case 'IFOOD':
         return '/images/ifood-logo.png' // Logo do iFood
       case 'SYSTEM':
         return '/images/store-logo.png' // Logo da loja (configurável)
       default:
-        return null
+        return undefined
     }
   }
 
@@ -150,17 +150,20 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                   <div className="flex items-start space-x-3">
                     {/* Logo da fonte */}
                     <div className="flex-shrink-0">
-                      {getSourceLogo(notification.source) ? (
-                        <img
-                          src={getSourceLogo(notification.source)}
-                          alt={notification.source}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                          {getSourceIcon(notification.source)}
-                        </div>
-                      )}
+                      {(() => {
+                        const logo = getSourceLogo(notification.source)
+                        return logo ? (
+                          <img
+                            src={logo}
+                            alt={notification.source}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            {getSourceIcon(notification.source)}
+                          </div>
+                        )
+                      })()}
                     </div>
 
                     {/* Conteúdo da notificação */}
