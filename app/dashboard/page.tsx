@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
 import { NotificationCenter } from '@/components/notification-center'
+import { SiteLogo } from '@/components/site-logo'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -578,9 +579,12 @@ export default function Dashboard() {
     <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER, UserRole.KITCHEN, UserRole.CLIENT]}>
       <DashboardShell>
         <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Dashboard</h2>
-            <p className="text-muted-foreground">Bem-vindo ao sistema de gestão da Central Das Pizzas</p>
+          <div className="flex items-center space-x-4">
+            <SiteLogo className="text-lg" />
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Dashboard</h2>
+              <p className="text-muted-foreground">Sistema de gestão</p>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -606,6 +610,13 @@ export default function Dashboard() {
           isOpen={showNotifications}
           onClose={() => setShowNotifications(false)}
         />
+        
+        {/* Footer */}
+        <footer className="mt-16 pt-8 border-t border-gray-200">
+          <div className="flex justify-center">
+            <SiteLogo />
+          </div>
+        </footer>
       </DashboardShell>
     </ProtectedRoute>
   )

@@ -544,31 +544,8 @@ export default function MenuPage() {
             
             {/* Informações centrais */}
             <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                {settings?.restaurantLogo && (
-                  <div className="w-8 h-8 relative rounded-lg overflow-hidden mr-3">
-                    {settings.restaurantLogo.startsWith('data:') ? (
-                      <img
-                        src={settings.restaurantLogo}
-                        alt="Logo da loja"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Image
-                        src={settings.restaurantLogo}
-                        alt="Logo da loja"
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </div>
-                )}
-                <span className="text-lg font-bold text-gray-900">
-                  {settings?.restaurantName || 'Central Das Pizzas'}
-                </span>
-              </div>
               <p className="text-gray-600 text-sm">
-                &copy; 2024 {settings?.restaurantName || 'Central Das Pizzas'}. Todos os direitos reservados.
+                &copy; 2024 Central das Pizzas. Todos os direitos reservados.
               </p>
             </div>
             
