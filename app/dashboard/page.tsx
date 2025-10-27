@@ -27,7 +27,8 @@ import {
   Search,
   Menu,
   X,
-  Smartphone
+  Smartphone,
+  Filter
 } from 'lucide-react'
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
 import { useState } from 'react'
