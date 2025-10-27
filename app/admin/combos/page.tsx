@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ProtectedRoute } from '@/components/protected-route'
 import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, ChefHat } from 'lucide-react'
+import ComboCustomizationModal from '@/components/combo-customization-modal'
 import toast from 'react-hot-toast'
 
 interface Combo {
@@ -40,6 +41,8 @@ export default function AdminCombos() {
   const [showForm, setShowForm] = useState(false)
   const [editingCombo, setEditingCombo] = useState<Combo | null>(null)
   const [showCategoryForm, setShowCategoryForm] = useState(false)
+  const [showCustomizationModal, setShowCustomizationModal] = useState(false)
+  const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null)
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -167,6 +170,17 @@ export default function AdminCombos() {
     } catch (error) {
       toast.error('Erro ao excluir combo')
     }
+  }
+
+  const handleCustomize = (combo: Combo) => {
+    setSelectedCombo(combo)
+    setShowCustomizationModal(true)
+  }
+
+  const handleAddToCart = (customizedCombo: any) => {
+    // Aqui você pode implementar a lógica para adicionar ao carrinho
+    console.log('Combo personalizado adicionado:', customizedCombo)
+    toast.success('Combo personalizado adicionado ao carrinho!')
   }
 
   const resetForm = () => {
@@ -546,19 +560,32 @@ export default function AdminCombos() {
                             <span className="text-lg font-bold text-primary">
                               R$ {combo.price.toFixed(2)}
                             </span>
-                            <div className="flex space-x-2">
-                              {combo.isPizza && (
-                                <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
-                                  🍕 Pizza
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex space-x-2">
+                                {combo.isPizza && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
+                                    🍕 Pizza
+                                  </span>
+                                )}
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  combo.isActive 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {combo.isActive ? 'Ativo' : 'Inativo'}
                                 </span>
+                              </div>
+                              {combo.isPizza && combo.isActive && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCustomize(combo)}
+                                  className="w-full text-xs"
+                                >
+                                  <ChefHat className="h-3 w-3 mr-1" />
+                                  Personalizar
+                                </Button>
                               )}
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                combo.isActive 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {combo.isActive ? 'Ativo' : 'Inativo'}
-                              </span>
                             </div>
                           </div>
                         </CardContent>
@@ -580,6 +607,56 @@ export default function AdminCombos() {
             )}
           </div>
         </main>
+
+        {/* Modal de Personalização */}
+        {selectedCombo && (
+          <ComboCustomizationModal
+            combo={{
+              id: selectedCombo.id,
+              name: selectedCombo.name,
+              description: selectedCombo.description,
+              basePrice: selectedCombo.price,
+              requiredItems: [
+                {
+                  id: 'pizza1',
+                  name: 'Escolha o sabor tradicional da 1° pizza grande',
+                  type: 'PIZZA',
+                  required: true,
+                  options: []
+                },
+                {
+                  id: 'pizza2',
+                  name: 'Escolha o sabor tradicional da 2° pizza grande',
+                  type: 'PIZZA',
+                  required: true,
+                  options: []
+                },
+                {
+                  id: 'pizza3',
+                  name: 'ESCOLHA O SABOR DA PEQUENA',
+                  type: 'PIZZA',
+                  required: true,
+                  options: []
+                }
+              ],
+              optionalItems: [
+                {
+                  id: 'refri',
+                  name: 'ADD 1 REFRI 1L GRÁTIS',
+                  type: 'DRINK',
+                  price: 0,
+                  options: []
+                }
+              ]
+            }}
+            isOpen={showCustomizationModal}
+            onClose={() => {
+              setShowCustomizationModal(false)
+              setSelectedCombo(null)
+            }}
+            onAddToCart={handleAddToCart}
+          />
+        )}
       </div>
     </ProtectedRoute>
   )
