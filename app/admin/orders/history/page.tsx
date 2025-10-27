@@ -75,14 +75,6 @@ export default function OrdersHistory() {
   const [dateFilter, setDateFilter] = useState<string>('ALL')
   const router = useRouter()
 
-  useEffect(() => {
-    fetchOrders()
-  }, [])
-
-  useEffect(() => {
-    filterOrders()
-  }, [filterOrders])
-
   const fetchOrders = async () => {
     try {
       const response = await fetch('/api/orders/history')
@@ -138,6 +130,14 @@ export default function OrdersHistory() {
 
     setFilteredOrders(filtered)
   }, [orders, searchTerm, statusFilter, dateFilter])
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  useEffect(() => {
+    filterOrders()
+  }, [filterOrders])
 
   const getStatusColor = (status: string) => {
     switch (status) {
