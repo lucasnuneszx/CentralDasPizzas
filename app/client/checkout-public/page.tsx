@@ -56,6 +56,7 @@ function CheckoutPublicContent() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [addresses, setAddresses] = useState<any[]>([])
+  const [deliveryAreas, setDeliveryAreas] = useState<any[]>([])
   
   const [formData, setFormData] = useState<{
     deliveryType: string
@@ -65,6 +66,7 @@ function CheckoutPublicContent() {
     customerPhone: string
     customerEmail: string
     selectedAddressId: string
+    selectedDeliveryAreaId: string
     address: {
       street: string
       number: string
@@ -82,6 +84,7 @@ function CheckoutPublicContent() {
     customerPhone: '',
     customerEmail: '',
     selectedAddressId: '',
+    selectedDeliveryAreaId: '',
     address: {
       street: '',
       number: '',
@@ -109,6 +112,7 @@ function CheckoutPublicContent() {
   useEffect(() => {
     loadCartFromStorage()
     loadSettings()
+    loadDeliveryAreas()
     if (session?.user) {
       loadUserData()
       loadUserAddresses()
@@ -124,6 +128,18 @@ function CheckoutPublicContent() {
       }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
+    }
+  }
+
+  const loadDeliveryAreas = async () => {
+    try {
+      const response = await fetch('/api/delivery-areas')
+      if (response.ok) {
+        const areasData = await response.json()
+        setDeliveryAreas(areasData)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar áreas de entrega:', error)
     }
   }
 
@@ -209,9 +225,9 @@ function CheckoutPublicContent() {
           return
         }
       } else {
-        // Para usuários não logados, validar endereço manual
-        if (!formData.address.street || !formData.address.number || !formData.address.neighborhood || !formData.address.city || !formData.address.state || !formData.address.zipCode) {
-          toast.error('Preencha todos os campos do endereço para entrega')
+        // Para usuários não logados, validar endereço manual e área de entrega
+        if (!formData.address.street || !formData.address.number || !formData.address.city || !formData.address.state || !formData.selectedDeliveryAreaId) {
+          toast.error('Preencha todos os campos do endereço e selecione o bairro para entrega')
           setIsLoading(false)
           return
         }
@@ -290,6 +306,26 @@ function CheckoutPublicContent() {
 
   const getDeliveryFee = () => {
     if (formData.deliveryType === DeliveryType.DELIVERY) {
+      // Se usuário logado, usar taxa do endereço selecionado
+      if (session?.user && formData.selectedAddressId) {
+        const selectedAddress = addresses.find(addr => addr.id === formData.selectedAddressId)
+        if (selectedAddress) {
+          // Buscar área de entrega correspondente ao endereço
+          const deliveryArea = deliveryAreas.find(area => 
+            area.name === selectedAddress.neighborhood && 
+            area.city === selectedAddress.city
+          )
+          return deliveryArea?.deliveryFee || settings?.deliveryFee || 5.00
+        }
+      }
+      
+      // Se usuário não logado, usar área selecionada
+      if (!session?.user && formData.selectedDeliveryAreaId) {
+        const selectedArea = deliveryAreas.find(area => area.id === formData.selectedDeliveryAreaId)
+        return selectedArea?.deliveryFee || settings?.deliveryFee || 5.00
+      }
+      
+      // Fallback para taxa padrão
       return settings?.deliveryFee || 5.00
     }
     return 0
@@ -443,7 +479,14 @@ function CheckoutPublicContent() {
                     <MapPin className="h-5 w-5 text-primary" />
                      <div>
                        <div className="font-medium">Entrega</div>
-                       <div className="text-sm text-gray-600">Taxa: R$ {(settings?.deliveryFee || 5.00).toFixed(2).replace('.', ',')}</div>
+                       <div className="text-sm text-gray-600">
+                         Taxa: R$ {getDeliveryFee().toFixed(2).replace('.', ',')}
+                         {formData.selectedDeliveryAreaId && (
+                           <span className="text-xs text-green-600 ml-1">
+                             (Taxa do bairro selecionado)
+                           </span>
+                         )}
+                       </div>
                      </div>
                   </label>
                   
@@ -548,16 +591,24 @@ function CheckoutPublicContent() {
                        </div>
                        
                        <div>
-                         <Label htmlFor="neighborhood">Bairro *</Label>
-                         <Input
-                           id="neighborhood"
-                           value={formData.address.neighborhood}
-                           onChange={(e) => setFormData({ 
-                             ...formData, 
-                             address: { ...formData.address, neighborhood: e.target.value }
-                           })}
+                         <Label htmlFor="deliveryArea">Bairro *</Label>
+                         <select
+                           id="deliveryArea"
+                           value={formData.selectedDeliveryAreaId}
+                           onChange={(e) => setFormData({ ...formData, selectedDeliveryAreaId: e.target.value })}
+                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                            required
-                         />
+                         >
+                           <option value="">Selecione seu bairro</option>
+                           {deliveryAreas
+                             .filter(area => area.isActive)
+                             .sort((a, b) => a.name.localeCompare(b.name))
+                             .map((area) => (
+                               <option key={area.id} value={area.id}>
+                                 {area.name} - {area.city} (Taxa: R$ {area.deliveryFee.toFixed(2).replace('.', ',')})
+                               </option>
+                             ))}
+                         </select>
                        </div>
                        
                        <div className="grid grid-cols-2 gap-4">

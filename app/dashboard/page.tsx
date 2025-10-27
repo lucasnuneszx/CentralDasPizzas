@@ -29,7 +29,8 @@ import {
   X,
   Smartphone,
   Filter,
-  Truck
+  Truck,
+  MapPin
 } from 'lucide-react'
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
 import { NotificationCenter } from '@/components/notification-center'
@@ -225,6 +226,28 @@ export default function Dashboard() {
                   onClick={() => router.push('/admin/delivery-persons')}
                 >
                   Gerenciar Motoboys
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:scale-105">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <MapPin className="h-8 w-8" />
+                  <DollarSign className="h-5 w-5 opacity-80" />
+                </div>
+                <CardTitle className="text-white text-lg">Áreas de Entrega</CardTitle>
+                <CardDescription className="text-amber-100">
+                  Configure bairros e taxas de entrega
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => router.push('/admin/delivery-areas')}
+                >
+                  Gerenciar Áreas
                 </Button>
               </CardContent>
             </Card>

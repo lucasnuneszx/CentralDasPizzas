@@ -366,3 +366,18 @@ model OrderItemExtra {
 
   @@map("order_item_extras")
 }
+
+model DeliveryArea {
+  id          String   @id @default(cuid())
+  name        String   // Nome do bairro/área
+  city        String   // Cidade
+  state       String   // Estado
+  zipCode     String?  // CEP (opcional)
+  deliveryFee Float    // Taxa de entrega específica
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, city, state])
+  @@map("delivery_areas")
+}
