@@ -65,9 +65,10 @@ export default function AdminCategories() {
       const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories'
       const method = editingCategory ? 'PUT' : 'POST'
 
-      // Se há uma imagem selecionada, converter para base64
-      let imageData = formData.image
-      if (selectedImage) {
+      // Preservar imagem existente ou usar nova se selecionada
+      let imageData = formData.image // Manter imagem existente por padrão
+      if (selectedImage && selectedImage.size > 0) {
+        // Só sobrescrever se houver uma nova imagem válida
         imageData = await new Promise<string>((resolve) => {
           const reader = new FileReader()
           reader.onload = () => resolve(reader.result as string)
@@ -108,10 +109,11 @@ export default function AdminCategories() {
     setFormData({
       name: category.name,
       description: category.description || '',
-      image: category.image || '',
+      image: category.image || '', // Preservar imagem existente
       isActive: category.isActive,
       order: category.order
     })
+    setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
     setShowForm(true)
   }
 
@@ -251,8 +253,24 @@ export default function AdminCategories() {
                     <div>
                       <Label>Imagem da Categoria</Label>
                       <ImageUpload
-                        onImageSelect={setSelectedImage}
                         currentImage={formData.image}
+                        onImageSelect={(file) => {
+                          if (file.size === 0) {
+                            // Remover imagem
+                            setFormData({ ...formData, image: '' })
+                            setSelectedImage(null)
+                          } else {
+                            // Nova imagem selecionada
+                            setSelectedImage(file)
+                            // Criar preview imediato
+                            const reader = new FileReader()
+                            reader.onload = (e) => {
+                              const url = e.target?.result as string
+                              setFormData({ ...formData, image: url })
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
                         className="mt-2"
                       />
                     </div>

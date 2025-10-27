@@ -100,9 +100,10 @@ export default function AdminCombos() {
       const url = editingCombo ? `/api/combos/${editingCombo.id}` : '/api/combos'
       const method = editingCombo ? 'PUT' : 'POST'
 
-      // Se há uma imagem selecionada, converter para base64
-      let imageData = formData.image
-      if (selectedImage) {
+      // Preservar imagem existente ou usar nova se selecionada
+      let imageData = formData.image // Manter imagem existente por padrão
+      if (selectedImage && selectedImage.size > 0) {
+        // Só sobrescrever se houver uma nova imagem válida
         imageData = await new Promise<string>((resolve) => {
           const reader = new FileReader()
           reader.onload = () => resolve(reader.result as string)
@@ -146,10 +147,11 @@ export default function AdminCombos() {
       description: combo.description,
       price: combo.price.toString(),
       categoryId: combo.category.id,
-      image: combo.image || '',
+      image: combo.image || '', // Preservar imagem existente
       isActive: combo.isActive,
       isPizza: combo.isPizza
     })
+    setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
     setShowForm(true)
   }
 
@@ -194,6 +196,7 @@ export default function AdminCombos() {
       isPizza: false
     })
     setSelectedImage(null)
+    setEditingCombo(null) // Limpar referência de edição
   }
 
   const handleCancel = () => {
@@ -373,8 +376,24 @@ export default function AdminCombos() {
                       <div className="md:col-span-2">
                         <Label>Imagem do Combo</Label>
                         <ImageUpload
-                          onImageSelect={setSelectedImage}
                           currentImage={formData.image}
+                          onImageSelect={(file) => {
+                            if (file.size === 0) {
+                              // Remover imagem
+                              setFormData({ ...formData, image: '' })
+                              setSelectedImage(null)
+                            } else {
+                              // Nova imagem selecionada
+                              setSelectedImage(file)
+                              // Criar preview imediato
+                              const reader = new FileReader()
+                              reader.onload = (e) => {
+                                const url = e.target?.result as string
+                                setFormData({ ...formData, image: url })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
                           className="mt-2"
                         />
                       </div>
