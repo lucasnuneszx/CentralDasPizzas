@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ProtectedRoute } from '@/components/protected-route'
 import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft, ChefHat } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, ChefHat, Settings } from 'lucide-react'
 import ComboCustomizationModal from '@/components/combo-customization-modal'
 import toast from 'react-hot-toast'
 
@@ -576,15 +576,26 @@ export default function AdminCombos() {
                                 </span>
                               </div>
                               {combo.isPizza && combo.isActive && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleCustomize(combo)}
-                                  className="w-full text-xs"
-                                >
-                                  <ChefHat className="h-3 w-3 mr-1" />
-                                  Personalizar
-                                </Button>
+                                <div className="space-y-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleCustomize(combo)}
+                                    className="w-full text-xs"
+                                  >
+                                    <ChefHat className="h-3 w-3 mr-1" />
+                                    Personalizar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => router.push(`/admin/combos/customization?combo=${combo.id}`)}
+                                    className="w-full text-xs"
+                                  >
+                                    <Settings className="h-3 w-3 mr-1" />
+                                    Configurar
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           </div>

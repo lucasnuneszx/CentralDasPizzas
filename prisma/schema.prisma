@@ -116,15 +116,56 @@ model Combo {
   isActive    Boolean  @default(true)
   categoryId  String
   isPizza     Boolean  @default(false)
+  allowCustomization Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   category Category @relation(fields: [categoryId], references: [id])
   items    OrderItem[]
   sizes    PizzaSize[]
+  customizationItems ComboCustomizationItem[]
 
   @@unique([name, categoryId])
   @@map("combos")
+}
+
+model ComboCustomizationItem {
+  id          String   @id @default(cuid())
+  comboId     String
+  name        String
+  description String?
+  type        String   // PIZZA, DRINK, SIDE, DESSERT
+  isRequired  Boolean  @default(false)
+  isMultiple  Boolean  @default(false)
+  maxSelections Int?   // Máximo de seleções (para múltiplas escolhas)
+  minSelections Int    @default(1) // Mínimo de seleções
+  order       Int      @default(0) // Ordem de exibição
+  image       String?  // Foto do item
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  combo Combo @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  options ComboCustomizationOption[]
+
+  @@map("combo_customization_items")
+}
+
+model ComboCustomizationOption {
+  id          String   @id @default(cuid())
+  itemId      String
+  name        String
+  description String?
+  price       Float    @default(0) // Valor adicional
+  image       String?  // Foto da opção
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  item ComboCustomizationItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("combo_customization_options")
 }
 
 model PizzaSize {
