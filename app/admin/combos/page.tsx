@@ -486,67 +486,87 @@ export default function AdminCombos() {
               </Card>
             ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {combos.map((combo) => (
-                <Card key={combo.id} className="overflow-hidden">
-                  {combo.image && (
-                    <div className="aspect-video bg-gray-200">
-                      <img
-                        src={combo.image}
-                        alt={combo.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{combo.name}</CardTitle>
-                        <CardDescription>{combo.category.name}</CardDescription>
-                      </div>
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(combo)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(combo.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-2">{combo.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-primary">
-                        R$ {combo.price.toFixed(2)}
-                      </span>
-                      <div className="flex space-x-2">
-                        {combo.isPizza && (
-                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
-                            🍕 Pizza
-                          </span>
+            {/* Agrupar combos por categoria */}
+            {categories
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((category) => {
+              const categoryCombos = combos.filter(combo => combo.category.id === category.id)
+              
+              if (categoryCombos.length === 0) return null
+              
+              return (
+                <div key={category.id} className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">{category.name}</h2>
+                    <span className="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                      {categoryCombos.length} {categoryCombos.length === 1 ? 'item' : 'itens'}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {categoryCombos.map((combo) => (
+                      <Card key={combo.id} className="overflow-hidden">
+                        {combo.image && (
+                          <div className="aspect-video bg-gray-200">
+                            <img
+                              src={combo.image}
+                              alt={combo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          combo.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {combo.isActive ? 'Ativo' : 'Inativo'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg">{combo.name}</CardTitle>
+                              <CardDescription>{combo.category.name}</CardDescription>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(combo)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDelete(combo.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-2">{combo.description}</p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-bold text-primary">
+                              R$ {combo.price.toFixed(2)}
+                            </span>
+                            <div className="flex space-x-2">
+                              {combo.isPizza && (
+                                <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
+                                  🍕 Pizza
+                                </span>
+                              )}
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                combo.isActive 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {combo.isActive ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
 
             {combos.length === 0 && !isLoading && (
               <div className="text-center py-12">

@@ -31,6 +31,7 @@ import {
   Filter
 } from 'lucide-react'
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
+import { NotificationCenter } from '@/components/notification-center'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showIfoodPopup, setShowIfoodPopup] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const handleSignOut = () => {
     // Implementar logout
@@ -156,6 +158,28 @@ export default function Dashboard() {
                   onClick={() => router.push('/admin/settings')}
                 >
                   Acessar
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white hover:scale-105">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <Truck className="h-8 w-8" />
+                  <Zap className="h-5 w-5 opacity-80" />
+                </div>
+                <CardTitle className="text-white text-lg">Motoboys</CardTitle>
+                <CardDescription className="text-cyan-100">
+                  Gestão de motoboys e status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => router.push('/admin/delivery-persons')}
+                >
+                  Gerenciar Motoboys
                 </Button>
               </CardContent>
             </Card>
@@ -469,6 +493,16 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Bem-vindo ao sistema de gestão da Central Das Pizzas</p>
           </div>
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNotifications(true)}
+              className="relative"
+            >
+              <Bell className="h-4 w-4" />
+              {/* Indicador de notificações não lidas */}
+              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+            </Button>
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-sm text-muted-foreground">Sistema Online</span>
           </div>
@@ -477,6 +511,10 @@ export default function Dashboard() {
         <IfoodIframePopup 
           isOpen={showIfoodPopup}
           onClose={() => setShowIfoodPopup(false)}
+        />
+        <NotificationCenter 
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
         />
       </DashboardShell>
     </ProtectedRoute>

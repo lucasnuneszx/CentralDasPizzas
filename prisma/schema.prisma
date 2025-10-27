@@ -27,6 +27,8 @@ model User {
   orders    Order[]
   sessions  Session[]
   accounts  Account[]
+  notifications Notification[]
+  ifoodSettings IfoodSettings?
 
   @@map("users")
 }
@@ -164,6 +166,13 @@ model Order {
   deliveryType  String
   notes         String?
   ifoodOrderId  String?
+  confirmedAt   DateTime?
+  confirmedBy   String?
+  cancelledAt   DateTime?
+  cancelledBy   String?
+  deliveredAt   DateTime?
+  deliveredBy   String?
+  deliveryPerson String?      // Nome do motoboy/entregador
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -171,6 +180,7 @@ model Order {
   address  Address?    @relation(fields: [addressId], references: [id])
   items    OrderItem[]
   cashLogs CashLog[]
+  notifications Notification[]
 
   @@map("orders")
 }
@@ -196,7 +206,7 @@ model OrderItem {
 model CashLog {
   id          String   @id @default(cuid())
   orderId     String?
-  type        String   // OPEN, CLOSE, ORDER
+  type        String   // OPEN, CLOSE, ORDER, ORDER_CONFIRMED, ORDER_CANCELLED, ORDER_PRINTED
   amount      Float
   description String?
   createdAt   DateTime @default(now())
@@ -234,4 +244,55 @@ model SystemSettings {
   updatedAt         DateTime @updatedAt
 
   @@map("system_settings")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  orderId   String?
+  type      String   // NEW_ORDER, ORDER_UPDATE, SYSTEM
+  source    String   // IFOOD, SYSTEM
+  title     String
+  message   String
+  logo      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@map("notifications")
+}
+
+model IfoodSettings {
+  id                   String   @id @default(cuid())
+  userId               String
+  apiUrl               String
+  apiKey               String
+  merchantId           String
+  autoPrint            Boolean  @default(false)
+  autoAccept           Boolean  @default(false)
+  notificationsEnabled Boolean  @default(true)
+  webhookUrl           String?
+  logo                 String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("ifood_settings")
+}
+
+model DeliveryPerson {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  plate     String?  // Placa da moto (opcional)
+  status    String   @default("OFFLINE") // OFFLINE, ONLINE, DELIVERING, UNAVAILABLE, OUT_OF_ROUTE
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("delivery_persons")
 }
