@@ -139,15 +139,15 @@ export default function MenuPage() {
           }, 0)
           console.log('✅ Total de combos:', totalCombos)
           
-          // Garantir que os dados estão no formato correto
+          // IMPORTANTE: Não filtrar categorias sem combos aqui - mostrar todas
+          // O filtro será feito apenas na interface, não no carregamento
           const validCategories = data.filter((cat: Category) => {
+            // Apenas verificar se é uma categoria válida, não se tem combos
             const isValid = cat && 
-                           cat.combos && 
-                           Array.isArray(cat.combos) && 
-                           cat.combos.length > 0 &&
-                           cat.isActive !== false
+                           cat.isActive !== false &&
+                           Array.isArray(cat.combos) // Pode ter 0 combos, mas deve ser array
             if (!isValid && cat) {
-              console.warn('⚠️ Categoria inválida ou sem combos:', cat.name, cat.combos?.length || 0)
+              console.warn('⚠️ Categoria inválida:', cat.name, 'isActive:', cat.isActive)
             }
             return isValid
           })
@@ -155,15 +155,20 @@ export default function MenuPage() {
           console.log('✅ Categorias válidas:', validCategories.length)
           console.log('✅ Categorias válidas detalhadas:', validCategories.map(c => ({
             name: c.name,
-            combos: c.combos.length
+            combos: c.combos?.length || 0,
+            isActive: c.isActive
           })))
           
-          if (validCategories.length === 0 && data.length > 0) {
-            console.warn('⚠️ Todas as categorias foram filtradas! Mostrando todas mesmo assim...')
-            // Se todas foram filtradas, mostrar todas mesmo assim para debug
-            setCategories(data.filter((cat: Category) => cat && cat.isActive !== false))
-          } else {
-            setCategories(validCategories)
+          // SEMPRE definir as categorias, mesmo que não tenham combos
+          // Isso permite que o usuário veja que a API está funcionando
+          setCategories(validCategories)
+          
+          // Log adicional para debug
+          const categoriesWithCombos = validCategories.filter(c => c.combos && c.combos.length > 0)
+          console.log('✅ Categorias COM combos:', categoriesWithCombos.length)
+          if (categoriesWithCombos.length === 0 && validCategories.length > 0) {
+            console.warn('⚠️ ATENÇÃO: Categorias carregadas mas nenhuma tem combos!')
+            console.warn('⚠️ Verifique se há produtos cadastrados no banco de dados')
           }
         } else {
           console.error('❌ Dados não são um array:', typeof data, data)
@@ -278,33 +283,53 @@ export default function MenuPage() {
   }
 
   // Filtrar categorias e combos baseado na seleção e busca
-  const filteredCategories = categories.filter(category => {
-    // Verificar se a categoria tem combos
-    if (!category.combos || !Array.isArray(category.combos) || category.combos.length === 0) {
-      return false
+  // IMPORTANTE: Se não houver filtros, mostrar TODAS as categorias
+  const filteredCategories = (() => {
+    // Se não há filtros ativos, mostrar todas as categorias com combos
+    if (!selectedCategory && !searchTerm) {
+      return categories.filter(category => {
+        return category && 
+               category.combos && 
+               Array.isArray(category.combos) && 
+               category.combos.length > 0 &&
+               category.isActive !== false
+      })
     }
     
-    // Filtrar por categoria selecionada
-    if (selectedCategory && category.id !== selectedCategory) {
-      return false
-    }
-    
-    // Filtrar combos dentro da categoria baseado na busca
-    const filteredCombos = category.combos.filter(combo => {
-      if (!combo || !combo.isActive) return false
+    // Se há filtros, aplicar lógica de filtro
+    return categories.filter(category => {
+      // Verificar se a categoria tem combos
+      if (!category || !category.combos || !Array.isArray(category.combos) || category.combos.length === 0) {
+        return false
+      }
       
-      if (searchTerm) {
+      // Filtrar por categoria selecionada
+      if (selectedCategory && category.id !== selectedCategory) {
+        return false
+      }
+      
+      // Filtrar combos dentro da categoria baseado na busca
+      const filteredCombos = category.combos.filter(combo => {
+        if (!combo) return false
+        
+        // Se não há termo de busca, mostrar todos os combos ativos
+        if (!searchTerm) {
+          return combo.isActive !== false
+        }
+        
+        // Se há termo de busca, filtrar
+        if (combo.isActive === false) return false
+        
         const searchLower = searchTerm.toLowerCase()
         const nameMatch = combo.name?.toLowerCase().includes(searchLower) || false
         const descMatch = combo.description?.toLowerCase().includes(searchLower) || false
         return nameMatch || descMatch
-      }
-      return true
+      })
+      
+      // Retornar categoria apenas se tiver combos após filtro
+      return filteredCombos.length > 0
     })
-    
-    // Retornar categoria apenas se tiver combos após filtro
-    return filteredCombos.length > 0
-  })
+  })()
   
   // Debug: Log para verificar filtros
   useEffect(() => {
@@ -585,14 +610,31 @@ export default function MenuPage() {
           ) : (
             filteredCategories.map((category) => {
               // Filtrar combos dentro da categoria baseado na busca
-              const filteredCombos = category.combos.filter(combo => {
+              const filteredCombos = (category.combos || []).filter(combo => {
+                if (!combo) return false
+                if (combo.isActive === false) return false
+                
                 if (searchTerm) {
-                  return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         combo.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                  const searchLower = searchTerm.toLowerCase()
+                  const nameMatch = combo.name?.toLowerCase().includes(searchLower) || false
+                  const descMatch = combo.description?.toLowerCase().includes(searchLower) || false
+                  return nameMatch || descMatch
                 }
                 return true
               })
 
+              // IMPORTANTE: Mostrar categoria mesmo se não tiver combos após filtro
+              // Isso ajuda a identificar problemas
+              if (filteredCombos.length === 0 && category.combos && category.combos.length > 0) {
+                console.warn('⚠️ Categoria sem combos após filtro:', category.name, 'Combos originais:', category.combos.length)
+                // Se há combos originais mas foram filtrados, mostrar mensagem
+                return (
+                  <div key={category.id} className="text-center py-8 text-gray-500">
+                    <p>Categoria "{category.name}" não tem produtos que correspondem aos filtros.</p>
+                  </div>
+                )
+              }
+              
               if (filteredCombos.length === 0) return null
 
               return (
