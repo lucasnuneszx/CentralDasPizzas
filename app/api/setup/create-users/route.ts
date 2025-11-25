@@ -95,6 +95,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Verificar variáveis de ambiente
+    const envCheck = {
+      hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+      hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      nextAuthUrl: process.env.NEXTAUTH_URL || 'Não configurado',
+      databaseUrlPreview: process.env.DATABASE_URL 
+        ? (process.env.DATABASE_URL.includes('postgres.railway.internal') 
+          ? '❌ URL INTERNA (errado!)' 
+          : '✅ URL pública')
+        : 'Não configurado'
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Processo de criação de usuários concluído',
@@ -118,6 +131,15 @@ export async function GET(request: NextRequest) {
           email: 'cozinha@centraldaspizzas.com',
           password: '123456'
         }
+      },
+      environmentCheck: envCheck,
+      loginInstructions: {
+        message: 'Para fazer login, verifique se todas as variáveis estão configuradas:',
+        required: [
+          `NEXTAUTH_SECRET: ${envCheck.hasNextAuthSecret ? '✅ Configurado' : '❌ FALTANDO'}`,
+          `NEXTAUTH_URL: ${envCheck.hasNextAuthUrl ? `✅ ${envCheck.nextAuthUrl}` : '❌ FALTANDO'}`,
+          `DATABASE_URL: ${envCheck.hasDatabaseUrl ? envCheck.databaseUrlPreview : '❌ FALTANDO'}`
+        ]
       }
     }, { status: 200 })
 
