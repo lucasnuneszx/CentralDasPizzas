@@ -82,9 +82,22 @@ export default function MenuPage() {
   }, [categories])
 
   useEffect(() => {
+    console.log('🚀 Componente montado. Iniciando carregamento...')
     fetchSettings()
     fetchCategories()
   }, [])
+  
+  // Re-tentar carregar se não houver categorias após 3 segundos
+  useEffect(() => {
+    if (!loading && categories.length === 0) {
+      console.warn('⚠️ Nenhuma categoria carregada. Tentando novamente em 3 segundos...')
+      const timer = setTimeout(() => {
+        console.log('🔄 Re-tentando carregar categorias...')
+        fetchCategories()
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, categories.length])
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -109,79 +122,98 @@ export default function MenuPage() {
       setLoading(true)
       console.log('🔄 Iniciando busca de categorias...')
       
-      // Usar URL absoluta para garantir que funcione em qualquer ambiente
-      const apiUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/api/categories`
-        : '/api/categories'
+      // CRÍTICO: Usar URL absoluta e garantir que funcione
+      let apiUrl = '/api/categories'
+      if (typeof window !== 'undefined') {
+        // Garantir URL absoluta
+        const origin = window.location.origin
+        apiUrl = `${origin}/api/categories`
+        console.log('📡 URL da API (absoluta):', apiUrl)
+        console.log('📡 Window location:', window.location.href)
+      }
       
-      console.log('📡 URL da API:', apiUrl)
+      console.log('📡 Fazendo fetch para:', apiUrl)
       
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'same-origin'
-      })
+      // Tentar múltiplas vezes se necessário
+      let response: Response | null = null
+      let lastError: Error | null = null
       
-      console.log('📥 Resposta recebida:', response.status, response.statusText)
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`🔄 Tentativa ${attempt}/3...`)
+          response = await fetch(apiUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            credentials: 'same-origin',
+            // Adicionar timeout
+            signal: AbortSignal.timeout(10000) // 10 segundos
+          } as RequestInit)
+          
+          console.log('📥 Resposta recebida:', response.status, response.statusText)
+          break // Sucesso, sair do loop
+        } catch (fetchError) {
+          lastError = fetchError as Error
+          console.error(`❌ Erro na tentativa ${attempt}:`, fetchError)
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt)) // Esperar antes de tentar novamente
+          }
+        }
+      }
+      
+      if (!response) {
+        throw lastError || new Error('Não foi possível fazer fetch após 3 tentativas')
+      }
       
       if (response.ok) {
         const data = await response.json()
-        console.log('✅ Dados recebidos:', data)
-        console.log('✅ Categorias carregadas:', data.length, 'categorias')
+        console.log('✅ Dados recebidos (tipo):', typeof data, Array.isArray(data))
+        console.log('✅ Dados recebidos (quantidade):', data?.length || 0)
         
-        if (data && Array.isArray(data)) {
+        if (data && Array.isArray(data) && data.length > 0) {
+          console.log('✅ Primeira categoria (exemplo):', {
+            name: data[0]?.name,
+            combosCount: data[0]?.combos?.length || 0,
+            isActive: data[0]?.isActive
+          })
+          
           const totalCombos = data.reduce((total: number, cat: Category) => {
             return total + (cat.combos && Array.isArray(cat.combos) ? cat.combos.length : 0)
           }, 0)
           console.log('✅ Total de combos:', totalCombos)
           
-          // IMPORTANTE: Não filtrar categorias sem combos aqui - mostrar todas
-          // O filtro será feito apenas na interface, não no carregamento
+          // IMPORTANTE: Não filtrar categorias sem combos - mostrar todas
           const validCategories = data.filter((cat: Category) => {
-            // Apenas verificar se é uma categoria válida, não se tem combos
             const isValid = cat && 
                            cat.isActive !== false &&
-                           Array.isArray(cat.combos) // Pode ter 0 combos, mas deve ser array
-            if (!isValid && cat) {
-              console.warn('⚠️ Categoria inválida:', cat.name, 'isActive:', cat.isActive)
-            }
+                           Array.isArray(cat.combos)
             return isValid
           })
           
           console.log('✅ Categorias válidas:', validCategories.length)
-          console.log('✅ Categorias válidas detalhadas:', validCategories.map(c => ({
-            name: c.name,
-            combos: c.combos?.length || 0,
-            isActive: c.isActive
-          })))
           
-          // Log adicional para debug
-          const categoriesWithCombos = validCategories.filter(c => c.combos && c.combos.length > 0)
-          console.log('✅ Categorias COM combos:', categoriesWithCombos.length)
-          
-          // IMPORTANTE: Se não há categorias com combos, verificar se o problema é no filtro
-          if (categoriesWithCombos.length === 0 && validCategories.length > 0) {
-            console.warn('⚠️ ATENÇÃO: Categorias carregadas mas nenhuma tem combos!')
-            console.warn('⚠️ Verificando estrutura dos dados...')
-            validCategories.forEach(cat => {
-              console.warn(`  - ${cat.name}: combos=${cat.combos?.length || 0}, tipo=${typeof cat.combos}, é array?=${Array.isArray(cat.combos)}`)
-            })
-          }
-          
-          // SEMPRE definir as categorias, mesmo que não tenham combos
-          // Isso permite que o usuário veja que a API está funcionando
+          // FORÇAR atualização do estado
           setCategories(validCategories)
           
-          // Forçar re-render se necessário
-          if (validCategories.length > 0) {
-            console.log('✅ Categorias definidas no estado. Forçando atualização...')
-          }
+          // Forçar re-render
+          setTimeout(() => {
+            console.log('🔄 Forçando re-render após 100ms...')
+            setCategories(prev => {
+              console.log('🔄 Estado atual no re-render:', prev.length)
+              return prev
+            })
+          }, 100)
+          
+          console.log('✅ Categorias setadas no estado:', validCategories.length)
         } else {
-          console.error('❌ Dados não são um array:', typeof data, data)
+          console.error('❌ Dados inválidos ou vazios:', {
+            isArray: Array.isArray(data),
+            length: data?.length,
+            data: data
+          })
           setCategories([])
         }
       } else {
@@ -193,13 +225,13 @@ export default function MenuPage() {
     } catch (error) {
       console.error('❌ Erro ao carregar categorias:', error)
       if (error instanceof Error) {
-        console.error('❌ Mensagem de erro:', error.message)
+        console.error('❌ Mensagem:', error.message)
         console.error('❌ Stack:', error.stack)
       }
       setCategories([])
     } finally {
       setLoading(false)
-      console.log('✅ Carregamento finalizado')
+      console.log('✅ Carregamento finalizado. Estado final:', categories.length)
     }
   }
 
@@ -644,10 +676,24 @@ export default function MenuPage() {
                       ? 'Não há produtos cadastrados no momento.' 
                       : 'Categorias carregadas mas nenhuma tem produtos ativos.'}
                   </p>
-                  <div className="mt-4 text-xs text-gray-400">
+                  <div className="mt-4 text-xs text-gray-400 space-y-1">
                     <p>Debug: Total de categorias: {categories.length}</p>
                     <p>Debug: Categorias com combos: {categoriesToShow.length}</p>
+                    <p>Debug: Loading: {loading ? 'Sim' : 'Não'}</p>
+                    <p>Debug: URL: {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</p>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔄 Botão de recarregar clicado')
+                      setLoading(true)
+                      fetchCategories()
+                    }}
+                    className="mt-4 px-6 py-2 bg-red-500 text-white hover:bg-red-600"
+                  >
+                    🔄 Recarregar Produtos
+                  </Button>
                 </div>
               )
             }
