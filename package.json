@@ -14,7 +14,7 @@
     "db:studio": "prisma studio",
     "postinstall": "node scripts/prisma-generate-safe.js",
     "railway:build": "node scripts/prisma-generate-safe.js && next build",
-    "railway:start": "npm run db:push && npm start",
+    "railway:start": "node scripts/db-push-safe.js && npm start",
     "deploy": "node scripts/auto-deploy.js",
     "deploy:win": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
     "populate:pizza": "node scripts/populate-pizza-data.js",
