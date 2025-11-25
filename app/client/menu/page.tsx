@@ -777,19 +777,18 @@ export default function MenuPage() {
                   {filteredCombos.map((combo) => (
                   <Card key={combo.id} className="product-card bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200">
                     {combo.image && (
-                      <div className="h-48 md:h-64 relative bg-gray-50 flex items-center justify-center p-4 md:p-6 overflow-hidden">
+                      <div className="h-48 md:h-64 relative bg-gray-50 flex items-center justify-center p-0 overflow-hidden">
                         {combo.image.startsWith('data:') ? (
                           <img
                             src={combo.image}
                             alt={combo.name}
-                            className="max-w-full max-h-full object-contain"
+                            className="w-full h-full object-cover"
                             style={{ 
-                              maxWidth: '100%', 
-                              maxHeight: '100%',
-                              width: 'auto',
-                              height: 'auto',
-                              objectFit: 'contain',
-                              objectPosition: 'center'
+                              width: '100%', 
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              display: 'block'
                             }}
                           />
                         ) : (
@@ -797,7 +796,8 @@ export default function MenuPage() {
                             src={combo.image}
                             alt={combo.name}
                             fill
-                            className="object-contain"
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         )}
                       </div>
