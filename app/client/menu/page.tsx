@@ -104,7 +104,10 @@ export default function MenuPage() {
       const response = await fetch('/api/categories')
       if (response.ok) {
         const data = await response.json()
+        console.log('Categorias carregadas:', data.length, 'categorias')
         setCategories(data)
+      } else {
+        console.error('Erro ao carregar categorias:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Erro ao carregar categorias:', error)
@@ -337,7 +340,7 @@ export default function MenuPage() {
       </header>
 
       {/* Conteúdo principal */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 md:px-4 py-4 md:py-8">
         {/* Filtros e Busca */}
         <div className="mb-8 space-y-4">
           {/* Barra de Busca */}
@@ -368,20 +371,20 @@ export default function MenuPage() {
               <Filter className="h-5 w-5 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Filtrar por categoria:</span>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 md:gap-3">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(null)}
-                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
+                className={`px-3 md:px-4 py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm ${
                   selectedCategory === null 
                     ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700" 
                     : "bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50"
                 }`}
               >
-                <span className="flex items-center space-x-2">
+                <span className="flex items-center space-x-1 md:space-x-2">
                   <span>🍽️</span>
-                  <span>Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})</span>
+                  <span className="whitespace-nowrap">Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})</span>
                 </span>
               </Button>
               {getQuickFilterCategories().map((category) => {
@@ -399,15 +402,15 @@ export default function MenuPage() {
                     variant={selectedCategory === category.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
+                    className={`px-3 md:px-4 py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm ${
                       selectedCategory === category.id 
                         ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl hover:from-red-600 hover:to-red-700" 
                         : "bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50"
                     }`}
                   >
-                    <span className="flex items-center space-x-2">
+                    <span className="flex items-center space-x-1 md:space-x-2">
                       <span>{getCategoryIcon(category.name)}</span>
-                      <span>{category.name} ({category.count})</span>
+                      <span className="whitespace-nowrap">{category.name} ({category.count})</span>
                     </span>
                   </Button>
                 )
@@ -451,75 +454,98 @@ export default function MenuPage() {
 
         {/* Categorias e produtos */}
         <div className="space-y-8">
-          {filteredCategories.map((category) => {
-            // Filtrar combos dentro da categoria baseado na busca
-            const filteredCombos = category.combos.filter(combo => {
-              if (searchTerm) {
-                return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       combo.description.toLowerCase().includes(searchTerm.toLowerCase())
-              }
-              return true
-            })
+          {filteredCategories.length === 0 && !loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                {categories.length === 0 
+                  ? 'Carregando produtos...' 
+                  : 'Tente ajustar os filtros de busca.'}
+              </p>
+            </div>
+          ) : (
+            filteredCategories.map((category) => {
+              // Filtrar combos dentro da categoria baseado na busca
+              const filteredCombos = category.combos.filter(combo => {
+                if (searchTerm) {
+                  return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         combo.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                }
+                return true
+              })
 
-            return (
-            <div key={category.id} className="space-y-4">
-              <div className="flex items-center space-x-3">
-                {category.image && (
-                  <div className="w-12 h-12 relative rounded-lg overflow-hidden">
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{category.name}</h2>
-                  {category.description && (
-                    <p className="text-gray-600">{category.description}</p>
+              if (filteredCombos.length === 0) return null
+
+              return (
+              <div key={category.id} className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  {category.image && (
+                    <div className="w-12 h-12 relative rounded-lg overflow-hidden flex-shrink-0">
+                      <Image
+                        src={category.image}
+                        alt={category.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   )}
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold text-gray-900">{category.name}</h2>
+                    {category.description && (
+                      <p className="text-sm md:text-base text-gray-600">{category.description}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredCombos.map((combo) => (
-                  <Card key={combo.id} className="product-card bg-white border border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                  {filteredCombos.map((combo) => (
+                  <Card key={combo.id} className="product-card bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200">
                     {combo.image && (
-                      <div className="h-64 relative bg-gray-50 flex items-center justify-center p-6">
-                        <img
-                          src={combo.image}
-                          alt={combo.name}
-                          className="max-w-full max-h-full object-contain"
-                          style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '100%',
-                            width: 'auto',
-                            height: 'auto',
-                            objectFit: 'contain',
-                            objectPosition: 'center'
-                          }}
-                        />
+                      <div className="h-48 md:h-64 relative bg-gray-50 flex items-center justify-center p-4 md:p-6 overflow-hidden">
+                        {combo.image.startsWith('data:') ? (
+                          <img
+                            src={combo.image}
+                            alt={combo.name}
+                            className="max-w-full max-h-full object-contain"
+                            style={{ 
+                              maxWidth: '100%', 
+                              maxHeight: '100%',
+                              width: 'auto',
+                              height: 'auto',
+                              objectFit: 'contain',
+                              objectPosition: 'center'
+                            }}
+                          />
+                        ) : (
+                          <Image
+                            src={combo.image}
+                            alt={combo.name}
+                            fill
+                            className="object-contain"
+                          />
+                        )}
                       </div>
                     )}
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{combo.name}</CardTitle>
-                      <CardDescription className="text-sm text-gray-600 line-clamp-2">{combo.description}</CardDescription>
+                    <CardHeader className="pb-3 px-4 md:px-6">
+                      <CardTitle className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{combo.name}</CardTitle>
+                      {combo.description && (
+                        <CardDescription className="text-xs md:text-sm text-gray-600 line-clamp-2 mt-1">{combo.description}</CardDescription>
+                      )}
                       {combo.isPizza && (
-                        <Badge className="bg-orange-100 text-orange-800 w-fit mt-2">
+                        <Badge className="bg-orange-100 text-orange-800 w-fit mt-2 text-xs">
                           <ChefHat className="h-3 w-3 mr-1" />
                           Personalizável
                         </Badge>
                       )}
                     </CardHeader>
-                    <CardContent className="pt-0">
+                    <CardContent className="pt-0 px-4 md:px-6 pb-4 md:pb-6">
                       <div className="flex flex-col space-y-3">
-                        <div className="text-2xl font-bold text-red-600">
+                        <div className="text-xl md:text-2xl font-bold text-red-600">
                           R$ {combo.price.toFixed(2).replace('.', ',')}
                         </div>
                         <Button
                           onClick={() => handleItemCustomize(combo)}
-                          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2"
+                          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 text-sm md:text-base"
                         >
                           <Plus className="h-4 w-4 mr-1" />
                           {combo.isPizza ? 'Personalizar' : 'Adicionar'}
@@ -527,11 +553,12 @@ export default function MenuPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
       </main>
 
