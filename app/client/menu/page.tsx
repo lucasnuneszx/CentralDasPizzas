@@ -159,16 +159,26 @@ export default function MenuPage() {
             isActive: c.isActive
           })))
           
+          // Log adicional para debug
+          const categoriesWithCombos = validCategories.filter(c => c.combos && c.combos.length > 0)
+          console.log('✅ Categorias COM combos:', categoriesWithCombos.length)
+          
+          // IMPORTANTE: Se não há categorias com combos, verificar se o problema é no filtro
+          if (categoriesWithCombos.length === 0 && validCategories.length > 0) {
+            console.warn('⚠️ ATENÇÃO: Categorias carregadas mas nenhuma tem combos!')
+            console.warn('⚠️ Verificando estrutura dos dados...')
+            validCategories.forEach(cat => {
+              console.warn(`  - ${cat.name}: combos=${cat.combos?.length || 0}, tipo=${typeof cat.combos}, é array?=${Array.isArray(cat.combos)}`)
+            })
+          }
+          
           // SEMPRE definir as categorias, mesmo que não tenham combos
           // Isso permite que o usuário veja que a API está funcionando
           setCategories(validCategories)
           
-          // Log adicional para debug
-          const categoriesWithCombos = validCategories.filter(c => c.combos && c.combos.length > 0)
-          console.log('✅ Categorias COM combos:', categoriesWithCombos.length)
-          if (categoriesWithCombos.length === 0 && validCategories.length > 0) {
-            console.warn('⚠️ ATENÇÃO: Categorias carregadas mas nenhuma tem combos!')
-            console.warn('⚠️ Verifique se há produtos cadastrados no banco de dados')
+          // Forçar re-render se necessário
+          if (validCategories.length > 0) {
+            console.log('✅ Categorias definidas no estado. Forçando atualização...')
           }
         } else {
           console.error('❌ Dados não são um array:', typeof data, data)
@@ -283,21 +293,37 @@ export default function MenuPage() {
   }
 
   // Filtrar categorias e combos baseado na seleção e busca
-  // IMPORTANTE: Se não houver filtros, mostrar TODAS as categorias
+  // IMPORTANTE: Se não houver filtros, mostrar TODAS as categorias COM combos
   const filteredCategories = (() => {
+    console.log('🔍 Aplicando filtros...', {
+      totalCategories: categories.length,
+      selectedCategory,
+      searchTerm,
+      categoriesWithCombos: categories.filter(c => c.combos && c.combos.length > 0).length
+    })
+    
     // Se não há filtros ativos, mostrar todas as categorias com combos
     if (!selectedCategory && !searchTerm) {
-      return categories.filter(category => {
-        return category && 
+      const result = categories.filter(category => {
+        const hasCombos = category && 
                category.combos && 
                Array.isArray(category.combos) && 
                category.combos.length > 0 &&
                category.isActive !== false
+        
+        if (!hasCombos && category) {
+          console.log(`  ⚠️ Categoria "${category.name}" sem combos ou inativa`)
+        }
+        
+        return hasCombos
       })
+      
+      console.log('✅ Categorias sem filtro:', result.length)
+      return result
     }
     
     // Se há filtros, aplicar lógica de filtro
-    return categories.filter(category => {
+    const result = categories.filter(category => {
       // Verificar se a categoria tem combos
       if (!category || !category.combos || !Array.isArray(category.combos) || category.combos.length === 0) {
         return false
@@ -329,6 +355,9 @@ export default function MenuPage() {
       // Retornar categoria apenas se tiver combos após filtro
       return filteredCombos.length > 0
     })
+    
+    console.log('✅ Categorias após filtro:', result.length)
+    return result
   })()
   
   // Debug: Log para verificar filtros
@@ -345,11 +374,14 @@ export default function MenuPage() {
 
   // Obter categorias para os filtros rápidos
   const getQuickFilterCategories = () => {
-    return categories.map(category => ({
-      id: category.id,
-      name: category.name,
-      count: category.combos.length
-    }))
+    return categories
+      .filter(category => category && category.combos && Array.isArray(category.combos))
+      .map(category => ({
+        id: category.id,
+        name: category.name,
+        count: category.combos?.length || 0
+      }))
+      .filter(cat => cat.count > 0) // Apenas categorias com combos
   }
 
   if (loading) {
@@ -507,7 +539,7 @@ export default function MenuPage() {
               >
                 <span className="flex items-center space-x-1 md:space-x-2">
                   <span>🍽️</span>
-                  <span className="whitespace-nowrap">Todos ({categories.reduce((total, cat) => total + cat.combos.length, 0)})</span>
+                  <span className="whitespace-nowrap">Todos ({categories.reduce((total, cat) => total + (cat.combos?.length || 0), 0)})</span>
                 </span>
               </Button>
               {getQuickFilterCategories().map((category) => {
@@ -533,7 +565,7 @@ export default function MenuPage() {
                   >
                     <span className="flex items-center space-x-1 md:space-x-2">
                       <span>{getCategoryIcon(category.name)}</span>
-                      <span className="whitespace-nowrap">{category.name} ({category.count})</span>
+                      <span className="whitespace-nowrap">{category.name} ({category.count || 0})</span>
                     </span>
                   </Button>
                 )
