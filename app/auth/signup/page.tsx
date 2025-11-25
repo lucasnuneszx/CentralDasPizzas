@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { hashPassword } from '@/lib/auth'
 import toast from 'react-hot-toast'
 
 export default function SignUp() {
@@ -26,6 +25,19 @@ export default function SignUp() {
     e.preventDefault()
     setIsLoading(true)
 
+    // Validações
+    if (!formData.name || !formData.email || !formData.password) {
+      toast.error('Preencha todos os campos obrigatórios')
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres')
+      setIsLoading(false)
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('As senhas não coincidem')
       setIsLoading(false)
@@ -33,8 +45,7 @@ export default function SignUp() {
     }
 
     try {
-      const hashedPassword = await hashPassword(formData.password)
-      
+      // Enviar senha em texto plano (o backend fará o hash)
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -43,21 +54,26 @@ export default function SignUp() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: hashedPassword,
-          phone: formData.phone,
-          cpf: formData.cpf,
+          password: formData.password, // Senha em texto plano - backend fará hash
+          phone: formData.phone || null,
+          cpf: formData.cpf || null,
         }),
       })
 
+      const data = await response.json()
+      
       if (response.ok) {
         toast.success('Conta criada com sucesso!')
-        router.push('/auth/signin')
+        setTimeout(() => {
+          router.push('/auth/signin')
+        }, 1000)
       } else {
-        const error = await response.json()
-        toast.error(error.message || 'Erro ao criar conta')
+        toast.error(data.message || 'Erro ao criar conta')
+        console.error('Erro no registro:', data)
       }
     } catch (error) {
-      toast.error('Erro ao criar conta')
+      console.error('Erro ao criar conta:', error)
+      toast.error('Erro ao conectar com o servidor. Tente novamente.')
     } finally {
       setIsLoading(false)
     }

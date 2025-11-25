@@ -1,0 +1,99 @@
+============================================
+VARIÁVEIS DE AMBIENTE PARA VERCEL
+============================================
+Copie e cole no painel do Vercel:
+Settings → Environment Variables → Add New
+============================================
+
+OBRIGATÓRIAS:
+-------------
+
+DATABASE_URL
+postgresql://usuario:senha@host:5432/central_das_pizzas?schema=public
+
+NEXTAUTH_URL
+https://centraldaspizzas.com
+
+NEXTAUTH_SECRET
+[Gerar com: openssl rand -base64 32]
+
+OPENAI_API_KEY
+sk-proj-your-openai-api-key-here
+
+EVOLUTION_API_URL
+https://api.evolution-api.com
+
+EVOLUTION_API_KEY
+[sua-evolution-api-key-aqui]
+
+EVOLUTION_INSTANCE_NAME
+central-das-pizzas
+
+WHATSAPP_WEBHOOK_TOKEN
+[gerar-token-secreto-aleatorio]
+
+OPCIONAIS (mas recomendadas):
+------------------------------
+
+IFOOD_API_URL
+https://api.ifood.com.br
+
+IFOOD_API_KEY
+[sua-ifood-api-key]
+
+IFOOD_MERCHANT_ID
+[seu-merchant-id]
+
+CLOUDINARY_CLOUD_NAME
+[seu-cloud-name]
+
+CLOUDINARY_API_KEY
+[sua-api-key]
+
+CLOUDINARY_API_SECRET
+[seu-api-secret]
+
+PRINTER_IP
+192.168.1.100
+
+PRINTER_PORT
+9100
+
+RESTAURANT_NAME
+Central das Pizzas Av Sul
+
+RESTAURANT_ADDRESS
+Av. Sul, 104 - Verdes Horizontes, Camaçari - BA, 42810-021
+
+RESTAURANT_PHONE
+(71) 99156-5893
+
+RESTAURANT_EMAIL
+contato@centraldaspizzas.com
+
+DELIVERY_ESTIMATE
+35 - 70min
+
+OPENING_HOURS
+Seg-Dom: 18h-23h
+
+DELIVERY_FEE
+5.00
+
+MIN_ORDER_VALUE
+25.00
+
+============================================
+INSTRUÇÕES:
+============================================
+
+1. Acesse: https://vercel.com/dashboard
+2. Selecione seu projeto
+3. Settings → Environment Variables
+4. Add New → Cole cada variável acima
+5. Selecione: Production, Preview, Development
+6. Save
+7. Faça Redeploy do projeto
+
+============================================
+
