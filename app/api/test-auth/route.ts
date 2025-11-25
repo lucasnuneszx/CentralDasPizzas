@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Resumo
-    const allOk = results.checks.every(c => c.status.includes('✅'));
+    const allOk = results.checks.every((c: { status: string }) => c.status.includes('✅'));
     results.summary = {
       success: allOk,
       message: allOk 
