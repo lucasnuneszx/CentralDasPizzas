@@ -630,7 +630,7 @@ export default function MenuPage() {
                 // Se há combos originais mas foram filtrados, mostrar mensagem
                 return (
                   <div key={category.id} className="text-center py-8 text-gray-500">
-                    <p>Categoria "{category.name}" não tem produtos que correspondem aos filtros.</p>
+                    <p>Categoria &quot;{category.name}&quot; não tem produtos que correspondem aos filtros.</p>
                   </div>
                 )
               }
