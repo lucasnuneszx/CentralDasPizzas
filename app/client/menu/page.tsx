@@ -614,33 +614,70 @@ export default function MenuPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-500">Carregando produtos...</p>
             </div>
-          ) : filteredCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg font-semibold">Nenhum produto encontrado.</p>
-              <p className="text-gray-400 text-sm mt-2">
-                {categories.length === 0 
-                  ? 'Não há produtos cadastrados no momento.' 
-                  : selectedCategory || searchTerm
-                    ? 'Tente ajustar os filtros de busca ou limpar os filtros.'
-                    : 'Não há produtos disponíveis.'}
-              </p>
-              {(selectedCategory || searchTerm) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCategory(null)
-                    setSearchTerm('')
-                  }}
-                  className="mt-4 px-6 py-2 bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50 rounded-full font-medium transition-all duration-200"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Limpar Filtros
-                </Button>
-              )}
-            </div>
-          ) : (
-            filteredCategories.map((category) => {
+          ) : (() => {
+            // DEBUG: Forçar mostrar todas as categorias com combos
+            const categoriesToShow = categories.filter(cat => {
+              const hasCombos = cat && 
+                               cat.combos && 
+                               Array.isArray(cat.combos) && 
+                               cat.combos.length > 0 &&
+                               cat.isActive !== false
+              return hasCombos
+            })
+            
+            console.log('🔍 DEBUG RENDER:', {
+              totalCategories: categories.length,
+              categoriesWithCombos: categoriesToShow.length,
+              filteredCategories: filteredCategories.length,
+              selectedCategory,
+              searchTerm,
+              categoriesToShowNames: categoriesToShow.map(c => c.name)
+            })
+            
+            // Se não há categorias para mostrar, mostrar mensagem
+            if (categoriesToShow.length === 0) {
+              return (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg font-semibold">Nenhum produto encontrado.</p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    {categories.length === 0 
+                      ? 'Não há produtos cadastrados no momento.' 
+                      : 'Categorias carregadas mas nenhuma tem produtos ativos.'}
+                  </p>
+                  <div className="mt-4 text-xs text-gray-400">
+                    <p>Debug: Total de categorias: {categories.length}</p>
+                    <p>Debug: Categorias com combos: {categoriesToShow.length}</p>
+                  </div>
+                </div>
+              )
+            }
+            
+            // Usar filteredCategories se houver filtros, senão usar todas as categorias com combos
+            const finalCategories = (selectedCategory || searchTerm) ? filteredCategories : categoriesToShow
+            
+            if (finalCategories.length === 0 && (selectedCategory || searchTerm)) {
+              return (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg font-semibold">Nenhum produto encontrado com os filtros.</p>
+                  <p className="text-gray-400 text-sm mt-2">Tente ajustar os filtros de busca ou limpar os filtros.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCategory(null)
+                      setSearchTerm('')
+                    }}
+                    className="mt-4 px-6 py-2 bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50 rounded-full font-medium transition-all duration-200"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Limpar Filtros
+                  </Button>
+                </div>
+              )
+            }
+            
+            // Renderizar categorias
+            return finalCategories.map((category) => {
               // Filtrar combos dentro da categoria baseado na busca
               const filteredCombos = (category.combos || []).filter(combo => {
                 if (!combo) return false
@@ -751,7 +788,7 @@ export default function MenuPage() {
               </div>
               )
             })
-          )}
+          })()}
         </div>
       </main>
 
