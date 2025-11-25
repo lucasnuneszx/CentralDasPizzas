@@ -84,8 +84,13 @@ export default function MenuPage() {
   useEffect(() => {
     fetchSettings()
     fetchCategories()
-    loadCartFromStorage()
-  }, [loadCartFromStorage])
+  }, [])
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      loadCartFromStorage()
+    }
+  }, [categories, loadCartFromStorage])
 
   const fetchSettings = async () => {
     try {
@@ -101,16 +106,32 @@ export default function MenuPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories')
+      setLoading(true)
+      const response = await fetch('/api/categories', {
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        console.log('Categorias carregadas:', data.length, 'categorias')
-        setCategories(data)
+        console.log('✅ Categorias carregadas:', data.length, 'categorias')
+        console.log('✅ Total de combos:', data.reduce((total: number, cat: Category) => total + (cat.combos?.length || 0), 0))
+        
+        // Garantir que os dados estão no formato correto
+        const validCategories = data.filter((cat: Category) => cat && cat.combos && Array.isArray(cat.combos))
+        console.log('✅ Categorias válidas:', validCategories.length)
+        
+        setCategories(validCategories)
       } else {
-        console.error('Erro ao carregar categorias:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.error('❌ Erro ao carregar categorias:', response.status, response.statusText, errorText)
+        setCategories([])
       }
     } catch (error) {
-      console.error('Erro ao carregar categorias:', error)
+      console.error('❌ Erro ao carregar categorias:', error)
+      setCategories([])
     } finally {
       setLoading(false)
     }
@@ -207,18 +228,44 @@ export default function MenuPage() {
 
   // Filtrar categorias e combos baseado na seleção e busca
   const filteredCategories = categories.filter(category => {
-    if (selectedCategory && category.id !== selectedCategory) return false
+    // Verificar se a categoria tem combos
+    if (!category.combos || !Array.isArray(category.combos) || category.combos.length === 0) {
+      return false
+    }
     
+    // Filtrar por categoria selecionada
+    if (selectedCategory && category.id !== selectedCategory) {
+      return false
+    }
+    
+    // Filtrar combos dentro da categoria baseado na busca
     const filteredCombos = category.combos.filter(combo => {
+      if (!combo || !combo.isActive) return false
+      
       if (searchTerm) {
-        return combo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               combo.description.toLowerCase().includes(searchTerm.toLowerCase())
+        const searchLower = searchTerm.toLowerCase()
+        const nameMatch = combo.name?.toLowerCase().includes(searchLower) || false
+        const descMatch = combo.description?.toLowerCase().includes(searchLower) || false
+        return nameMatch || descMatch
       }
       return true
     })
     
+    // Retornar categoria apenas se tiver combos após filtro
     return filteredCombos.length > 0
   })
+  
+  // Debug: Log para verificar filtros
+  useEffect(() => {
+    if (!loading) {
+      console.log('📊 Estado atual:')
+      console.log('  - Total de categorias:', categories.length)
+      console.log('  - Categorias filtradas:', filteredCategories.length)
+      console.log('  - Categoria selecionada:', selectedCategory)
+      console.log('  - Termo de busca:', searchTerm)
+      console.log('  - Total de combos:', categories.reduce((total, cat) => total + (cat.combos?.length || 0), 0))
+    }
+  }, [categories, filteredCategories, selectedCategory, searchTerm, loading])
 
   // Obter categorias para os filtros rápidos
   const getQuickFilterCategories = () => {
@@ -454,14 +501,35 @@ export default function MenuPage() {
 
         {/* Categorias e produtos */}
         <div className="space-y-8">
-          {filteredCategories.length === 0 && !loading ? (
+          {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-500">Carregando produtos...</p>
+            </div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg font-semibold">Nenhum produto encontrado.</p>
               <p className="text-gray-400 text-sm mt-2">
                 {categories.length === 0 
-                  ? 'Carregando produtos...' 
-                  : 'Tente ajustar os filtros de busca.'}
+                  ? 'Não há produtos cadastrados no momento.' 
+                  : selectedCategory || searchTerm
+                    ? 'Tente ajustar os filtros de busca ou limpar os filtros.'
+                    : 'Não há produtos disponíveis.'}
               </p>
+              {(selectedCategory || searchTerm) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory(null)
+                    setSearchTerm('')
+                  }}
+                  className="mt-4 px-6 py-2 bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50 rounded-full font-medium transition-all duration-200"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Limpar Filtros
+                </Button>
+              )}
             </div>
           ) : (
             filteredCategories.map((category) => {
