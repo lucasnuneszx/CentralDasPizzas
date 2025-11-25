@@ -6,6 +6,7 @@ import { verifyPassword } from "@/lib/auth"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -14,34 +15,54 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.log('❌ Credenciais incompletas')
+            return null
           }
-        })
 
-        if (!user || !user.password) {
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email
+            }
+          })
+
+          if (!user) {
+            console.log(`❌ Usuário não encontrado: ${credentials.email}`)
+            return null
+          }
+
+          if (!user.password) {
+            console.log(`❌ Usuário sem senha: ${credentials.email}`)
+            return null
+          }
+
+          if (!user.isActive) {
+            console.log(`❌ Usuário inativo: ${credentials.email}`)
+            return null
+          }
+
+          const isPasswordValid = await verifyPassword(
+            credentials.password,
+            user.password
+          )
+
+          if (!isPasswordValid) {
+            console.log(`❌ Senha inválida para: ${credentials.email}`)
+            return null
+          }
+
+          console.log(`✅ Login bem-sucedido: ${user.email} (${user.role})`)
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        } catch (error) {
+          console.error('❌ Erro na autenticação:', error)
           return null
-        }
-
-        const isPasswordValid = await verifyPassword(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
         }
       }
     })
