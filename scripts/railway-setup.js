@@ -154,17 +154,27 @@ async function railwaySetup() {
 
 // Executar apenas se for chamado diretamente
 if (require.main === module) {
-  railwaySetup()
-    .then(() => {
-      console.log('✅ Script finalizado com sucesso')
-      process.exit(0)
-    })
-    .catch((error) => {
-      console.error('❌ Erro fatal no script:', error)
-      console.error('Stack:', error.stack)
-      // SEMPRE sair com sucesso para não bloquear o deploy
-      process.exit(0)
-    })
+  // Usar setImmediate para evitar problemas de memória
+  setImmediate(() => {
+    railwaySetup()
+      .then(() => {
+        console.log('✅ Script finalizado com sucesso')
+        // Aguardar um pouco antes de sair para garantir que tudo foi escrito
+        setTimeout(() => {
+          process.exit(0)
+        }, 100)
+      })
+      .catch((error) => {
+        console.error('❌ Erro fatal no script:', error)
+        if (error.stack) {
+          console.error('Stack:', error.stack)
+        }
+        // SEMPRE sair com sucesso para não bloquear o deploy
+        setTimeout(() => {
+          process.exit(0)
+        }, 100)
+      })
+  })
 }
 
 module.exports = { railwaySetup }
