@@ -1,0 +1,19 @@
+============================================
+VARIÁVEIS MÍNIMAS (Para funcionar básico)
+============================================
+Copie e cole no serviço "web" → Variables
+============================================
+
+DATABASE_URL
+postgresql://postgres:XckYAceZBmzqXmJAGDdTSiYevwZkVgTO@postgres.railway.internal:5432/railway
+
+NEXTAUTH_URL
+https://www.centraldaspizzas.com
+
+NEXTAUTH_SECRET
+LkcuMmUSoiHMCER/gEN29sVNeATGeHXqi0TlJ8GyKrg=
+
+============================================
+Essas 3 são OBRIGATÓRIAS para o sistema funcionar!
+============================================
+

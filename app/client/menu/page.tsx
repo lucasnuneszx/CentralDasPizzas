@@ -107,33 +107,84 @@ export default function MenuPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/categories', {
+      console.log('🔄 Iniciando busca de categorias...')
+      
+      // Usar URL absoluta para garantir que funcione em qualquer ambiente
+      const apiUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/api/categories`
+        : '/api/categories'
+      
+      console.log('📡 URL da API:', apiUrl)
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
-        }
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
       })
+      
+      console.log('📥 Resposta recebida:', response.status, response.statusText)
       
       if (response.ok) {
         const data = await response.json()
+        console.log('✅ Dados recebidos:', data)
         console.log('✅ Categorias carregadas:', data.length, 'categorias')
-        console.log('✅ Total de combos:', data.reduce((total: number, cat: Category) => total + (cat.combos?.length || 0), 0))
         
-        // Garantir que os dados estão no formato correto
-        const validCategories = data.filter((cat: Category) => cat && cat.combos && Array.isArray(cat.combos))
-        console.log('✅ Categorias válidas:', validCategories.length)
-        
-        setCategories(validCategories)
+        if (data && Array.isArray(data)) {
+          const totalCombos = data.reduce((total: number, cat: Category) => {
+            return total + (cat.combos && Array.isArray(cat.combos) ? cat.combos.length : 0)
+          }, 0)
+          console.log('✅ Total de combos:', totalCombos)
+          
+          // Garantir que os dados estão no formato correto
+          const validCategories = data.filter((cat: Category) => {
+            const isValid = cat && 
+                           cat.combos && 
+                           Array.isArray(cat.combos) && 
+                           cat.combos.length > 0 &&
+                           cat.isActive !== false
+            if (!isValid && cat) {
+              console.warn('⚠️ Categoria inválida ou sem combos:', cat.name, cat.combos?.length || 0)
+            }
+            return isValid
+          })
+          
+          console.log('✅ Categorias válidas:', validCategories.length)
+          console.log('✅ Categorias válidas detalhadas:', validCategories.map(c => ({
+            name: c.name,
+            combos: c.combos.length
+          })))
+          
+          if (validCategories.length === 0 && data.length > 0) {
+            console.warn('⚠️ Todas as categorias foram filtradas! Mostrando todas mesmo assim...')
+            // Se todas foram filtradas, mostrar todas mesmo assim para debug
+            setCategories(data.filter((cat: Category) => cat && cat.isActive !== false))
+          } else {
+            setCategories(validCategories)
+          }
+        } else {
+          console.error('❌ Dados não são um array:', typeof data, data)
+          setCategories([])
+        }
       } else {
         const errorText = await response.text()
-        console.error('❌ Erro ao carregar categorias:', response.status, response.statusText, errorText)
+        console.error('❌ Erro HTTP:', response.status, response.statusText)
+        console.error('❌ Resposta de erro:', errorText)
         setCategories([])
       }
     } catch (error) {
       console.error('❌ Erro ao carregar categorias:', error)
+      if (error instanceof Error) {
+        console.error('❌ Mensagem de erro:', error.message)
+        console.error('❌ Stack:', error.stack)
+      }
       setCategories([])
     } finally {
       setLoading(false)
+      console.log('✅ Carregamento finalizado')
     }
   }
 

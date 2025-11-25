@@ -27,7 +27,16 @@ export async function GET() {
       return a.name.localeCompare(b.name)
     })
 
-    return NextResponse.json(sortedCategories)
+    return NextResponse.json(sortedCategories, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
   } catch (error) {
     console.error('Erro ao buscar categorias:', error)
     return NextResponse.json(
