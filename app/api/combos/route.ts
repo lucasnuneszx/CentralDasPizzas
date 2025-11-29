@@ -29,9 +29,9 @@ export async function GET() {
         createdAt: 'desc'
       }
     }).catch((error: any) => {
-      // Se houver erro por coluna pizzaQuantity faltante, buscar sem ela
-      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity')) {
-        console.warn('⚠️ Coluna pizzaQuantity não existe. Buscando sem ela...')
+      // Se houver erro por coluna faltante (pizzaQuantity ou showFlavors), buscar sem elas
+      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('does not exist')) {
+        console.warn('⚠️ Coluna pizzaQuantity ou showFlavors não existe. Buscando sem elas...')
         return prisma.combo.findMany({
           select: {
             id: true,
@@ -43,7 +43,6 @@ export async function GET() {
             categoryId: true,
             isPizza: true,
             allowCustomization: true,
-            showFlavors: true,
             createdAt: true,
             updatedAt: true,
             category: {
