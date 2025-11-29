@@ -16,7 +16,10 @@ import {
   Package,
   MessageSquare,
   Send,
-  Trash2
+  Trash2,
+  Printer,
+  X,
+  ChevronDown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -173,6 +176,70 @@ export function ActiveOrders() {
     } catch (error) {
       console.error('Erro ao cancelar pedido:', error)
       toast.error('Erro ao cancelar pedido')
+    }
+  }
+
+  const handleAcceptOrder = async (order: Order) => {
+    try {
+      const response = await fetch(`/api/orders/${order.id}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (response.ok) {
+        toast.success('Pedido aceito com sucesso!')
+        setTimeout(() => {
+          fetchActiveOrders()
+        }, 500)
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao aceitar pedido')
+      }
+    } catch (error) {
+      console.error('Erro ao aceitar pedido:', error)
+      toast.error('Erro ao aceitar pedido')
+    }
+  }
+
+  const handlePrintOrder = async (order: Order) => {
+    try {
+      const response = await fetch(`/api/orders/${order.id}/print`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (response.ok) {
+        toast.success('Pedido enviado para impressão!')
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao imprimir pedido')
+      }
+    } catch (error) {
+      console.error('Erro ao imprimir pedido:', error)
+      toast.error('Erro ao imprimir pedido')
+    }
+  }
+
+  const handleUpdateStatus = async (order: Order, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (response.ok) {
+        toast.success('Status atualizado com sucesso!')
+        setTimeout(() => {
+          fetchActiveOrders()
+        }, 500)
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao atualizar status')
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      toast.error('Erro ao atualizar status')
     }
   }
 
