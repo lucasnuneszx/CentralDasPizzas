@@ -58,6 +58,7 @@ function CheckoutPublicContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [addresses, setAddresses] = useState<any[]>([])
   const [deliveryAreas, setDeliveryAreas] = useState<any[]>([])
+  const [refreshKey, setRefreshKey] = useState(0) // Para forçar re-render quando taxa mudar
   
   const [formData, setFormData] = useState<{
     deliveryType: string
