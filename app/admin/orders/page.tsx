@@ -169,6 +169,33 @@ export default function OrdersManagement() {
     }
   }
 
+  const handleSendMessage = async (order: Order, trigger: string) => {
+    if (!order.customerPhone) {
+      toast.error('Telefone do cliente não disponível para enviar mensagem.')
+      return
+    }
+    try {
+      const response = await fetch('/api/chatbot/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          phone: order.customerPhone,
+          trigger: trigger,
+        }),
+      })
+      if (response.ok) {
+        toast.success('Mensagem enviada com sucesso!')
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.message || 'Erro ao enviar mensagem.')
+      }
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error)
+      toast.error('Erro ao enviar mensagem.')
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING':
