@@ -40,19 +40,21 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const [loading, setLoading] = useState(true)
   const pizzaQuantity = (item as any).pizzaQuantity || 0
   const showFlavors = (item as any).showFlavors !== undefined ? (item as any).showFlavors : true
-  // Apenas combos com pizzas E com showFlavors ativado mostram sabores
-  const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true)) && showFlavors
+  const allowCustomization = (item as any).allowCustomization !== undefined ? (item as any).allowCustomization : false
+  // Mostrar sabores se: tem pizzas OU é pizza OU allowCustomization está ativo
+  const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true) || allowCustomization) && showFlavors
 
   useEffect(() => {
-    // Buscar dados apenas se for um combo (com pizzas) E showFlavors estiver ativado
-    if (isCombo) {
+    // Sempre buscar dados de customização se allowCustomization estiver ativo
+    // OU se for um combo com pizzas
+    if (allowCustomization || isCombo) {
       fetchPizzaData()
     } else {
       // Para itens extras (refrigerantes, etc) ou quando showFlavors está desativado, apenas carregar dados básicos
       fetchExtraItemData()
       setLoading(false)
     }
-  }, [item, isCombo])
+  }, [item, isCombo, allowCustomization])
 
   const fetchExtraItemData = async () => {
     try {
@@ -493,77 +495,114 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </>
           )}
 
-          {/* Itens Extras (Refri, Batatas, etc) */}
-          {extraItems.length > 0 && (
-            <div>
-              <Label className="text-base font-medium mb-3 block text-gray-900">
-                Adicionar Itens ao Combo
-              </Label>
-              <div className="space-y-3">
-                {extraItems.map((extraItem) => (
-                  <div key={extraItem.id} className="border rounded-lg p-3">
-                    {extraItem.options && extraItem.options.length > 0 ? (
-                      // Se tem opções, mostrar cada opção como checkbox
-                      <div className="space-y-2">
-                        <div className="font-semibold text-sm text-gray-900">{extraItem.name}</div>
-                        {extraItem.description && (
-                          <p className="text-xs text-gray-700 mb-2">{extraItem.description}</p>
-                        )}
-                        {extraItem.options
-                          .filter((option) => option.isActive)
-                          .map((option) => {
-                            const isSelected = isExtraItemSelected(extraItem, option.id)
-                            return (
-                              <label
-                                key={option.id}
-                                className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleExtraItem(extraItem, option.id)}
-                                  className="w-4 h-4 text-red-500 rounded"
-                                />
-                                <span className="text-sm font-semibold text-gray-900">{option.name}</span>
-                                {option.description && (
-                                  <span className="text-xs text-gray-700">({option.description})</span>
+          {/* Itens Extras (Refri, Batatas, etc) - Agrupados por tipo */}
+          {extraItems.length > 0 && (() => {
+            // Agrupar itens extras por tipo para evitar duplicação
+            const groupedItems: { [key: string]: ExtraItem[] } = {}
+            extraItems.forEach(item => {
+              const type = item.type || 'OTHER'
+              if (!groupedItems[type]) {
+                groupedItems[type] = []
+              }
+              // Verificar se já existe um item do mesmo tipo com o mesmo nome
+              const exists = groupedItems[type].some(existing => existing.name === item.name)
+              if (!exists) {
+                groupedItems[type].push(item)
+              }
+            })
+
+            return (
+              <div className="space-y-4">
+                {Object.entries(groupedItems).map(([type, items]) => (
+                  <div key={type}>
+                    <Label className="text-base font-medium mb-3 block text-gray-900">
+                      {type === 'DRINK' ? 'Refrigerante 1 Litro' : 
+                       type === 'SIDE' ? 'Acompanhamentos' : 
+                       'Adicionar Itens ao Combo'}
+                    </Label>
+                    <div className="space-y-3">
+                      {items.map((extraItem) => (
+                        <div key={extraItem.id} className="border rounded-lg p-3">
+                          {extraItem.options && extraItem.options.length > 0 ? (
+                            // Se tem opções, mostrar cada opção como checkbox
+                            <div className="space-y-2">
+                              {extraItem.name && extraItem.name !== 'Refrigerante 1 Litro' && (
+                                <div className="font-semibold text-sm text-gray-900 mb-2">{extraItem.name}</div>
+                              )}
+                              {extraItem.description && (
+                                <p className="text-xs text-gray-700 mb-2">{extraItem.description}</p>
+                              )}
+                              <div className="space-y-1">
+                                {extraItem.options
+                                  .filter((option) => option.isActive)
+                                  .map((option) => {
+                                    const isSelected = isExtraItemSelected(extraItem, option.id)
+                                    return (
+                                      <label
+                                        key={option.id}
+                                        className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name={`${extraItem.id}-group`}
+                                          checked={isSelected}
+                                          onChange={() => {
+                                            // Desmarcar outras opções do mesmo grupo
+                                            const otherSelections = { ...selectedExtraItems }
+                                            Object.keys(otherSelections).forEach(key => {
+                                              if (key.startsWith(extraItem.id + '-') && key !== `${extraItem.id}-${option.id}`) {
+                                                delete otherSelections[key]
+                                              }
+                                            })
+                                            setSelectedExtraItems(otherSelections)
+                                            toggleExtraItem(extraItem, option.id)
+                                          }}
+                                          className="w-4 h-4 text-red-500"
+                                        />
+                                        <span className="text-sm font-semibold text-gray-900">{option.name}</span>
+                                        {option.description && (
+                                          <span className="text-xs text-gray-700">({option.description})</span>
+                                        )}
+                                        {option.price > 0 && (
+                                          <span className="text-sm font-bold text-gray-900 ml-auto">
+                                            + R$ {option.price.toFixed(2).replace('.', ',')}
+                                          </span>
+                                        )}
+                                      </label>
+                                    )
+                                  })}
+                              </div>
+                            </div>
+                          ) : (
+                            // Se não tem opções, mostrar o item como checkbox simples
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isExtraItemSelected(extraItem)}
+                                onChange={() => toggleExtraItem(extraItem)}
+                                className="w-4 h-4 text-red-500 rounded"
+                              />
+                              <div className="flex-1">
+                                <span className="text-sm font-semibold text-gray-900">{extraItem.name}</span>
+                                {extraItem.description && (
+                                  <p className="text-xs text-gray-700">{extraItem.description}</p>
                                 )}
-                                {option.price > 0 && (
-                                  <span className="text-sm font-bold text-gray-900 ml-auto">
-                                    + R$ {option.price.toFixed(2).replace('.', ',')}
-                                  </span>
-                                )}
-                              </label>
-                            )
-                          })}
-                      </div>
-                    ) : (
-                      // Se não tem opções, mostrar o item como checkbox simples
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={isExtraItemSelected(extraItem)}
-                          onChange={() => toggleExtraItem(extraItem)}
-                          className="w-4 h-4 text-red-500 rounded"
-                        />
-                        <div className="flex-1">
-                          <span className="text-sm font-semibold text-gray-900">{extraItem.name}</span>
-                          {extraItem.description && (
-                            <p className="text-xs text-gray-700">{extraItem.description}</p>
+                              </div>
+                              {extraItem.price && extraItem.price > 0 && (
+                                <span className="text-sm font-bold text-gray-900">
+                                  + R$ {extraItem.price.toFixed(2).replace('.', ',')}
+                                </span>
+                              )}
+                            </label>
                           )}
                         </div>
-                        {extraItem.price && extraItem.price > 0 && (
-                          <span className="text-sm font-bold text-gray-900">
-                            + R$ {extraItem.price.toFixed(2).replace('.', ',')}
-                          </span>
-                        )}
-                      </label>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Observações */}
           <div>

@@ -28,77 +28,133 @@ export async function GET(request: NextRequest) {
       console.log('✅ Categoria "Combos" criada')
     }
 
-    // Lista de combos
+    // Lista de combos com informações de personalização
     const combos = [
       {
         name: 'COMBO DO DIA',
         description: 'Pizza Tradicional + Porção 8 Coxinhas + Maionese Gourmet + Refri 1 Litro + Bordas Grátis',
-        price: 59.99
+        price: 59.99,
+        hasPizza: true,
+        pizzaQuantity: 1,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'COMBO MASTER',
         description: 'Pizza Tradicional + Porção de 10 Salgados + Batata Frita + Maionese Gourmet + Refri 1L',
-        price: 72.99
+        price: 72.99,
+        hasPizza: true,
+        pizzaQuantity: 1,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'DOBRO DE PIZZA FAMÍLIA',
         description: 'Duas Pizzas Família Tradicionais + Pizza P Doce ou Salgada + Refri 1L',
-        price: 139.99
+        price: 139.99,
+        hasPizza: true,
+        pizzaQuantity: 3, // 2 grandes + 1 pequena
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'PIZZA + BATATA + COXINHAS',
         description: 'Pizza Tradicional + Porção Batata + Coxinhas + Maionese Gourmet',
-        price: 58.00
+        price: 58.00,
+        hasPizza: true,
+        pizzaQuantity: 1,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'DOBRO DE PIZZA MÉDIA',
         description: 'Duas Pizzas Tradicionais Médias',
-        price: 58.00
+        price: 58.00,
+        hasPizza: true,
+        pizzaQuantity: 2,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'COMBO SUPREMO',
         description: 'Duas Pizzas Médias Tradicionais + Porção Coxinhas + Batata + Maionese Temperada + Refri Grátis',
-        price: 74.99
+        price: 74.99,
+        hasPizza: true,
+        pizzaQuantity: 2,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'COMBO NA CAIXA 4 HAMBÚRGUERES',
         description: '4 Hambúrgueres + Porção de Batata + Maionese Temperada',
-        price: 55.00
+        price: 55.00,
+        hasPizza: false,
+        pizzaQuantity: 0,
+        allowCustomization: false,
+        showFlavors: false
       },
       {
         name: 'DOBRO DE PIZZA GRANDE',
         description: 'Duas Pizzas Grandes Tradicionais + Porção Coxinhas',
-        price: 79.99
+        price: 79.99,
+        hasPizza: true,
+        pizzaQuantity: 2,
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'COMBO MEGA CHOCOLATE',
         description: 'Pizza Tradicional + Pizza P Doce ou Salgada + Porção de Pastel',
-        price: 64.99
+        price: 64.99,
+        hasPizza: true,
+        pizzaQuantity: 2, // 1 grande + 1 pequena
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'DOBRO DE PIZZA GRANDE COMPLETO',
         description: 'Duas Pizzas Grandes Tradicionais + Pizza P Doce ou Salgada + Refri 1L',
-        price: 119.99
+        price: 119.99,
+        hasPizza: true,
+        pizzaQuantity: 3, // 2 grandes + 1 pequena
+        allowCustomization: true,
+        showFlavors: true
       },
       {
         name: 'COMBO NA CAIXA 6 HAMBÚRGUERES',
         description: '6 Hambúrgueres + Porção de Batata + Maionese Temperada',
-        price: 85.00
+        price: 85.00,
+        hasPizza: false,
+        pizzaQuantity: 0,
+        allowCustomization: false,
+        showFlavors: false
       },
       {
         name: 'COMBÃO MISTÃO',
         description: 'Prato Principal Misto + 2 Acompanhamentos + Refri 1L',
-        price: 59.99
+        price: 59.99,
+        hasPizza: false,
+        pizzaQuantity: 0,
+        allowCustomization: false,
+        showFlavors: false
       },
       {
         name: 'COMBO 20 MIX SALGADOS',
         description: '20 Salgados Mix (Coxinhas, Risole de Camarão, Bolinho de Bacalhau, Bolinho de Calabresa, Bolinho de Charque)',
-        price: 29.99
+        price: 29.99,
+        hasPizza: false,
+        pizzaQuantity: 0,
+        allowCustomization: false,
+        showFlavors: false
       },
       {
         name: '2 X-BATATA',
         description: '2 X-Batata + Batata com Bacon + Maionese Gourmet',
-        price: 35.00
+        price: 35.00,
+        hasPizza: false,
+        pizzaQuantity: 0,
+        allowCustomization: false,
+        showFlavors: false
       }
     ]
 
@@ -124,7 +180,10 @@ export async function GET(request: NextRequest) {
               price: comboData.price,
               categoryId: combosCategory.id,
               isActive: true,
-              isPizza: false,
+              isPizza: comboData.hasPizza || false,
+              allowCustomization: comboData.allowCustomization || false,
+              pizzaQuantity: comboData.pizzaQuantity || 0,
+              showFlavors: comboData.showFlavors !== undefined ? comboData.showFlavors : (comboData.hasPizza || false),
               image: null // Sem foto por enquanto, você adiciona depois
             }
           })
