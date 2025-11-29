@@ -24,17 +24,40 @@ async function railwaySetup() {
       
       // Aplicar schema ao banco de dados
       console.log('🔄 Aplicando schema ao banco de dados...')
+      console.log('📋 DATABASE_URL:', process.env.DATABASE_URL ? '✅ Configurada' : '❌ Não configurada')
       try {
-        const { stdout, stderr } = await execAsync('npx prisma db push --accept-data-loss', {
-          timeout: 30000, // 30 segundos de timeout
+        const { stdout, stderr } = await execAsync('npx prisma db push --accept-data-loss --skip-generate', {
+          timeout: 60000, // 60 segundos de timeout (aumentado)
           maxBuffer: 1024 * 1024 * 10 // 10MB buffer
         })
         if (stdout) console.log(stdout)
         if (stderr && !stderr.includes('Warning')) console.error(stderr)
         console.log('✅ Schema aplicado com sucesso')
+        
+        // Verificar se as colunas foram criadas
+        console.log('🔍 Verificando colunas criadas...')
+        const testQuery = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'system_settings' AND column_name = 'printerName'`
+        if (testQuery && Array.isArray(testQuery) && testQuery.length > 0) {
+          console.log('✅ Coluna printerName criada com sucesso')
+        } else {
+          console.log('⚠️ Coluna printerName não encontrada - pode precisar de migração manual')
+        }
       } catch (error) {
         console.error('⚠️ Erro ao aplicar schema:', error.message)
-        // Continuar mesmo se houver erro
+        console.error('⚠️ Stack:', error.stack)
+        // Tentar migrate como alternativa
+        try {
+          console.log('🔄 Tentando migração alternativa...')
+          const { stdout, stderr } = await execAsync('npx prisma migrate deploy', {
+            timeout: 60000,
+            maxBuffer: 1024 * 1024 * 10
+          })
+          if (stdout) console.log(stdout)
+          if (stderr && !stderr.includes('Warning')) console.error(stderr)
+          console.log('✅ Migração aplicada com sucesso')
+        } catch (migrateError) {
+          console.error('⚠️ Erro na migração também:', migrateError.message)
+        }
       }
     } else {
       console.log('💾 Ambiente de desenvolvimento detectado (SQLite)')

@@ -14,14 +14,33 @@ if (!DATABASE_URL) {
 
 try {
   console.log('🗄️ Aplicando schema ao banco de dados...');
-  execSync('prisma db push --accept-data-loss', { 
+  console.log('📋 DATABASE_URL:', DATABASE_URL ? '✅ Configurada' : '❌ Não configurada');
+  
+  // Executar prisma db push com force
+  execSync('npx prisma db push --accept-data-loss --skip-generate', { 
     stdio: 'inherit',
-    env: { ...process.env, DATABASE_URL }
+    env: { ...process.env, DATABASE_URL },
+    cwd: process.cwd()
   });
   console.log('✅ Schema aplicado com sucesso!');
 } catch (error) {
   console.error('❌ Erro ao aplicar schema:', error.message);
-  console.log('⚠️ Continuando mesmo assim...');
+  console.error('❌ Stack:', error.stack);
+  console.log('⚠️ Tentando novamente com prisma migrate...');
+  
+  // Tentar alternativa com migrate
+  try {
+    execSync('npx prisma migrate deploy', {
+      stdio: 'inherit',
+      env: { ...process.env, DATABASE_URL },
+      cwd: process.cwd()
+    });
+    console.log('✅ Migração aplicada com sucesso!');
+  } catch (migrateError) {
+    console.error('❌ Erro na migração também:', migrateError.message);
+    console.log('⚠️ Continuando mesmo assim...');
+  }
+  
   // Não falhar o start se db:push falhar
   process.exit(0);
 }
