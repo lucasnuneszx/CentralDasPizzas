@@ -368,29 +368,40 @@ export function ActiveOrders() {
                     </Badge>
                   </div>
                   
-                  {/* Botão de envio de mensagem */}
-                  {order.customerPhone && (
+                  {/* Botões de ação */}
+                  <div className="flex gap-2">
+                    {order.customerPhone && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700"
+                        onClick={() => {
+                          const triggers: { [key: string]: string } = {
+                            'CONFIRMED': 'ORDER_CONFIRMED',
+                            'PREPARING': 'ORDER_PREPARING',
+                            'READY': 'ORDER_READY',
+                            'OUT_FOR_DELIVERY': 'ORDER_OUT_FOR_DELIVERY'
+                          }
+                          const trigger = triggers[order.status]
+                          if (trigger) {
+                            handleSendMessage(order, trigger)
+                          }
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Enviar Mensagem
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700"
-                      onClick={() => {
-                        const triggers: { [key: string]: string } = {
-                          'CONFIRMED': 'ORDER_CONFIRMED',
-                          'PREPARING': 'ORDER_PREPARING',
-                          'READY': 'ORDER_READY',
-                          'OUT_FOR_DELIVERY': 'ORDER_OUT_FOR_DELIVERY'
-                        }
-                        const trigger = triggers[order.status]
-                        if (trigger) {
-                          handleSendMessage(order, trigger)
-                        }
-                      }}
+                      onClick={() => handleDeleteOrder(order)}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:border-red-700"
+                      title="Cancelar pedido"
                     >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Enviar Mensagem
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </CardContent>
 
