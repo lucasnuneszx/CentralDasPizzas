@@ -14,24 +14,82 @@ export async function GET() {
       )
     }
 
+    // Para admins e managers, retornar todos os pedidos. Para outros, apenas do usuário
+    const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'MANAGER'
+    const whereClause = isAdmin ? {} : { userId: session.user.id }
+
     const orders = await prisma.order.findMany({
-      where: {
-        userId: session.user.id
-      },
+      where: whereClause,
       include: {
         items: {
           include: {
-            combo: true
+            combo: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                image: true,
+                isActive: true,
+                categoryId: true,
+                isPizza: true,
+                allowCustomization: true,
+                createdAt: true,
+                updatedAt: true
+              }
+            }
           }
         },
-        address: true
+        address: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
       }
     })
 
-    return NextResponse.json(orders)
+    // Transformar para o formato esperado pelo frontend
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      ifoodOrderId: order.ifoodOrderId,
+      total: order.total,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      deliveryType: order.deliveryType,
+      createdAt: order.createdAt.toISOString(),
+      customerName: order.user?.name || 'Cliente',
+      customerPhone: order.user?.phone || null,
+      deliveryPerson: order.deliveryPersonId || null,
+      address: order.address ? {
+        street: order.address.street,
+        number: order.address.number,
+        neighborhood: order.address.neighborhood,
+        city: order.address.city,
+        state: order.address.state,
+        zipCode: order.address.zipCode
+      } : null,
+      items: order.items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        combo: {
+          id: item.combo.id,
+          name: item.combo.name,
+          description: item.combo.description,
+          image: item.combo.image
+        }
+      })),
+      notes: order.notes
+    }))
+
+    return NextResponse.json(formattedOrders)
   } catch (error) {
     console.error('Erro ao buscar pedidos:', error)
     return NextResponse.json(
@@ -374,6 +432,37 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.warn('Erro ao registrar venda no caixa:', error)
+    }
+
+    // Criar notificação para admins sobre novo pedido
+    try {
+      // Buscar todos os usuários admin e manager para notificar
+      const admins = await prisma.user.findMany({
+        where: {
+          role: { in: ['ADMIN', 'MANAGER'] },
+          isActive: true
+        },
+        select: { id: true }
+      })
+
+      // Criar notificação para cada admin/manager
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: 'NEW_ORDER',
+            source: 'SYSTEM',
+            title: 'Novo Pedido Recebido',
+            message: `Novo pedido #${order.id.slice(-8)} - Total: R$ ${order.total.toFixed(2)}`,
+            orderId: order.id,
+            read: false
+          }
+        })
+      }
+      console.log(`✅ Notificações criadas para ${admins.length} admin(s)/manager(s)`)
+    } catch (notificationError) {
+      console.error('⚠️ Erro ao criar notificações (não crítico):', notificationError)
+      // Não bloquear o pedido se falhar ao criar notificação
     }
 
     // Buscar o pedido completo para retornar
