@@ -824,7 +824,7 @@ export default function AdminCombos() {
                         
                         {formData.pizzaSizes.length === 0 ? (
                           <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">
-                            Nenhum tamanho adicionado. Clique em "Adicionar Tamanho" para começar.
+                            Nenhum tamanho adicionado. Clique em &quot;Adicionar Tamanho&quot; para começar.
                           </p>
                         ) : (
                           <div className="space-y-4">
@@ -966,7 +966,7 @@ export default function AdminCombos() {
                         </div>
                       ) : (
                         <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">
-                          Nenhum item extra adicionado. Clique em "Adicionar Item" para começar.
+                          Nenhum item extra adicionado. Clique em &quot;Adicionar Item&quot; para começar.
                         </p>
                       )}
 

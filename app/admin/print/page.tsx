@@ -312,7 +312,7 @@ export default function PrintSettingsPage() {
                   <div className="text-xs text-muted-foreground space-y-1">
                     <p>💡 <strong>Como funciona:</strong></p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Clique em "Selecionar Impressora USB"</li>
+                      <li>Clique em &quot;Selecionar Impressora USB&quot;</li>
                       <li>O navegador abrirá um diálogo para escolher o dispositivo</li>
                       <li>Selecione sua impressora Elgin i8</li>
                       <li>A impressora será salva automaticamente</li>

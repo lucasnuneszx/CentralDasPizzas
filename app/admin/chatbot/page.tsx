@@ -429,10 +429,10 @@ export default function ChatbotManagement() {
                 <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
                   <li>Acesse: <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer" className="underline">business.facebook.com</a></li>
                   <li>Crie um app no <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" className="underline">Meta for Developers</a></li>
-                  <li>Adicione o produto "WhatsApp" ao seu app</li>
+                  <li>Adicione o produto &quot;WhatsApp&quot; ao seu app</li>
                   <li>Configure o WhatsApp Business API</li>
                   <li>Copie o <strong>Phone Number ID</strong>, <strong>Access Token</strong> e <strong>Business Account ID</strong></li>
-                  <li>Cole as credenciais nos campos acima e clique em "Testar Conexão"</li>
+                  <li>Cole as credenciais nos campos acima e clique em &quot;Testar Conexão&quot;</li>
                 </ul>
                 <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
                   💡 <strong>Dica:</strong> O processo de aprovação pode levar alguns dias. Enquanto isso, você pode usar o modo de teste.

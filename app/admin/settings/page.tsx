@@ -440,7 +440,7 @@ export default function SettingsPage() {
                   <li>Acesse o <strong>Painel do Parceiro iFood</strong>: <a href="https://parceiro.ifood.com.br" target="_blank" rel="noopener noreferrer" className="underline">parceiro.ifood.com.br</a></li>
                   <li>Faça login com suas credenciais de restaurante parceiro</li>
                   <li>Vá em <strong>Configurações</strong> → <strong>Integrações</strong> → <strong>API</strong></li>
-                  <li>Clique em <strong>"Gerar Credenciais"</strong> ou <strong>"Criar Aplicação"</strong></li>
+                  <li>Clique em <strong>&quot;Gerar Credenciais&quot;</strong> ou <strong>&quot;Criar Aplicação&quot;</strong></li>
                   <li>Copie a <strong>API Key</strong> e o <strong>API Secret</strong> gerados</li>
                   <li>Cole as credenciais nos campos abaixo e salve</li>
                 </ol>
