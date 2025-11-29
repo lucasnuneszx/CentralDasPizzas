@@ -20,12 +20,12 @@ export async function GET() {
     })
 
     // Ordenar categorias por campo order, depois por nome
-    const sortedCategories = categories.sort((a, b) => {
+    const sortedCategories = Array.isArray(categories) ? categories.sort((a, b) => {
       if (a.order !== b.order) {
         return a.order - b.order
       }
       return a.name.localeCompare(b.name)
-    })
+    }) : []
 
     return NextResponse.json(sortedCategories, {
       headers: {
@@ -37,10 +37,13 @@ export async function GET() {
         'Access-Control-Allow-Headers': 'Content-Type',
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar categorias:', error)
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

@@ -12,11 +12,14 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(combos)
-  } catch (error) {
+    return NextResponse.json(Array.isArray(combos) ? combos : [])
+  } catch (error: any) {
     console.error('Erro ao buscar combos:', error)
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

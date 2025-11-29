@@ -93,9 +93,21 @@ export default function AdminCombos() {
   const fetchCombos = async () => {
     try {
       const response = await fetch('/api/combos')
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
-      setCombos(data)
+      // Garantir que data é um array
+      if (Array.isArray(data)) {
+        setCombos(data)
+      } else {
+        console.error('Resposta da API não é um array:', data)
+        setCombos([])
+        toast.error('Erro: resposta inválida da API')
+      }
     } catch (error) {
+      console.error('Erro ao carregar combos:', error)
+      setCombos([])
       toast.error('Erro ao carregar combos')
     } finally {
       setIsLoading(false)
@@ -105,9 +117,21 @@ export default function AdminCombos() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories')
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
-      setCategories(data)
+      // Garantir que data é um array
+      if (Array.isArray(data)) {
+        setCategories(data)
+      } else {
+        console.error('Resposta da API não é um array:', data)
+        setCategories([])
+        toast.error('Erro: resposta inválida da API de categorias')
+      }
     } catch (error) {
+      console.error('Erro ao carregar categorias:', error)
+      setCategories([])
       toast.error('Erro ao carregar categorias')
     }
   }
@@ -1193,7 +1217,7 @@ export default function AdminCombos() {
             ) : null}
 
             {/* Agrupar combos por categoria */}
-            {categories
+            {Array.isArray(categories) && categories
               .sort((a, b) => (a.order || 0) - (b.order || 0))
               .map((category) => {
               const categoryCombos = combos.filter(combo => combo.category.id === category.id)
