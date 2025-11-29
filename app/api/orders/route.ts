@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         userId: userId,
-        addressId: orderAddressId,
+        addressId: deliveryType === 'DELIVERY' ? orderAddressId : null, // Só incluir addressId se for entrega
         total: parseFloat(total.toString()),
         deliveryType,
         paymentMethod,
@@ -353,7 +353,7 @@ export async function POST(request: NextRequest) {
 
     console.log('=== PEDIDO PROCESSADO COM SUCESSO ===')
     return NextResponse.json(completeOrder, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('=== ERRO CRÍTICO NO PROCESSAMENTO DE PEDIDO ===')
     console.error('Erro ao criar pedido:', error)
     
@@ -364,10 +364,19 @@ export async function POST(request: NextRequest) {
         stack: error.stack,
         name: error.name
       })
+    } else {
+      console.error('Erro objeto:', JSON.stringify(error, null, 2))
     }
     
+    // Retornar mensagem mais específica se possível
+    const errorMessage = error?.message || 'Erro interno do servidor'
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: isDevelopment ? errorMessage : 'Erro interno do servidor',
+        error: isDevelopment ? (error?.stack || error) : undefined
+      },
       { status: 500 }
     )
   }

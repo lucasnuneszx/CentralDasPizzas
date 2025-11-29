@@ -554,11 +554,11 @@ function CheckoutPublicContent() {
                       <span>Subtotal:</span>
                       <span>R$ {getTotalPrice().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center" key={`delivery-fee-${refreshKey}-${formData.selectedDeliveryAreaId}`}>
                       <span>Taxa de entrega:</span>
                       <span>R$ {getDeliveryFee().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center font-bold text-lg">
+                    <div className="flex justify-between items-center font-bold text-lg" key={`total-${refreshKey}-${formData.selectedDeliveryAreaId}`}>
                       <span>Total:</span>
                       <span>R$ {getFinalTotal().toFixed(2)}</span>
                     </div>
