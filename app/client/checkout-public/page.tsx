@@ -367,8 +367,8 @@ function CheckoutPublicContent() {
         console.log('Pedido criado com sucesso:', result)
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
-        // Redirecionar para área de pedidos (admin/orders)
-        router.push('/admin/orders')
+        // Redirecionar para área de meus pedidos
+        router.push('/client/orders')
       } else {
         console.error('Erro na resposta:', result)
         const errorMsg = result.message || result.error || 'Erro ao realizar pedido'
