@@ -87,10 +87,24 @@ export default function OrdersManagement() {
   const fetchOrders = async () => {
     try {
       const response = await fetch('/api/orders')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Erro HTTP: ${response.status}`)
+      }
       const data = await response.json()
-      setOrders(data)
-    } catch (error) {
-      toast.error('Erro ao carregar pedidos')
+      
+      // Garantir que os dados estão no formato esperado
+      if (Array.isArray(data)) {
+        setOrders(data)
+      } else {
+        console.error('Dados recebidos não são um array:', data)
+        setOrders([])
+        toast.error('Formato de dados inválido')
+      }
+    } catch (error: any) {
+      console.error('Erro ao carregar pedidos:', error)
+      toast.error(error?.message || 'Erro ao carregar pedidos')
+      setOrders([])
     } finally {
       setIsLoading(false)
     }
