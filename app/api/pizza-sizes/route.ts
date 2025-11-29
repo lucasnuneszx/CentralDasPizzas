@@ -52,9 +52,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar se o combo existe
+    // Verificar se o combo existe (usar select explícito para evitar erro de coluna não existente)
     const combo = await prisma.combo.findUnique({
-      where: { id: comboId }
+      where: { id: comboId },
+      select: { id: true, name: true, price: true, isActive: true }
     })
 
     if (!combo) {

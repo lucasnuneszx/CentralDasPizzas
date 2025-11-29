@@ -383,7 +383,21 @@ export async function POST(request: NextRequest) {
       include: {
         items: {
           include: {
-            combo: true
+            combo: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                image: true,
+                isActive: true,
+                categoryId: true,
+                isPizza: true,
+                allowCustomization: true,
+                createdAt: true,
+                updatedAt: true
+              }
+            }
           }
         },
         address: true,

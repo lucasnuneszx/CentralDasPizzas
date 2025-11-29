@@ -112,8 +112,10 @@ export async function POST(request: NextRequest) {
         // Criar itens do pedido (buscar combos existentes ou criar genéricos)
         for (const item of ifoodOrder.items) {
           // Busca simples por substring (SQLite não suporta 'mode: insensitive' aqui)
+          // Usar select explícito para evitar erro de coluna não existente
           let combo = await prisma.combo.findFirst({
-            where: { name: { contains: item.name } }
+            where: { name: { contains: item.name } },
+            select: { id: true, name: true, price: true, isActive: true, categoryId: true }
           })
 
           if (!combo) {
