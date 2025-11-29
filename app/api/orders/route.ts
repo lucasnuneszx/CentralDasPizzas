@@ -243,10 +243,11 @@ export async function POST(request: NextRequest) {
         throw new Error('comboId é obrigatório para cada item')
       }
       
-      // Validar se o combo existe
+      // Validar se o combo existe (usar select explícito para evitar erro de coluna não existente)
       try {
         const comboExists = await prisma.combo.findUnique({
-          where: { id: item.comboId }
+          where: { id: item.comboId },
+          select: { id: true, name: true, price: true, isActive: true }
         })
         
         if (!comboExists) {

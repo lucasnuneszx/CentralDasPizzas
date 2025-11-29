@@ -38,12 +38,42 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const [stuffedCrust, setStuffedCrust] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
-  const pizzaQuantity = (item as any).pizzaQuantity || 1
+  const pizzaQuantity = (item as any).pizzaQuantity || 0
+  const isCombo = pizzaQuantity > 0 || item.isPizza || false // Apenas combos com pizzas mostram sabores
 
   useEffect(() => {
-    // SEMPRE buscar sabores tradicionais para TODOS os combos
-    fetchPizzaData()
-  }, [item])
+    // Buscar dados apenas se for um combo (com pizzas)
+    if (isCombo) {
+      fetchPizzaData()
+    } else {
+      // Para itens extras (refrigerantes, etc), apenas carregar dados básicos
+      fetchExtraItemData()
+      setLoading(false)
+    }
+  }, [item, isCombo])
+
+  const fetchExtraItemData = async () => {
+    try {
+      // Para itens extras, apenas buscar customizações se houver
+      const customizationRes = await fetch(`/api/combos/${item.id}/customization`)
+      if (customizationRes.ok) {
+        const customizationData = await customizationRes.json()
+        const extras = customizationData
+          .filter((item: any) => !item.isRequired && item.type !== 'PIZZA')
+          .map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            type: item.type,
+            price: 0,
+            options: item.options || []
+          }))
+        setExtraItems(extras)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do item extra:', error)
+    }
+  }
 
   const fetchPizzaData = async () => {
     try {
@@ -55,7 +85,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
       if (flavorsRes.ok) {
         const flavorsData = await flavorsRes.json()
-        // Filtrar apenas sabores TRADICIONAIS para todos os combos
+        // Filtrar apenas sabores TRADICIONAIS para combos
         const traditionalFlavors = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
         setFlavors(traditionalFlavors)
       }
@@ -280,8 +310,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           </div>
 
-          {/* Seleção de Sabores Tradicionais - SEMPRE para TODOS os combos */}
-          {flavors.length > 0 && (
+          {/* Seleção de Sabores Tradicionais - APENAS para COMBOS com pizzas */}
+          {isCombo && flavors.length > 0 && (
             <>
               {/* Seleção de Tamanho (apenas se for pizza) */}
               {(item.isPizza || pizzaQuantity > 0) && sizes.length > 0 && (
