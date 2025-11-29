@@ -36,10 +36,21 @@ export async function PUT(
       updateData.deliveryPerson = deliveryPerson
     }
     
-    if (status === 'DELIVERED') {
-      updateData.status = 'DELIVERED'
-      updateData.deliveredAt = new Date()
-      updateData.deliveredBy = session.user.id
+    // Atualizar status para qualquer valor, não apenas DELIVERED
+    if (status !== undefined) {
+      updateData.status = status
+      
+      // Adicionar timestamps específicos baseados no status
+      if (status === 'CONFIRMED') {
+        updateData.confirmedAt = new Date()
+        updateData.confirmedBy = session.user.id
+      } else if (status === 'DELIVERED') {
+        updateData.deliveredAt = new Date()
+        updateData.deliveredBy = session.user.id
+      } else if (status === 'CANCELLED') {
+        updateData.cancelledAt = new Date()
+        updateData.cancelledBy = session.user.id
+      }
     }
 
     const updatedOrder = await prisma.order.update({

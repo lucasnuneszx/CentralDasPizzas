@@ -29,16 +29,37 @@ export async function POST(
     const orderId = params.id
     const action = params.action
 
-    // Buscar o pedido
+    // Buscar o pedido (usar select explícito para evitar erro de coluna não existente)
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         items: {
           include: {
-            combo: true
+            combo: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                image: true,
+                isActive: true,
+                categoryId: true,
+                isPizza: true,
+                allowCustomization: true,
+                createdAt: true,
+                updatedAt: true
+              }
+            }
           }
         },
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        },
         address: true
       }
     })
