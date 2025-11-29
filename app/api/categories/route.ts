@@ -12,11 +12,62 @@ export async function GET() {
           where: {
             isActive: true
           },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image: true,
+            isActive: true,
+            categoryId: true,
+            isPizza: true,
+            allowCustomization: true,
+            pizzaQuantity: true,
+            createdAt: true,
+            updatedAt: true,
+          },
           orderBy: {
             name: 'asc'
           }
         }
       }
+    }).catch((error: any) => {
+      // Se houver erro por coluna pizzaQuantity faltante, buscar sem ela
+      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity')) {
+        console.warn('⚠️ Coluna pizzaQuantity não existe. Buscando sem ela...')
+        return prisma.category.findMany({
+          where: {
+            isActive: true
+          },
+          include: {
+            combos: {
+              where: {
+                isActive: true
+              },
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                image: true,
+                isActive: true,
+                categoryId: true,
+                isPizza: true,
+                allowCustomization: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+              orderBy: {
+                name: 'asc'
+              }
+            }
+          }
+        }).then(categories => categories.map(cat => ({
+          ...cat,
+          combos: cat.combos.map(combo => ({ ...combo, pizzaQuantity: 1 }))
+        })))
+      }
+      throw error
     })
 
     // Ordenar categorias por campo order, depois por nome

@@ -7,7 +7,54 @@ import { UserRole } from '@/lib/constants'
 export async function GET() {
   try {
     // Buscar configurações do banco ou retornar padrões
-    const settings = await prisma.systemSettings.findFirst()
+    // Usar select explícito para evitar erros com colunas que podem não existir ainda
+    const settings = await prisma.systemSettings.findFirst({
+      select: {
+        id: true,
+        restaurantName: true,
+        restaurantAddress: true,
+        restaurantPhone: true,
+        restaurantEmail: true,
+        restaurantLogo: true,
+        restaurantBanner: true,
+        profileLogo: true,
+        deliveryEstimate: true,
+        isOpen: true,
+        openingHours: true,
+        ifoodApiKey: true,
+        ifoodApiSecret: true,
+        printerIp: true,
+        printerPort: true,
+        printerName: true,
+        printerSerialPort: true,
+        autoPrint: true,
+        taxRate: true,
+        deliveryFee: true,
+        minOrderValue: true,
+        autoCloseTime: true,
+        autoCloseEnabled: true,
+        premiumFlavorPrice: true,
+        especialFlavorPrice: true,
+        stuffedCrustPrice: true,
+        whatsappProvider: true,
+        whatsappApiUrl: true,
+        whatsappApiKey: true,
+        whatsappInstanceName: true,
+        whatsappPhoneNumberId: true,
+        whatsappAccessToken: true,
+        whatsappBusinessAccountId: true,
+        whatsappConnected: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    }).catch((error: any) => {
+      // Se houver erro por colunas faltantes, retornar null e usar defaults
+      if (error.code === 'P2022' || error.message?.includes('does not exist')) {
+        console.warn('⚠️ Algumas colunas não existem ainda. Retornando configurações padrão.')
+        return null
+      }
+      throw error
+    })
     
     if (settings) {
       return NextResponse.json(settings)

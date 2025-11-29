@@ -4,12 +4,59 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const combos = await prisma.combo.findMany({
-      include: {
-        category: true
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        image: true,
+        isActive: true,
+        categoryId: true,
+        isPizza: true,
+        allowCustomization: true,
+        pizzaQuantity: true,
+        createdAt: true,
+        updatedAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
       }
+    }).catch((error: any) => {
+      // Se houver erro por coluna pizzaQuantity faltante, buscar sem ela
+      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity')) {
+        console.warn('⚠️ Coluna pizzaQuantity não existe. Buscando sem ela...')
+        return prisma.combo.findMany({
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image: true,
+            isActive: true,
+            categoryId: true,
+            isPizza: true,
+            allowCustomization: true,
+            createdAt: true,
+            updatedAt: true,
+            category: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }).then(combos => combos.map(c => ({ ...c, pizzaQuantity: 1 })))
+      }
+      throw error
     })
 
     return NextResponse.json(Array.isArray(combos) ? combos : [])
