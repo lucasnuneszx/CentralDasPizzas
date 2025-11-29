@@ -19,7 +19,8 @@
     "deploy:win": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
     "populate:pizza": "node scripts/populate-pizza-data.js",
     "whatsapp:setup": "node scripts/setup-whatsapp-apis.js",
-    "whatsapp:start": "node scripts/whatsapp-mila-handler.js"
+    "whatsapp:start": "node scripts/whatsapp-mila-handler.js",
+    "transfer:db": "node scripts/transfer-database.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
