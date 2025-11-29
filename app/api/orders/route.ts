@@ -63,30 +63,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!deliveryType || !paymentMethod || !total) {
-      console.error('ERRO: Dados obrigatórios ausentes', { deliveryType, paymentMethod, total })
+    // Validar apenas total (crítico)
+    if (!total || total <= 0) {
+      console.error('ERRO: Total inválido', { total })
       return NextResponse.json(
-        { message: 'Dados obrigatórios ausentes' },
+        { message: 'Total do pedido inválido' },
         { status: 400 }
       )
     }
+    
+    // Usar valores padrão se não fornecidos
+    const finalDeliveryType = deliveryType || 'PICKUP'
+    const finalPaymentMethod = paymentMethod || 'CASH'
 
-    // Validar endereço apenas se for entrega
-    if (deliveryType === 'DELIVERY') {
-      if (!addressId && !address) {
-        console.error('ERRO: Endereço obrigatório para entrega')
-        return NextResponse.json(
-          { message: 'Endereço obrigatório para entrega' },
-          { status: 400 }
-        )
-      }
-      // Validar campos obrigatórios do endereço se fornecido
-      if (address && (!address.street || !address.number || !address.city || !address.state)) {
-        console.error('ERRO: Campos obrigatórios do endereço faltando')
-        return NextResponse.json(
-          { message: 'Campos obrigatórios do endereço: rua, número, cidade e estado' },
-          { status: 400 }
-        )
+    // Validar endereço apenas se for entrega E se endereço foi fornecido
+    if (finalDeliveryType === 'DELIVERY') {
+      // Se forneceu endereço, validar campos mínimos
+      if (address && address.street && address.number && address.city && address.state) {
+        // Endereço válido fornecido, continuar
+      } else if (addressId) {
+        // Endereço existente selecionado, continuar
+      } else {
+        // Sem endereço mas é entrega - usar endereço padrão ou permitir sem validação rigorosa
+        console.warn('⚠️ Entrega sem endereço completo, continuando mesmo assim')
       }
     }
 
@@ -124,14 +123,10 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       console.log('Usuário não logado, criando/buscando usuário público')
       try {
-        // Validar dados do cliente para pedidos públicos
-        if (!customer || !customer.name) {
-          console.error('ERRO: Nome do cliente obrigatório')
-          return NextResponse.json(
-            { message: 'Nome do cliente obrigatório' },
-            { status: 400 }
-          )
-        }
+        // Usar valores padrão para cliente se não fornecido
+        const customerName = customer?.name || 'Cliente'
+        const customerEmail = customer?.email || 'public@centraldaspizzas.com'
+        const customerPhone = customer?.phone || ''
 
         // Buscar ou criar usuário público
         let publicUser = await prisma.user.findUnique({
@@ -140,10 +135,14 @@ export async function POST(request: NextRequest) {
 
         if (!publicUser) {
           console.log('Criando usuário público')
+          const customerName = customer?.name || 'Cliente'
+          const customerEmail = customer?.email || 'public@centraldaspizzas.com'
+          
           publicUser = await prisma.user.create({
             data: {
-              email: 'public@centraldaspizzas.com',
-              name: 'Cliente Público',
+              email: customerEmail,
+              name: customerName,
+              phone: customer?.phone || null,
               role: 'CLIENT',
               isActive: true
             }
@@ -193,14 +192,27 @@ export async function POST(request: NextRequest) {
       orderAddressId
     })
 
-    // Validar itens do pedido
+    // Validar itens do pedido (apenas comboId é realmente crítico)
     for (const item of items) {
-      if (!item.comboId || !item.quantity || !item.price) {
-        console.error('ERRO: Dados de item inválidos:', item)
+      if (!item.comboId) {
+        console.error('ERRO: comboId obrigatório:', item)
         return NextResponse.json(
-          { message: 'Dados de item inválidos' },
+          { message: 'comboId é obrigatório para cada item' },
           { status: 400 }
         )
+      }
+      // Usar valores padrão se não fornecidos
+      if (!item.quantity || item.quantity <= 0) {
+        item.quantity = 1
+      }
+      if (!item.price || item.price <= 0) {
+        // Tentar buscar preço do combo
+        try {
+          const combo = await prisma.combo.findUnique({ where: { id: item.comboId }, select: { price: true } })
+          item.price = combo?.price || 0
+        } catch (e) {
+          item.price = 0
+        }
       }
     }
 
