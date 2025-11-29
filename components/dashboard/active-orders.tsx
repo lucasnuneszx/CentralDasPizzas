@@ -15,7 +15,8 @@ import {
   DollarSign,
   Package,
   MessageSquare,
-  Send
+  Send,
+  Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -145,6 +146,33 @@ export function ActiveOrders() {
       }
     } catch (error) {
       toast.error('Erro ao enviar mensagem')
+    }
+  }
+
+  const handleDeleteOrder = async (order: Order) => {
+    if (!confirm(`Tem certeza que deseja cancelar o pedido #${order.id.slice(-6).toUpperCase()}?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${order.id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (response.ok) {
+        toast.success('Pedido cancelado com sucesso!')
+        // Recarregar pedidos após um pequeno delay
+        setTimeout(() => {
+          fetchActiveOrders()
+        }, 500)
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao cancelar pedido')
+      }
+    } catch (error) {
+      console.error('Erro ao cancelar pedido:', error)
+      toast.error('Erro ao cancelar pedido')
     }
   }
 
