@@ -47,12 +47,12 @@ export async function PUT(
     // Atualizar o pedido
     const updateData: any = {}
     
-    if (deliveryPerson !== undefined) {
+    if (deliveryPerson !== undefined && deliveryPerson !== null) {
       updateData.deliveryPerson = deliveryPerson
     }
     
     // Atualizar status para qualquer valor, não apenas DELIVERED
-    if (status !== undefined && status !== null) {
+    if (status !== undefined && status !== null && status !== '') {
       updateData.status = status
       
       // Adicionar timestamps específicos baseados no status
@@ -70,10 +70,28 @@ export async function PUT(
 
     console.log('Dados para atualizar:', updateData)
 
+    // Se não há nada para atualizar, retornar erro
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { message: 'Nenhum dado válido para atualização' },
+        { status: 400 }
+      )
+    }
+
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: updateData,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        total: true,
+        paymentMethod: true,
+        deliveryType: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        addressId: true,
+        deliveryPerson: true,
         user: {
           select: {
             id: true,
@@ -84,7 +102,10 @@ export async function PUT(
         },
         address: true,
         items: {
-          include: {
+          select: {
+            id: true,
+            quantity: true,
+            price: true,
             combo: {
               select: {
                 id: true,
