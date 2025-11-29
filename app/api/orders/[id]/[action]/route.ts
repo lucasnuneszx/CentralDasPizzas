@@ -5,12 +5,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string, action: string }> | { id: string, action: string } }
+  { params }: { params: { id: string, action: string } }
 ) {
   try {
-    // Resolver params se for Promise (Next.js 15+)
-    const resolvedParams = params instanceof Promise ? await params : params
-    
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -29,8 +26,15 @@ export async function POST(
       )
     }
 
-    const orderId = resolvedParams.id
-    const action = resolvedParams.action
+    const orderId = params?.id
+    const action = params?.action
+    
+    if (!orderId || !action) {
+      return NextResponse.json(
+        { message: 'ID do pedido ou ação não fornecidos' },
+        { status: 400 }
+      )
+    }
     
     console.log('=== PROCESSANDO AÇÃO DO PEDIDO ===')
     console.log('Order ID:', orderId)

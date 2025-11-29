@@ -5,12 +5,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    // Resolver params se for Promise (Next.js 15+)
-    const resolvedParams = params instanceof Promise ? await params : params
-    
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -29,7 +26,14 @@ export async function PUT(
       )
     }
 
-    const orderId = resolvedParams.id
+    const orderId = params?.id
+    
+    if (!orderId) {
+      return NextResponse.json(
+        { message: 'ID do pedido não fornecido' },
+        { status: 400 }
+      )
+    }
     const body = await request.json()
     const { deliveryPerson, status } = body
 
