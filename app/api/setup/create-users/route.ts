@@ -96,16 +96,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar variáveis de ambiente
+    const databaseUrl = process.env.DATABASE_URL || ''
     const envCheck = {
       hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
       hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasDatabaseUrl: !!databaseUrl,
       nextAuthUrl: process.env.NEXTAUTH_URL || 'Não configurado',
-      databaseUrlPreview: process.env.DATABASE_URL 
-        ? (process.env.DATABASE_URL.includes('postgres.railway.internal') 
+      databaseUrlPreview: databaseUrl
+        ? (databaseUrl.includes('postgres.railway.internal') 
           ? '❌ URL INTERNA (errado!)' 
-          : '✅ URL pública')
-        : 'Não configurado'
+          : databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://')
+          ? '✅ URL válida'
+          : `❌ Formato inválido: ${databaseUrl.substring(0, 30)}...`)
+        : '❌ Não configurado',
+      databaseUrlLength: databaseUrl.length,
+      databaseUrlStartsWith: databaseUrl.substring(0, 20),
+      allDatabaseVars: Object.keys(process.env).filter(k => k.includes('DATABASE')).map(k => ({
+        key: k,
+        hasValue: !!process.env[k],
+        preview: process.env[k]?.substring(0, 30) + '...'
+      }))
     }
 
     return NextResponse.json({
