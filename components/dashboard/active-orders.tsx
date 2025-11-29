@@ -158,6 +158,9 @@ export function ActiveOrders() {
     }
 
     try {
+      // Remover do estado local imediatamente para feedback visual
+      setOrders(prevOrders => prevOrders.filter(o => o.id !== order.id))
+
       const response = await fetch(`/api/orders/${order.id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -165,15 +168,19 @@ export function ActiveOrders() {
 
       if (response.ok) {
         toast.success('Pedido cancelado com sucesso!')
-        // Recarregar pedidos após um pequeno delay
+        // Recarregar para garantir sincronização
         setTimeout(() => {
           fetchActiveOrders()
-        }, 500)
+        }, 300)
       } else {
+        // Reverter estado em caso de erro
+        setOrders(prevOrders => [...prevOrders, order])
         const error = await response.json()
         toast.error(error.message || 'Erro ao cancelar pedido')
       }
     } catch (error) {
+      // Reverter estado em caso de erro
+      setOrders(prevOrders => [...prevOrders, order])
       console.error('Erro ao cancelar pedido:', error)
       toast.error('Erro ao cancelar pedido')
     }
@@ -181,6 +188,13 @@ export function ActiveOrders() {
 
   const handleAcceptOrder = async (order: Order) => {
     try {
+      // Atualizar estado local imediatamente para feedback visual
+      setOrders(prevOrders => 
+        prevOrders.map(o => 
+          o.id === order.id ? { ...o, status: 'CONFIRMED' } : o
+        )
+      )
+
       const response = await fetch(`/api/orders/${order.id}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -188,14 +202,27 @@ export function ActiveOrders() {
 
       if (response.ok) {
         toast.success('Pedido aceito com sucesso!')
+        // Recarregar para garantir sincronização
         setTimeout(() => {
           fetchActiveOrders()
-        }, 500)
+        }, 300)
       } else {
+        // Reverter estado em caso de erro
+        setOrders(prevOrders => 
+          prevOrders.map(o => 
+            o.id === order.id ? { ...o, status: order.status } : o
+          )
+        )
         const error = await response.json()
         toast.error(error.message || 'Erro ao aceitar pedido')
       }
     } catch (error) {
+      // Reverter estado em caso de erro
+      setOrders(prevOrders => 
+        prevOrders.map(o => 
+          o.id === order.id ? { ...o, status: order.status } : o
+        )
+      )
       console.error('Erro ao aceitar pedido:', error)
       toast.error('Erro ao aceitar pedido')
     }
@@ -221,7 +248,18 @@ export function ActiveOrders() {
   }
 
   const handleUpdateStatus = async (order: Order, newStatus: string) => {
+    // Não fazer nada se o status não mudou
+    if (order.status === newStatus) return
+
     try {
+      // Atualizar estado local imediatamente para feedback visual
+      const oldStatus = order.status
+      setOrders(prevOrders => 
+        prevOrders.map(o => 
+          o.id === order.id ? { ...o, status: newStatus } : o
+        )
+      )
+
       const response = await fetch(`/api/orders/${order.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -230,14 +268,27 @@ export function ActiveOrders() {
 
       if (response.ok) {
         toast.success('Status atualizado com sucesso!')
+        // Recarregar para garantir sincronização
         setTimeout(() => {
           fetchActiveOrders()
-        }, 500)
+        }, 300)
       } else {
+        // Reverter estado em caso de erro
+        setOrders(prevOrders => 
+          prevOrders.map(o => 
+            o.id === order.id ? { ...o, status: oldStatus } : o
+          )
+        )
         const error = await response.json()
         toast.error(error.message || 'Erro ao atualizar status')
       }
     } catch (error) {
+      // Reverter estado em caso de erro
+      setOrders(prevOrders => 
+        prevOrders.map(o => 
+          o.id === order.id ? { ...o, status: order.status } : o
+        )
+      )
       console.error('Erro ao atualizar status:', error)
       toast.error('Erro ao atualizar status')
     }
