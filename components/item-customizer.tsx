@@ -520,7 +520,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                             <p className="text-xs text-gray-600">{extraItem.description}</p>
                           )}
                         </div>
-                        {extraItem.price > 0 && (
+                        {extraItem.price && extraItem.price > 0 && (
                           <span className="text-sm font-medium text-gray-700">
                             + R$ {extraItem.price.toFixed(2).replace('.', ',')}
                           </span>
