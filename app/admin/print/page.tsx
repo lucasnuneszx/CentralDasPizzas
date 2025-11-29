@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -54,11 +55,16 @@ const defaultSettings: PrintSettings = {
   fontSize: 12
 }
 
-export default function PrintSettingsPage() {
+function PrintSettingsPage() {
   const [settings, setSettings] = useState<PrintSettings>(defaultSettings)
   const [previewContent, setPreviewContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const { port, isConnected, printerName, selectPrinter, disconnectPrinter } = usePrinter()
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Sample order data for preview
   const sampleOrder = {
