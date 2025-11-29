@@ -14,10 +14,11 @@ export const authOptions: NextAuthOptions = {
       name: 'next-auth.session-token',
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'lax', // 'lax' é mais compatível com navegadores antigos que 'strict'
         path: '/',
         secure: process.env.NEXTAUTH_URL?.startsWith('https://') ?? false,
         domain: undefined,
+        // Remover maxAge para compatibilidade com navegadores antigos
       },
     },
     callbackUrl: {

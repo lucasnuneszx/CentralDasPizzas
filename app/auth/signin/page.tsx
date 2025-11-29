@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BrowserCompatibilityCheck } from '@/components/browser-compatibility-check'
 import toast from 'react-hot-toast'
 
 export default function SignIn() {
@@ -52,6 +53,7 @@ export default function SignIn() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 fade-in">
+        <BrowserCompatibilityCheck />
         <div className="text-center slide-in">
           <h1 className="text-3xl font-bold text-gray-900 hover-lift">Central Das Pizzas</h1>
           <p className="mt-2 text-sm text-gray-600 fade-in">Sistema PDV</p>
