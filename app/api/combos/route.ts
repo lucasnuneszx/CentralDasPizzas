@@ -89,28 +89,79 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const combo = await prisma.combo.create({
-      data: {
-        name,
-        description,
-        price,
-        categoryId,
-        image,
-        isActive: isActive ?? true,
-        isPizza: isPizza ?? false,
-        pizzaQuantity: pizzaQuantity ?? 1,
-        showFlavors: showFlavors !== undefined ? showFlavors : true
-      },
-      include: {
-        category: true
-      }
-    })
+    // Preparar dados base
+    const baseData: any = {
+      name,
+      description,
+      price,
+      categoryId,
+      image,
+      isActive: isActive ?? true,
+      isPizza: isPizza ?? false
+    }
 
-    return NextResponse.json(combo, { status: 201 })
-  } catch (error) {
+    // Tentar criar com todos os campos primeiro
+    try {
+      const combo = await prisma.combo.create({
+        data: {
+          ...baseData,
+          pizzaQuantity: pizzaQuantity ?? 1,
+          showFlavors: showFlavors !== undefined ? showFlavors : true
+        },
+        include: {
+          category: true
+        }
+      })
+      return NextResponse.json(combo, { status: 201 })
+    } catch (createError: any) {
+      // Se o erro for por coluna não existir, tentar sem elas
+      if (createError.code === 'P2022' || 
+          createError.message?.includes('showFlavors') || 
+          createError.message?.includes('pizzaQuantity') ||
+          createError.message?.includes('does not exist')) {
+        console.warn('⚠️ Coluna showFlavors ou pizzaQuantity não existe. Criando sem elas...')
+        
+        // Tentar criar apenas com pizzaQuantity se possível
+        try {
+          const combo = await prisma.combo.create({
+            data: {
+              ...baseData,
+              pizzaQuantity: pizzaQuantity ?? 1
+            },
+            include: {
+              category: true
+            }
+          })
+          // Adicionar showFlavors ao retorno
+          return NextResponse.json({
+            ...combo,
+            showFlavors: showFlavors !== undefined ? showFlavors : true
+          }, { status: 201 })
+        } catch (secondError: any) {
+          // Se ainda falhar, criar sem nenhum dos dois campos
+          const combo = await prisma.combo.create({
+            data: baseData,
+            include: {
+              category: true
+            }
+          })
+          // Adicionar valores padrão ao retorno
+          return NextResponse.json({
+            ...combo,
+            pizzaQuantity: pizzaQuantity ?? 1,
+            showFlavors: showFlavors !== undefined ? showFlavors : true
+          }, { status: 201 })
+        }
+      }
+      throw createError
+    }
+  } catch (error: any) {
     console.error('Erro ao criar combo:', error)
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

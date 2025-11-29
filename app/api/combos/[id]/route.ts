@@ -44,8 +44,24 @@ export async function PUT(
       const combo = await prisma.combo.update({
         where: { id: params.id },
         data: updateData,
-        include: {
-          category: true
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          image: true,
+          isActive: true,
+          categoryId: true,
+          isPizza: true,
+          allowCustomization: true,
+          createdAt: true,
+          updatedAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
         }
       })
 
@@ -53,9 +69,11 @@ export async function PUT(
     } catch (updateError: any) {
       // Se o erro for por coluna showFlavors ou pizzaQuantity não existir, tentar sem elas
       if (updateError.code === 'P2022' || 
+          updateError.code === 'P2011' ||
           updateError.message?.includes('showFlavors') || 
           updateError.message?.includes('pizzaQuantity') ||
-          updateError.message?.includes('does not exist')) {
+          updateError.message?.includes('does not exist') ||
+          updateError.message?.includes('Unknown column')) {
         console.warn('⚠️ Coluna showFlavors ou pizzaQuantity não existe. Atualizando sem elas...')
         
         const fallbackUpdateData: any = {
@@ -68,29 +86,80 @@ export async function PUT(
           isPizza
         }
 
-        // Tentar atualizar apenas se pizzaQuantity não causar erro
-        if (pizzaQuantity !== undefined) {
-          try {
+        // Tentar atualizar com pizzaQuantity primeiro
+        try {
+          if (pizzaQuantity !== undefined) {
             fallbackUpdateData.pizzaQuantity = pizzaQuantity
-          } catch (e) {
-            console.warn('⚠️ Não foi possível atualizar pizzaQuantity')
           }
-        }
-
+          const combo = await prisma.combo.update({
+            where: { id: params.id },
+            data: fallbackUpdateData,
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              image: true,
+              isActive: true,
+              categoryId: true,
+              isPizza: true,
+              allowCustomization: true,
+              createdAt: true,
+              updatedAt: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
+            }
+          })
+          // Adicionar showFlavors ao retorno
+          return NextResponse.json({
+            ...combo,
+            showFlavors: showFlavors !== undefined ? showFlavors : true
+          })
+        } catch (secondError: any) {
+          // Se ainda falhar, atualizar sem nenhum dos dois campos
+          const finalUpdateData: any = {
+            name,
+            description,
+            price,
+            categoryId,
+            image,
+            isActive,
+            isPizza
+          }
         const combo = await prisma.combo.update({
           where: { id: params.id },
-          data: fallbackUpdateData,
-          include: {
-            category: true
+          data: finalUpdateData,
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image: true,
+            isActive: true,
+            categoryId: true,
+            isPizza: true,
+            allowCustomization: true,
+            createdAt: true,
+            updatedAt: true,
+            category: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
           }
         })
-
-        // Adicionar showFlavors e pizzaQuantity ao retorno se não foram salvos
-        return NextResponse.json({
-          ...combo,
-          pizzaQuantity: pizzaQuantity ?? 1,
-          showFlavors: showFlavors !== undefined ? showFlavors : true
-        })
+          // Adicionar valores padrão ao retorno
+          return NextResponse.json({
+            ...combo,
+            pizzaQuantity: pizzaQuantity ?? 1,
+            showFlavors: showFlavors !== undefined ? showFlavors : true
+          })
+        }
       }
       throw updateError
     }
