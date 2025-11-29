@@ -66,7 +66,7 @@ export async function GET() {
       createdAt: order.createdAt.toISOString(),
       customerName: order.user?.name || 'Cliente',
       customerPhone: order.user?.phone || null,
-      deliveryPerson: order.deliveryPersonId || null,
+      deliveryPerson: order.deliveryPerson || null,
       address: order.address ? {
         street: order.address.street,
         number: order.address.number,
