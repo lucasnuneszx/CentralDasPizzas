@@ -55,6 +55,7 @@ export default function AdminCombos() {
     isActive: true,
     isPizza: false,
     pizzaQuantity: 1,
+    showFlavors: true, // Controla se sabores aparecem na personalização
     pizzaSizes: [] as Array<{ name: string; slices: number; maxFlavors: number; basePrice: string }>
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -394,6 +395,7 @@ export default function AdminCombos() {
       isActive: combo.isActive,
       isPizza: combo.isPizza,
       pizzaQuantity: (combo as any).pizzaQuantity || 1,
+      showFlavors: (combo as any).showFlavors !== undefined ? (combo as any).showFlavors : true,
       pizzaSizes
     })
     setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
@@ -440,6 +442,7 @@ export default function AdminCombos() {
       isActive: true,
       isPizza: false,
       pizzaQuantity: 1,
+      showFlavors: true,
       pizzaSizes: []
     })
     setSelectedImage(null)
@@ -806,6 +809,17 @@ export default function AdminCombos() {
                           className="rounded border-gray-300 dark:border-gray-600"
                         />
                         <Label htmlFor="isPizza" className="text-gray-900 dark:text-gray-100">É uma pizza (permite personalização)</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 mt-3">
+                        <input
+                          type="checkbox"
+                          id="showFlavors"
+                          checked={formData.showFlavors}
+                          onChange={(e) => setFormData({ ...formData, showFlavors: e.target.checked })}
+                          className="rounded border-gray-300 dark:border-gray-600"
+                        />
+                        <Label htmlFor="showFlavors" className="text-gray-900 dark:text-gray-100">Exibir sabores na personalização</Label>
                       </div>
                     </div>
 

@@ -166,8 +166,10 @@ export function ActiveOrders() {
         headers: { 'Content-Type': 'application/json' }
       })
 
-      if (response.ok) {
-        toast.success('Pedido cancelado com sucesso!')
+      const result = await response.json()
+
+      if (response.ok && result.success !== false) {
+        toast.success(result.message || 'Pedido cancelado com sucesso!')
         // Recarregar para garantir sincronização
         setTimeout(() => {
           fetchActiveOrders()
@@ -175,8 +177,7 @@ export function ActiveOrders() {
       } else {
         // Reverter estado em caso de erro
         setOrders(prevOrders => [...prevOrders, order])
-        const error = await response.json()
-        toast.error(error.message || 'Erro ao cancelar pedido')
+        toast.error(result.message || 'Erro ao cancelar pedido')
       }
     } catch (error) {
       // Reverter estado em caso de erro
@@ -200,8 +201,10 @@ export function ActiveOrders() {
         headers: { 'Content-Type': 'application/json' }
       })
 
-      if (response.ok) {
-        toast.success('Pedido aceito com sucesso!')
+      const result = await response.json()
+
+      if (response.ok && result.success !== false) {
+        toast.success(result.message || 'Pedido aceito com sucesso!')
         // Recarregar para garantir sincronização
         setTimeout(() => {
           fetchActiveOrders()
@@ -213,8 +216,7 @@ export function ActiveOrders() {
             o.id === order.id ? { ...o, status: order.status } : o
           )
         )
-        const error = await response.json()
-        toast.error(error.message || 'Erro ao aceitar pedido')
+        toast.error(result.message || 'Erro ao aceitar pedido')
       }
     } catch (error) {
       // Reverter estado em caso de erro

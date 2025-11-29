@@ -6,7 +6,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors } = await request.json()
 
     // Verificar se a categoria existe
     if (categoryId) {
@@ -34,6 +34,10 @@ export async function PUT(
 
     if (pizzaQuantity !== undefined) {
       updateData.pizzaQuantity = pizzaQuantity
+    }
+
+    if (showFlavors !== undefined) {
+      updateData.showFlavors = showFlavors
     }
 
     const combo = await prisma.combo.update({

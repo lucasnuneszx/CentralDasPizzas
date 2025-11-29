@@ -27,6 +27,7 @@ export async function GET() {
               isPizza: true,
               allowCustomization: true,
               pizzaQuantity: true,
+              showFlavors: true,
               createdAt: true,
               updatedAt: true,
             },
@@ -59,6 +60,7 @@ export async function GET() {
                 categoryId: true,
                 isPizza: true,
                 allowCustomization: true,
+                showFlavors: true,
                 createdAt: true,
                 updatedAt: true,
               },
@@ -69,10 +71,10 @@ export async function GET() {
           }
         })
         
-        // Adicionar pizzaQuantity padrão
+        // Adicionar pizzaQuantity e showFlavors padrão
         categories = categories.map(cat => ({
           ...cat,
-          combos: cat.combos.map(combo => ({ ...combo, pizzaQuantity: 1 }))
+          combos: cat.combos.map(combo => ({ ...combo, pizzaQuantity: 1, showFlavors: true }))
         }))
       } else {
         throw error

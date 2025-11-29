@@ -143,61 +143,70 @@ async function acceptOrder(order: any, userId: string) {
     
     console.log('Pedido atualizado:', updatedOrder)
 
-    // Criar notificação para o cliente
-    await prisma.notification.create({
-      data: {
-        userId: order.userId,
-        type: 'ORDER_UPDATE',
-        source: order.ifoodOrderId ? 'IFOOD' : 'SYSTEM',
-        title: 'Pedido Confirmado',
-        message: `Seu pedido #${order.id.slice(-8)} foi confirmado e está sendo preparado!`,
-        orderId: order.id
-      }
-    })
+    // Criar notificação para o cliente (não crítico se falhar)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: order.userId,
+          type: 'ORDER_UPDATE',
+          source: order.ifoodOrderId ? 'IFOOD' : 'SYSTEM',
+          title: 'Pedido Confirmado',
+          message: `Seu pedido #${order.id.slice(-8)} foi confirmado e está sendo preparado!`,
+          orderId: order.id
+        }
+      })
+    } catch (notifError) {
+      console.error('Erro ao criar notificação (não crítico):', notifError)
+    }
 
-    // Registrar no log do caixa
-    await prisma.cashLog.create({
-      data: {
-        orderId: order.id,
-        type: 'ORDER_CONFIRMED',
-        amount: order.total,
-        description: `Pedido confirmado - #${order.id.slice(-8)}`
-      }
-    })
+    // Registrar no log do caixa (usar tipo válido)
+    try {
+      await prisma.cashLog.create({
+        data: {
+          orderId: order.id,
+          type: 'ORDER', // Usar tipo válido conforme schema
+          amount: order.total,
+          description: `Pedido confirmado - #${order.id.slice(-8)}`
+        }
+      })
+    } catch (cashError) {
+      console.error('Erro ao registrar no caixa (não crítico):', cashError)
+    }
 
-    // IMPRESSÃO AUTOMÁTICA ao aceitar
-    // Nota: A impressão será feita no cliente usando a porta serial selecionada
-    // Apenas registrar no log que o pedido deve ser impresso
+    // IMPRESSÃO AUTOMÁTICA ao aceitar (não crítico se falhar)
     try {
       await prisma.cashLog.create({
         data: {
           orderId: order.id,
           type: 'ORDER_PRINTED',
           amount: 0,
-          description: `Pedido confirmado - aguardando impressão - #${order.id.slice(-8)}`
+          description: `Pedido impresso automaticamente - #${order.id.slice(-8)}`
         }
       })
     } catch (printError) {
-      console.error('Erro ao registrar impressão:', printError)
-      // Não bloquear o fluxo se falhar
+      console.error('Erro ao registrar impressão (não crítico):', printError)
     }
 
-    await prisma.cashLog.create({
-      data: {
-        orderId: order.id,
-        type: 'ORDER_PRINTED',
-        amount: 0,
-        description: `Pedido impresso automaticamente - #${order.id.slice(-8)}`
-      }
-    })
-
     return NextResponse.json({
-      message: 'Pedido aceito e impresso automaticamente',
+      success: true,
+      message: 'Pedido aceito com sucesso',
       order: updatedOrder
     })
-  } catch (error) {
-    console.error('Erro ao aceitar pedido:', error)
-    throw error
+  } catch (error: any) {
+    console.error('=== ERRO AO ACEITAR PEDIDO ===')
+    console.error('Mensagem:', error?.message)
+    console.error('Stack:', error?.stack)
+    console.error('Código:', error?.code)
+    
+    // Retornar erro em vez de lançar para não quebrar o fluxo
+    return NextResponse.json(
+      { 
+        success: false,
+        message: 'Erro ao aceitar pedido',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -227,35 +236,56 @@ async function rejectOrder(order: any, userId: string) {
     
     console.log('Pedido atualizado:', updatedOrder)
 
-    // Criar notificação para o cliente
-    await prisma.notification.create({
-      data: {
-        userId: order.userId,
-        type: 'ORDER_UPDATE',
-        source: order.ifoodOrderId ? 'IFOOD' : 'SYSTEM',
-        title: 'Pedido Cancelado',
-        message: `Seu pedido #${order.id.slice(-8)} foi cancelado. Entre em contato conosco para mais informações.`,
-        orderId: order.id
-      }
-    })
+    // Criar notificação para o cliente (não crítico se falhar)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: order.userId,
+          type: 'ORDER_UPDATE',
+          source: order.ifoodOrderId ? 'IFOOD' : 'SYSTEM',
+          title: 'Pedido Cancelado',
+          message: `Seu pedido #${order.id.slice(-8)} foi cancelado. Entre em contato conosco para mais informações.`,
+          orderId: order.id
+        }
+      })
+    } catch (notifError) {
+      console.error('Erro ao criar notificação (não crítico):', notifError)
+    }
 
-    // Registrar no log do caixa
-    await prisma.cashLog.create({
-      data: {
-        orderId: order.id,
-        type: 'ORDER_CANCELLED',
-        amount: -order.total,
-        description: `Pedido cancelado - #${order.id.slice(-8)}`
-      }
-    })
+    // Registrar no log do caixa (usar tipo válido)
+    try {
+      await prisma.cashLog.create({
+        data: {
+          orderId: order.id,
+          type: 'ORDER', // Usar tipo válido conforme schema
+          amount: -order.total,
+          description: `Pedido cancelado - #${order.id.slice(-8)}`
+        }
+      })
+    } catch (cashError) {
+      console.error('Erro ao registrar no caixa (não crítico):', cashError)
+    }
 
     return NextResponse.json({
+      success: true,
       message: 'Pedido rejeitado com sucesso',
       order: updatedOrder
     })
-  } catch (error) {
-    console.error('Erro ao rejeitar pedido:', error)
-    throw error
+  } catch (error: any) {
+    console.error('=== ERRO AO REJEITAR PEDIDO ===')
+    console.error('Mensagem:', error?.message)
+    console.error('Stack:', error?.stack)
+    console.error('Código:', error?.code)
+    
+    // Retornar erro em vez de lançar para não quebrar o fluxo
+    return NextResponse.json(
+      { 
+        success: false,
+        message: 'Erro ao rejeitar pedido',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
 

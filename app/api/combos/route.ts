@@ -15,6 +15,7 @@ export async function GET() {
         isPizza: true,
         allowCustomization: true,
         pizzaQuantity: true,
+        showFlavors: true,
         createdAt: true,
         updatedAt: true,
         category: {
@@ -42,6 +43,7 @@ export async function GET() {
             categoryId: true,
             isPizza: true,
             allowCustomization: true,
+            showFlavors: true,
             createdAt: true,
             updatedAt: true,
             category: {
@@ -54,7 +56,7 @@ export async function GET() {
           orderBy: {
             createdAt: 'desc'
           }
-        }).then(combos => combos.map(c => ({ ...c, pizzaQuantity: 1 })))
+        }).then(combos => combos.map(c => ({ ...c, pizzaQuantity: 1, showFlavors: true })))
       }
       throw error
     })
@@ -74,7 +76,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors } = await request.json()
 
     // Verificar se a categoria existe
     const category = await prisma.category.findUnique({
@@ -97,7 +99,8 @@ export async function POST(request: NextRequest) {
         image,
         isActive: isActive ?? true,
         isPizza: isPizza ?? false,
-        pizzaQuantity: pizzaQuantity ?? 1
+        pizzaQuantity: pizzaQuantity ?? 1,
+        showFlavors: showFlavors !== undefined ? showFlavors : true
       },
       include: {
         category: true

@@ -39,15 +39,16 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const pizzaQuantity = (item as any).pizzaQuantity || 0
-  // Apenas combos com pizzas mostram sabores - verificar explicitamente
-  const isCombo = (pizzaQuantity > 0) || (item.isPizza === true) // Apenas combos com pizzas mostram sabores
+  const showFlavors = (item as any).showFlavors !== undefined ? (item as any).showFlavors : true
+  // Apenas combos com pizzas E com showFlavors ativado mostram sabores
+  const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true)) && showFlavors
 
   useEffect(() => {
-    // Buscar dados apenas se for um combo (com pizzas)
+    // Buscar dados apenas se for um combo (com pizzas) E showFlavors estiver ativado
     if (isCombo) {
       fetchPizzaData()
     } else {
-      // Para itens extras (refrigerantes, etc), apenas carregar dados básicos
+      // Para itens extras (refrigerantes, etc) ou quando showFlavors está desativado, apenas carregar dados básicos
       fetchExtraItemData()
       setLoading(false)
     }
