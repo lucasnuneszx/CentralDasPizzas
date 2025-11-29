@@ -300,14 +300,14 @@ function PrintSettingsPage() {
                       </p>
                       <Button
                         onClick={selectPrinter}
-                        disabled={!('serial' in navigator)}
+                        disabled={!isClient || (typeof window !== 'undefined' && !('serial' in navigator))}
                         className="w-full"
                         size="lg"
                       >
                         <Usb className="h-4 w-4 mr-2" />
                         Selecionar Impressora USB
                       </Button>
-                      {!('serial' in navigator) && (
+                      {isClient && typeof window !== 'undefined' && !('serial' in navigator) && (
                         <p className="text-xs text-red-500 mt-2">
                           ⚠️ Seu navegador não suporta esta funcionalidade. Use Chrome ou Edge.
                         </p>
@@ -491,4 +491,8 @@ function PrintSettingsPage() {
     </ProtectedRoute>
   )
 }
+
+export default dynamic(() => Promise.resolve(PrintSettingsPage), {
+  ssr: false
+})
 
