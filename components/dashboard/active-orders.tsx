@@ -67,16 +67,29 @@ export function ActiveOrders() {
   const fetchActiveOrders = async () => {
     try {
       const response = await fetch('/api/orders')
-      if (response.ok) {
-        const allOrders = await response.json()
-        // Filtrar apenas pedidos ativos (não entregues e não cancelados)
-        const activeOrders = allOrders.filter(
-          (order: Order) => order.status !== 'DELIVERED' && order.status !== 'CANCELLED'
-        )
-        setOrders(activeOrders)
+      if (!response.ok) {
+        console.error('Erro ao buscar pedidos:', response.status, response.statusText)
+        setOrders([])
+        return
       }
+      
+      const allOrders = await response.json()
+      
+      // Garantir que é um array
+      if (!Array.isArray(allOrders)) {
+        console.error('Dados recebidos não são um array:', allOrders)
+        setOrders([])
+        return
+      }
+      
+      // Filtrar apenas pedidos ativos (não entregues e não cancelados)
+      const activeOrders = allOrders.filter(
+        (order: Order) => order.status !== 'DELIVERED' && order.status !== 'CANCELLED'
+      )
+      setOrders(activeOrders)
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error)
+      setOrders([])
     } finally {
       setIsLoading(false)
     }
