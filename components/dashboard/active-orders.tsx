@@ -435,40 +435,78 @@ export function ActiveOrders() {
                     </Badge>
                   </div>
                   
-                  {/* Botões de ação */}
-                  <div className="flex gap-2">
-                    {order.customerPhone && (
+                  {/* Seletor de status - caixinha pequena */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-muted-foreground">Status:</label>
+                    <select
+                      value={order.status}
+                      onChange={(e) => handleUpdateStatus(order, e.target.value)}
+                      className="flex-1 text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value="PENDING">Aguardando</option>
+                      <option value="CONFIRMED">Confirmado</option>
+                      <option value="PREPARING">Preparando</option>
+                      <option value="READY">Pronto</option>
+                      <option value="OUT_FOR_DELIVERY">Saiu para Entrega</option>
+                      <option value="DELIVERED">Entregue</option>
+                    </select>
+                  </div>
+
+                  {/* Botões de ação principais */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {order.status === 'PENDING' && (
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700"
-                        onClick={() => {
-                          const triggers: { [key: string]: string } = {
-                            'CONFIRMED': 'ORDER_CONFIRMED',
-                            'PREPARING': 'ORDER_PREPARING',
-                            'READY': 'ORDER_READY',
-                            'OUT_FOR_DELIVERY': 'ORDER_OUT_FOR_DELIVERY'
-                          }
-                          const trigger = triggers[order.status]
-                          if (trigger) {
-                            handleSendMessage(order, trigger)
-                          }
-                        }}
+                        onClick={() => handleAcceptOrder(order)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Enviar Mensagem
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Aceitar
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteOrder(order)}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:border-red-700"
-                      title="Cancelar pedido"
+                      onClick={() => handlePrintOrder(order)}
+                      className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Printer className="h-4 w-4 mr-1" />
+                      Imprimir
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteOrder(order)}
+                      className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Negar
                     </Button>
                   </div>
+
+                  {/* Botão de envio de mensagem */}
+                  {order.customerPhone && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700"
+                      onClick={() => {
+                        const triggers: { [key: string]: string } = {
+                          'CONFIRMED': 'ORDER_CONFIRMED',
+                          'PREPARING': 'ORDER_PREPARING',
+                          'READY': 'ORDER_READY',
+                          'OUT_FOR_DELIVERY': 'ORDER_OUT_FOR_DELIVERY'
+                        }
+                        const trigger = triggers[order.status]
+                        if (trigger) {
+                          handleSendMessage(order, trigger)
+                        }
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Enviar Mensagem
+                    </Button>
+                  )}
                 </div>
               </CardContent>
 
