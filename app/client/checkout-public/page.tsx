@@ -58,7 +58,7 @@ function CheckoutPublicContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [addresses, setAddresses] = useState<any[]>([])
   const [deliveryAreas, setDeliveryAreas] = useState<any[]>([])
-  const [refreshKey, setRefreshKey] = useState(0) // Para forçar re-render quando taxa mudar
+  const [deliveryFee, setDeliveryFee] = useState(0) // Estado separado para taxa de entrega
   
   const [formData, setFormData] = useState<{
     deliveryType: string
@@ -145,12 +145,6 @@ function CheckoutPublicContent() {
     }
   }, [session, loadUserData])
 
-  // Forçar atualização quando selectedDeliveryAreaId mudar
-  useEffect(() => {
-    if (formData.selectedDeliveryAreaId) {
-      setRefreshKey(prev => prev + 1)
-    }
-  }, [formData.selectedDeliveryAreaId])
 
   const loadSettings = async () => {
     try {
@@ -346,17 +340,19 @@ function CheckoutPublicContent() {
         body: JSON.stringify(orderData),
       })
 
-      if (response.ok) {
-        const result = await response.json()
+      const result = await response.json()
+      
+      if (response.ok && result.success !== false) {
         console.log('Pedido criado com sucesso:', result)
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
         // Redirecionar para área de pedidos (admin/orders)
         router.push('/admin/orders')
       } else {
-        const error = await response.json()
-        console.error('Erro na resposta:', error)
-        toast.error(error.message || 'Erro ao realizar pedido')
+        console.error('Erro na resposta:', result)
+        const errorMsg = result.message || result.error || 'Erro ao realizar pedido'
+        toast.error(errorMsg)
+        console.error('Detalhes completos do erro:', result)
       }
     } catch (error) {
       console.error('Erro ao realizar pedido:', error)
@@ -380,44 +376,44 @@ function CheckoutPublicContent() {
     }
   }
 
-  const getDeliveryFee = useCallback(() => {
+  // Calcular taxa de entrega e atualizar estado
+  useEffect(() => {
+    let fee = 0
     if (formData.deliveryType === DeliveryType.DELIVERY) {
       // Se usuário logado, usar taxa do endereço selecionado
       if (session?.user && formData.selectedAddressId) {
         const selectedAddress = addresses.find(addr => addr.id === formData.selectedAddressId)
         if (selectedAddress) {
-          // Buscar área de entrega correspondente ao endereço
           const deliveryArea = deliveryAreas.find(area => 
             area.name === selectedAddress.neighborhood && 
             area.city === selectedAddress.city &&
             area.isActive
           )
           if (deliveryArea && deliveryArea.deliveryFee) {
-            return deliveryArea.deliveryFee
+            fee = deliveryArea.deliveryFee
           }
         }
-      }
-      
-      // Se usuário não logado, usar área selecionada
-      if (!session?.user && formData.selectedDeliveryAreaId) {
+      } else if (!session?.user && formData.selectedDeliveryAreaId) {
+        // Se usuário não logado, usar área selecionada
         const selectedArea = deliveryAreas.find(area => 
           area.id === formData.selectedDeliveryAreaId && 
           area.isActive
         )
         if (selectedArea && selectedArea.deliveryFee) {
-          return selectedArea.deliveryFee
+          fee = selectedArea.deliveryFee
         }
       }
-      
-      // Se não encontrou área, retornar 0 para forçar seleção
-      return 0
     }
-    return 0
+    setDeliveryFee(fee)
   }, [formData.deliveryType, formData.selectedAddressId, formData.selectedDeliveryAreaId, session?.user, addresses, deliveryAreas])
 
-  const getFinalTotal = () => {
-    return getTotalPrice() + getDeliveryFee()
+  const getDeliveryFee = () => {
+    return deliveryFee
   }
+
+  const getFinalTotal = useCallback(() => {
+    return getTotalPrice() + deliveryFee
+  }, [deliveryFee])
 
   if (cart.length === 0) {
     return (

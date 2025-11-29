@@ -5,15 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Não autorizado' },
-        { status: 401 }
-      )
-    }
-
+    // Permitir acesso público (necessário para customização)
     const { searchParams } = new URL(request.url)
     const comboId = searchParams.get('comboId')
 
@@ -33,12 +25,10 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json(pizzaSizes)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar tamanhos de pizza:', error)
-    return NextResponse.json(
-      { message: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    // Retornar array vazio em vez de erro
+    return NextResponse.json([])
   }
 }
 

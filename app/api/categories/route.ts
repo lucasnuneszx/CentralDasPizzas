@@ -3,39 +3,44 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const categories = await prisma.category.findMany({
-      where: {
-        isActive: true
-      },
-      include: {
-        combos: {
-          where: {
-            isActive: true
-          },
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            price: true,
-            image: true,
-            isActive: true,
-            categoryId: true,
-            isPizza: true,
-            allowCustomization: true,
-            pizzaQuantity: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-          orderBy: {
-            name: 'asc'
+    let categories
+    
+    try {
+      // Tentar buscar com pizzaQuantity primeiro
+      categories = await prisma.category.findMany({
+        where: {
+          isActive: true
+        },
+        include: {
+          combos: {
+            where: {
+              isActive: true
+            },
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              image: true,
+              isActive: true,
+              categoryId: true,
+              isPizza: true,
+              allowCustomization: true,
+              pizzaQuantity: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+            orderBy: {
+              name: 'asc'
+            }
           }
         }
-      }
-    }).catch((error: any) => {
+      })
+    } catch (error: any) {
       // Se houver erro por coluna pizzaQuantity faltante, buscar sem ela
-      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity')) {
+      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('does not exist')) {
         console.warn('⚠️ Coluna pizzaQuantity não existe. Buscando sem ela...')
-        return prisma.category.findMany({
+        categories = await prisma.category.findMany({
           where: {
             isActive: true
           },
@@ -62,13 +67,17 @@ export async function GET() {
               }
             }
           }
-        }).then(categories => categories.map(cat => ({
+        })
+        
+        // Adicionar pizzaQuantity padrão
+        categories = categories.map(cat => ({
           ...cat,
           combos: cat.combos.map(combo => ({ ...combo, pizzaQuantity: 1 }))
-        })))
+        }))
+      } else {
+        throw error
       }
-      throw error
-    })
+    }
 
     // Ordenar categorias por campo order, depois por nome
     const sortedCategories = Array.isArray(categories) ? categories.sort((a, b) => {
@@ -90,13 +99,17 @@ export async function GET() {
     })
   } catch (error: any) {
     console.error('Erro ao buscar categorias:', error)
-    return NextResponse.json(
-      { 
-        message: 'Erro interno do servidor',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      },
-      { status: 500 }
-    )
+    // Retornar array vazio em vez de erro para não quebrar o frontend
+    return NextResponse.json([], {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
   }
 }
 

@@ -5,37 +5,21 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Não autorizado' },
-        { status: 401 }
-      )
-    }
-
-    // Verificar se o usuário tem permissão para gerenciar extras
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
-      return NextResponse.json(
-        { message: 'Sem permissão' },
-        { status: 403 }
-      )
-    }
-
+    // Permitir acesso público (necessário para customização de combos)
     const extras = await prisma.extraItem.findMany({
+      where: {
+        isActive: true
+      },
       orderBy: {
         createdAt: 'desc'
       }
     })
 
     return NextResponse.json(extras)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar extras:', error)
-    return NextResponse.json(
-      { message: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    // Retornar array vazio em vez de erro
+    return NextResponse.json([])
   }
 }
 

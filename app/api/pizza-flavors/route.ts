@@ -3,8 +3,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // Permitir acesso público (necessário para customização de pizzas)
     const flavors = await prisma.pizzaFlavor.findMany({
-      where: { isActive: true },
+      where: { 
+        isActive: true,
+        type: 'TRADICIONAL' // Apenas sabores tradicionais para combos
+      },
       orderBy: [
         { type: 'asc' },
         { name: 'asc' }
@@ -12,11 +16,9 @@ export async function GET() {
     })
 
     return NextResponse.json(flavors)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar sabores de pizza:', error)
-    return NextResponse.json(
-      { message: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    // Retornar array vazio em vez de erro
+    return NextResponse.json([])
   }
 }

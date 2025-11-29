@@ -671,10 +671,6 @@ export default function MenuPage() {
                       : 'Categorias carregadas mas nenhuma tem produtos ativos.'}
                   </p>
                   <div className="mt-4 text-xs text-gray-400 space-y-1">
-                    <p>Debug: Total de categorias: {categories.length}</p>
-                    <p>Debug: Categorias com combos: {categoriesToShow.length}</p>
-                    <p>Debug: Loading: {loading ? 'Sim' : 'Não'}</p>
-                    <p>Debug: URL: {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</p>
                   </div>
                   <Button
                     variant="outline"

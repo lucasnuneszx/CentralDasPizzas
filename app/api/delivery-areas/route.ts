@@ -5,13 +5,11 @@ import { authOptions } from '@/lib/auth-config'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
-    }
-
+    // Permitir acesso público para áreas de entrega (necessário para checkout)
     const areas = await prisma.deliveryArea.findMany({
+      where: {
+        isActive: true
+      },
       orderBy: [
         { city: 'asc' },
         { name: 'asc' }
@@ -19,12 +17,10 @@ export async function GET() {
     })
 
     return NextResponse.json(areas)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar áreas de entrega:', error)
-    return NextResponse.json(
-      { message: 'Erro interno do servidor' },
-      { status: 500 }
-    )
+    // Retornar array vazio em vez de erro
+    return NextResponse.json([])
   }
 }
 

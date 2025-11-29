@@ -71,12 +71,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (deliveryType === 'DELIVERY' && !addressId && !address) {
-      console.error('ERRO: Endereço obrigatório para entrega')
-      return NextResponse.json(
-        { message: 'Endereço obrigatório para entrega' },
-        { status: 400 }
-      )
+    // Validar endereço apenas se for entrega
+    if (deliveryType === 'DELIVERY') {
+      if (!addressId && !address) {
+        console.error('ERRO: Endereço obrigatório para entrega')
+        return NextResponse.json(
+          { message: 'Endereço obrigatório para entrega' },
+          { status: 400 }
+        )
+      }
+      // Validar campos obrigatórios do endereço se fornecido
+      if (address && (!address.street || !address.number || !address.city || !address.state)) {
+        console.error('ERRO: Campos obrigatórios do endereço faltando')
+        return NextResponse.json(
+          { message: 'Campos obrigatórios do endereço: rua, número, cidade e estado' },
+          { status: 400 }
+        )
+      }
     }
 
     let userId = session?.user?.id
@@ -94,10 +105,10 @@ export async function POST(request: NextRequest) {
             street: address.street,
             number: address.number,
             complement: address.complement || '',
-            neighborhood: address.neighborhood,
+            neighborhood: address.neighborhood || '',
             city: address.city,
             state: address.state,
-            zipCode: address.zipCode,
+            zipCode: address.zipCode || '',
             isDefault: false // Não definir como padrão automaticamente
           }
         })
@@ -153,10 +164,10 @@ export async function POST(request: NextRequest) {
               street: address.street,
               number: address.number,
               complement: address.complement || '',
-              neighborhood: address.neighborhood,
+              neighborhood: address.neighborhood || '',
               city: address.city,
               state: address.state,
-              zipCode: address.zipCode,
+              zipCode: address.zipCode || '',
               isDefault: true
             }
           })
@@ -256,37 +267,44 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Criar itens extras se existirem
-      if (item.extraItems && typeof item.extraItems === 'object') {
-        for (const [extraItemKey, extraData] of Object.entries(item.extraItems)) {
-          const extra = extraData as any
-          // extraItemKey pode ser "extraItemId" ou "extraItemId-optionId"
-          const [extraItemId, optionId] = extraItemKey.includes('-') 
-            ? extraItemKey.split('-') 
-            : [extraItemKey, extra.optionId || null]
-          
-          try {
-            // Validar se o extraItem existe
-            const extraItemExists = await prisma.extraItem.findUnique({
-              where: { id: extraItemId }
-            })
+      // Criar itens extras se existirem (não crítico se falhar)
+      if (item.extraItems && typeof item.extraItems === 'object' && Object.keys(item.extraItems).length > 0) {
+        try {
+          for (const [extraItemKey, extraData] of Object.entries(item.extraItems)) {
+            const extra = extraData as any
+            // extraItemKey pode ser "extraItemId" ou "extraItemId-optionId"
+            const [extraItemId] = extraItemKey.includes('-') 
+              ? extraItemKey.split('-') 
+              : [extraItemKey]
             
-            if (!extraItemExists) {
-              console.warn(`ExtraItem não encontrado: ${extraItemId}, pulando...`)
-              continue
-            }
-
-            await prisma.orderItemExtra.create({
-              data: {
-                orderItemId: orderItem.id,
-                extraItemId: extraItemId,
-                quantity: extra.quantity || 1
+            if (!extraItemId) continue
+            
+            try {
+              // Validar se o extraItem existe
+              const extraItemExists = await prisma.extraItem.findUnique({
+                where: { id: extraItemId }
+              })
+              
+              if (!extraItemExists) {
+                console.warn(`ExtraItem não encontrado: ${extraItemId}, pulando...`)
+                continue
               }
-            })
-          } catch (error: any) {
-            console.error('Erro ao criar item extra:', error?.message || error)
-            // Continuar mesmo se falhar
+
+              await prisma.orderItemExtra.create({
+                data: {
+                  orderItemId: orderItem.id,
+                  extraItemId: extraItemId,
+                  quantity: extra.quantity || 1
+                }
+              })
+            } catch (extraError: any) {
+              console.warn(`Erro ao criar item extra ${extraItemId}:`, extraError?.message || extraError)
+              // Continuar com próximo item extra
+            }
           }
+        } catch (error: any) {
+          console.warn('Erro geral ao processar itens extras (não crítico):', error?.message || error)
+          // Não bloquear o pedido se falhar
         }
       }
 
@@ -368,9 +386,14 @@ export async function POST(request: NextRequest) {
     })
 
     console.log('=== PEDIDO PROCESSADO COM SUCESSO ===')
-    return NextResponse.json(completeOrder, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      message: 'Pedido criado com sucesso',
+      order: completeOrder
+    }, { status: 201 })
   } catch (error: any) {
     console.error('=== ERRO CRÍTICO NO PROCESSAMENTO DE PEDIDO ===')
+    console.error('Tipo do erro:', typeof error)
     console.error('Erro ao criar pedido:', error)
     
     // Log detalhado do erro para debug
@@ -380,18 +403,25 @@ export async function POST(request: NextRequest) {
         stack: error.stack,
         name: error.name
       })
+    } else if (error && typeof error === 'object') {
+      console.error('Erro objeto:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
     } else {
-      console.error('Erro objeto:', JSON.stringify(error, null, 2))
+      console.error('Erro primitivo:', error)
     }
     
-    // Retornar mensagem mais específica se possível
-    const errorMessage = error?.message || 'Erro interno do servidor'
-    const isDevelopment = process.env.NODE_ENV === 'development'
+    // Retornar mensagem mais específica
+    let errorMessage = 'Erro interno do servidor'
+    if (error?.message) {
+      errorMessage = error.message
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
     
     return NextResponse.json(
       { 
-        message: isDevelopment ? errorMessage : 'Erro interno do servidor',
-        error: isDevelopment ? (error?.stack || error) : undefined
+        success: false,
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? (error?.stack || String(error)) : undefined
       },
       { status: 500 }
     )
