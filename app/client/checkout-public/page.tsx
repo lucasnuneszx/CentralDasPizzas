@@ -281,6 +281,27 @@ function CheckoutPublicContent() {
         }
       }
 
+      // Calcular total diretamente aqui para garantir que está correto
+      const subtotal = getTotalPrice()
+      const finalDeliveryFee = formData.deliveryType === DeliveryType.DELIVERY ? deliveryFee : 0
+      const finalTotal = subtotal + finalDeliveryFee
+      
+      console.log('Cálculo do total:', {
+        subtotal,
+        deliveryFee: finalDeliveryFee,
+        finalTotal,
+        cartLength: cart.length,
+        deliveryType: formData.deliveryType
+      })
+      
+      // Validar que o total é válido
+      if (!finalTotal || finalTotal <= 0 || isNaN(finalTotal)) {
+        console.error('Total inválido calculado:', { subtotal, finalDeliveryFee, finalTotal })
+        toast.error('Erro ao calcular total do pedido. Verifique os itens do carrinho.')
+        setIsLoading(false)
+        return
+      }
+
       const orderData = {
         items: cart.map((item: any) => {
           const customizedItem = item as any
@@ -307,7 +328,7 @@ function CheckoutPublicContent() {
         deliveryType: formData.deliveryType,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
-        total: getFinalTotal(),
+        total: finalTotal,
         customer: {
           name: formData.customerName,
           phone: formData.customerPhone || '',
