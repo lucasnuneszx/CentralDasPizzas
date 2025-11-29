@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter número de telefone
-    const targetPhone = phone || order?.user?.phone || order?.customerPhone
+    const targetPhone = phone || order?.user?.phone
     if (!targetPhone) {
       return NextResponse.json(
         { message: 'Número de telefone não encontrado' },
