@@ -843,11 +843,10 @@ function CheckoutPublicContent() {
                          <select
                            id="deliveryArea"
                            value={formData.selectedDeliveryAreaId}
-                           onChange={(e) => {
-                             setFormData({ ...formData, selectedDeliveryAreaId: e.target.value })
-                             // Forçar atualização do componente para recalcular taxa
-                             setRefreshKey(prev => prev + 1)
-                           }}
+                          onChange={(e) => {
+                            setFormData({ ...formData, selectedDeliveryAreaId: e.target.value })
+                            // A taxa será atualizada automaticamente pelo useEffect
+                          }}
                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                            required
                          >
