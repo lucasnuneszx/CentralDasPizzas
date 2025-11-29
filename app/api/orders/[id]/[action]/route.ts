@@ -5,9 +5,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string, action: string } }
+  { params }: { params: Promise<{ id: string, action: string }> | { id: string, action: string } }
 ) {
   try {
+    // Resolver params se for Promise (Next.js 15+)
+    const resolvedParams = params instanceof Promise ? await params : params
+    
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -26,8 +29,12 @@ export async function POST(
       )
     }
 
-    const orderId = params.id
-    const action = params.action
+    const orderId = resolvedParams.id
+    const action = resolvedParams.action
+    
+    console.log('=== PROCESSANDO AÇÃO DO PEDIDO ===')
+    console.log('Order ID:', orderId)
+    console.log('Action:', action)
 
     // Buscar o pedido (usar select explícito para evitar erro de coluna não existente)
     const order = await prisma.order.findUnique({

@@ -5,9 +5,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Resolver params se for Promise (Next.js 15+)
+    const resolvedParams = params instanceof Promise ? await params : params
+    
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -26,7 +29,7 @@ export async function PUT(
       )
     }
 
-    const orderId = params.id
+    const orderId = resolvedParams.id
     const body = await request.json()
     const { deliveryPerson, status } = body
 
