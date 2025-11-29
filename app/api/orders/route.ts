@@ -211,15 +211,31 @@ export async function POST(request: NextRequest) {
 
     // Criar os itens do pedido
     console.log('Criando itens do pedido...')
+    console.log('Items recebidos:', JSON.stringify(items, null, 2))
+    
     for (const item of items) {
-      // Validar se o combo existe
-      const comboExists = await prisma.combo.findUnique({
-        where: { id: item.comboId }
-      })
+      // Validar dados básicos do item
+      if (!item.comboId) {
+        console.error('ERRO: comboId não fornecido no item:', item)
+        throw new Error('comboId é obrigatório para cada item')
+      }
       
-      if (!comboExists) {
-        console.error(`ERRO: Combo não encontrado: ${item.comboId}`)
-        throw new Error(`Combo não encontrado: ${item.comboId}`)
+      // Validar se o combo existe
+      try {
+        const comboExists = await prisma.combo.findUnique({
+          where: { id: item.comboId }
+        })
+        
+        if (!comboExists) {
+          console.error(`ERRO: Combo não encontrado: ${item.comboId}`)
+          throw new Error(`Combo não encontrado: ${item.comboId}`)
+        }
+      } catch (error: any) {
+        if (error.message.includes('Combo não encontrado')) {
+          throw error
+        }
+        console.error('Erro ao verificar combo:', error)
+        throw new Error(`Erro ao verificar combo ${item.comboId}: ${error.message}`)
       }
 
       const orderItem = await prisma.orderItem.create({

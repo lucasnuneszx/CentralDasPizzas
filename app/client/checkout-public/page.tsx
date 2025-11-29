@@ -145,6 +145,13 @@ function CheckoutPublicContent() {
     }
   }, [session, loadUserData])
 
+  // Forçar atualização quando selectedDeliveryAreaId mudar
+  useEffect(() => {
+    if (formData.selectedDeliveryAreaId) {
+      setRefreshKey(prev => prev + 1)
+    }
+  }, [formData.selectedDeliveryAreaId])
+
   const loadSettings = async () => {
     try {
       const response = await fetch('/api/settings')
@@ -283,10 +290,17 @@ function CheckoutPublicContent() {
       const orderData = {
         items: cart.map((item: any) => {
           const customizedItem = item as any
+          
+          // Validar que combo existe e tem id
+          if (!customizedItem.combo || !customizedItem.combo.id) {
+            console.error('Item sem combo válido:', customizedItem)
+            throw new Error('Item do carrinho inválido: combo não encontrado')
+          }
+          
           return {
             comboId: customizedItem.combo.id,
-            quantity: customizedItem.quantity,
-            price: customizedItem.totalPrice || customizedItem.combo.price,
+            quantity: customizedItem.quantity || 1,
+            price: customizedItem.totalPrice || customizedItem.combo.price || 0,
             // Incluir dados de personalização
             flavors: customizedItem.flavors ? customizedItem.flavors.map((f: any) => f.id || f) : undefined,
             flavorsPizza2: customizedItem.flavorsPizza2 ? customizedItem.flavorsPizza2.map((f: any) => f.id || f) : undefined,
@@ -366,7 +380,7 @@ function CheckoutPublicContent() {
     }
   }
 
-  const getDeliveryFee = () => {
+  const getDeliveryFee = useCallback(() => {
     if (formData.deliveryType === DeliveryType.DELIVERY) {
       // Se usuário logado, usar taxa do endereço selecionado
       if (session?.user && formData.selectedAddressId) {
@@ -399,7 +413,7 @@ function CheckoutPublicContent() {
       return 0
     }
     return 0
-  }
+  }, [formData.deliveryType, formData.selectedAddressId, formData.selectedDeliveryAreaId, session?.user, addresses, deliveryAreas])
 
   const getFinalTotal = () => {
     return getTotalPrice() + getDeliveryFee()
@@ -554,11 +568,11 @@ function CheckoutPublicContent() {
                       <span>Subtotal:</span>
                       <span>R$ {getTotalPrice().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center" key={`delivery-fee-${refreshKey}-${formData.selectedDeliveryAreaId}`}>
+                    <div className="flex justify-between items-center">
                       <span>Taxa de entrega:</span>
                       <span>R$ {getDeliveryFee().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center font-bold text-lg" key={`total-${refreshKey}-${formData.selectedDeliveryAreaId}`}>
+                    <div className="flex justify-between items-center font-bold text-lg">
                       <span>Total:</span>
                       <span>R$ {getFinalTotal().toFixed(2)}</span>
                     </div>
