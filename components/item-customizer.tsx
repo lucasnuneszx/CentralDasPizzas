@@ -17,42 +17,74 @@ interface ItemCustomizerProps {
   onClose: () => void
 }
 
+interface ExtraItem {
+  id: string
+  name: string
+  description?: string
+  type: string
+  price?: number
+  options?: Array<{ id: string; name: string; description?: string; price: number; isActive: boolean }>
+}
+
 export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCustomizerProps) {
   const [flavors, setFlavors] = useState<PizzaFlavor[]>([])
   const [sizes, setSizes] = useState<PizzaSize[]>([])
   const [selectedSize, setSelectedSize] = useState<PizzaSize | null>(null)
   const [selectedFlavors, setSelectedFlavors] = useState<PizzaFlavor[]>([])
+  const [selectedFlavorsPizza2, setSelectedFlavorsPizza2] = useState<PizzaFlavor[]>([])
+  const [extraItems, setExtraItems] = useState<ExtraItem[]>([])
+  const [selectedExtraItems, setSelectedExtraItems] = useState<{ [itemId: string]: { optionId?: string; quantity: number } }>({})
   const [observations, setObservations] = useState('')
   const [stuffedCrust, setStuffedCrust] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
+  const pizzaQuantity = (item as any).pizzaQuantity || 1
 
   useEffect(() => {
-    if (item.isPizza) {
-      fetchPizzaData()
-    } else {
-      setLoading(false)
-    }
+    // SEMPRE buscar sabores tradicionais para TODOS os combos
+    fetchPizzaData()
   }, [item])
 
   const fetchPizzaData = async () => {
     try {
-      const [flavorsRes, sizesRes] = await Promise.all([
+      const [flavorsRes, sizesRes, customizationRes] = await Promise.all([
         fetch('/api/pizza-flavors'),
-        fetch(`/api/pizza-sizes?comboId=${item.id}`)
+        fetch(`/api/pizza-sizes?comboId=${item.id}`),
+        fetch(`/api/combos/${item.id}/customization`)
       ])
 
-      if (flavorsRes.ok && sizesRes.ok) {
+      if (flavorsRes.ok) {
         const flavorsData = await flavorsRes.json()
+        // Filtrar apenas sabores TRADICIONAIS para todos os combos
+        const traditionalFlavors = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
+        setFlavors(traditionalFlavors)
+      }
+      
+      if (sizesRes.ok) {
         const sizesData = await sizesRes.json()
-        
-        setFlavors(flavorsData)
         setSizes(sizesData)
         
         // Selecionar o primeiro tamanho por padrão
         if (sizesData.length > 0) {
           setSelectedSize(sizesData[0])
         }
+      }
+      
+      // Carregar itens extras do combo (refri, batatas, etc)
+      if (customizationRes.ok) {
+        const customizationData = await customizationRes.json()
+        // Armazenar itens extras opcionais (não obrigatórios e não são pizzas)
+        const extras = customizationData
+          .filter((item: any) => !item.isRequired && item.type !== 'PIZZA')
+          .map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            type: item.type,
+            price: 0, // Preço será das opções se houver
+            options: item.options || []
+          }))
+        setExtraItems(extras)
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
@@ -75,37 +107,77 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       setSelectedFlavors(selectedFlavors.filter(f => f.id !== flavor.id))
     } else {
       // Adicionar sabor (se não exceder o limite)
-      if (selectedSize && selectedFlavors.length < selectedSize.maxFlavors) {
+      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+      if (selectedFlavors.length < maxFlavors) {
         setSelectedFlavors([...selectedFlavors, flavor])
       }
     }
   }
 
   const calculatePrice = () => {
-    if (item.isPizza && selectedSize) {
-      let total = selectedSize.basePrice
-
-      // Adicionar preços extras para sabores premium e especiais
-      const premiumCount = selectedFlavors.filter(f => f.type === 'PREMIUM').length
-      const especialCount = selectedFlavors.filter(f => f.type === 'ESPECIAL').length
-
-      // R$ 15,00 por sabor premium quando misturado
-      if (premiumCount > 0 && selectedFlavors.length > 1) {
-        total += premiumCount * 15.00
+    let total = item.price // Preço base do combo
+    
+    // Se for pizza com tamanho selecionado, usar preço do tamanho
+    if ((item.isPizza || pizzaQuantity > 0) && selectedSize) {
+      total = selectedSize.basePrice
+      
+      // Se houver Pizza 2, adicionar preço
+      if (pizzaQuantity > 1) {
+        total += selectedSize.basePrice
       }
-
-      // R$ 20,00 por sabor especial
-      total += especialCount * 20.00
-
-      // Borda recheada
-      if (stuffedCrust) {
-        total += 4.99
-      }
-
-      return total * quantity
-    } else {
-      return item.price * quantity
+    } else if (item.isPizza || pizzaQuantity > 0) {
+      // Se não houver tamanho, usar preço base dividido pela quantidade
+      total = (item.price / pizzaQuantity) * pizzaQuantity
     }
+
+    // Adicionar preços dos itens extras selecionados
+    Object.entries(selectedExtraItems).forEach(([key, selection]) => {
+      // key pode ser "itemId" ou "itemId-optionId"
+      const [itemId, optionId] = key.includes('-') ? key.split('-') : [key, undefined]
+      const extraItem = extraItems.find(e => e.id === itemId)
+      if (extraItem) {
+        if (optionId || selection.optionId) {
+          // Se tem opção selecionada, usar preço da opção
+          const option = extraItem.options?.find(o => o.id === (optionId || selection.optionId))
+          if (option && option.isActive) {
+            total += option.price * selection.quantity
+          }
+        } else if (extraItem.price) {
+          // Senão, usar preço do item (se houver)
+          total += extraItem.price * selection.quantity
+        }
+      }
+    })
+
+    // Borda recheada
+    if (stuffedCrust) {
+      total += 4.99
+    }
+
+    return total * quantity
+  }
+
+  const toggleExtraItem = (extraItem: ExtraItem, optionId?: string) => {
+    const key = optionId ? `${extraItem.id}-${optionId}` : extraItem.id
+    const currentSelection = selectedExtraItems[key]
+    
+    if (currentSelection) {
+      // Remover item
+      const newSelections = { ...selectedExtraItems }
+      delete newSelections[key]
+      setSelectedExtraItems(newSelections)
+    } else {
+      // Adicionar item
+      setSelectedExtraItems({
+        ...selectedExtraItems,
+        [key]: { optionId, quantity: 1 }
+      })
+    }
+  }
+
+  const isExtraItemSelected = (extraItem: ExtraItem, optionId?: string) => {
+    const key = optionId ? `${extraItem.id}-${optionId}` : extraItem.id
+    return !!selectedExtraItems[key]
   }
 
   const handleAddToCart = () => {
@@ -115,8 +187,10 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       quantity,
       size: selectedSize || undefined,
       flavors: selectedFlavors.length > 0 ? selectedFlavors : undefined,
+      flavorsPizza2: pizzaQuantity > 1 && selectedFlavorsPizza2.length > 0 ? selectedFlavorsPizza2 : undefined,
       observations,
       stuffedCrust,
+      extraItems: Object.keys(selectedExtraItems).length > 0 ? selectedExtraItems : undefined,
       totalPrice: calculatePrice()
     }
 
@@ -206,96 +280,163 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           </div>
 
-          {/* Personalização de Pizza */}
-          {item.isPizza && (
+          {/* Seleção de Sabores Tradicionais - SEMPRE para TODOS os combos */}
+          {flavors.length > 0 && (
             <>
-              {/* Seleção de Tamanho */}
-              <div>
-                <Label className="text-base font-medium mb-3 block text-gray-900">Tamanho da Pizza</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {sizes.map((size) => (
-                    <Button
-                      key={size.id}
-                      variant={selectedSize?.id === size.id ? "default" : "outline"}
-                      className={`h-auto p-3 flex flex-col items-center space-y-1 ${
-                        selectedSize?.id === size.id 
-                          ? "bg-red-500 text-white hover:bg-red-600" 
-                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
-                      onClick={() => handleSizeSelect(size)}
-                    >
-                      <div className="font-semibold">{size.name}</div>
-                      <div className="text-xs opacity-80">{size.slices} fatias</div>
-                      <div className="text-xs opacity-80">Até {size.maxFlavors} sabores</div>
-                      <div className="font-bold">R$ {size.basePrice.toFixed(2).replace('.', ',')}</div>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Seleção de Sabores */}
-              {selectedSize && (
+              {/* Seleção de Tamanho (apenas se for pizza) */}
+              {(item.isPizza || pizzaQuantity > 0) && sizes.length > 0 && (
                 <div>
-                  <Label className="text-base font-medium mb-3 block text-gray-900">
-                    Sabores da Pizza
+                  <Label className="text-base font-medium mb-3 block text-gray-900">Tamanho da Pizza</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {sizes.map((size) => (
+                      <Button
+                        key={size.id}
+                        variant={selectedSize?.id === size.id ? "default" : "outline"}
+                        className={`h-auto p-3 flex flex-col items-center space-y-1 ${
+                          selectedSize?.id === size.id 
+                            ? "bg-red-500 text-white hover:bg-red-600" 
+                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                        onClick={() => handleSizeSelect(size)}
+                      >
+                        <div className="font-semibold">{size.name}</div>
+                        <div className="text-xs opacity-80">{size.slices} fatias</div>
+                        <div className="text-xs opacity-80">Até {size.maxFlavors} sabores</div>
+                        <div className="font-bold">R$ {size.basePrice.toFixed(2).replace('.', ',')}</div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Seleção de Sabores - Pizza 1 ou Combo */}
+              <div>
+                <Label className="text-base font-medium mb-3 block text-gray-900">
+                  {pizzaQuantity > 1 ? 'Sabor Pizza 1' : 'Escolha os Sabores Tradicionais'}
+                  {selectedSize && (
                     <span className="text-sm text-gray-500 ml-2">
                       ({selectedFlavors.length}/{selectedSize.maxFlavors})
                     </span>
+                  )}
+                  {!selectedSize && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      ({selectedFlavors.length} selecionado{selectedFlavors.length !== 1 ? 's' : ''})
+                    </span>
+                  )}
+                </Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {flavors.map((flavor) => {
+                    const isSelected = selectedFlavors.find(f => f.id === flavor.id)
+                    const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                    const canSelect = !isSelected && selectedFlavors.length < maxFlavors
+
+                    return (
+                      <div
+                        key={flavor.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-red-500 bg-red-50'
+                            : canSelect
+                            ? 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+                            : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                        }`}
+                        onClick={() => canSelect && handleFlavorToggle(flavor)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="font-medium text-sm">{flavor.name}</span>
+                              <Badge className="text-xs bg-green-100 text-green-800">
+                                TRADICIONAL
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-600">{flavor.description}</p>
+                          </div>
+                          {isSelected && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleFlavorToggle(flavor)
+                              }}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Seleção de Sabores - Pizza 2 */}
+              {pizzaQuantity > 1 && (
+                <div>
+                  <Label className="text-base font-medium mb-3 block text-gray-900">
+                    Sabor Pizza 2
+                    {selectedSize && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        ({selectedFlavorsPizza2.length}/{selectedSize.maxFlavors})
+                      </span>
+                    )}
+                    {!selectedSize && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        ({selectedFlavorsPizza2.length} selecionado{selectedFlavorsPizza2.length !== 1 ? 's' : ''})
+                      </span>
+                    )}
                   </Label>
-                  <div className="space-y-4">
-                    {['TRADICIONAL', 'PREMIUM', 'ESPECIAL'].map((type) => {
-                      const typeFlavors = flavors.filter(f => f.type === type)
-                      if (typeFlavors.length === 0) return null
+                  <div className="grid grid-cols-1 gap-2">
+                    {flavors.map((flavor) => {
+                      const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
 
                       return (
-                        <div key={type}>
-                          <h4 className="text-sm font-semibold mb-2 capitalize text-gray-700">
-                            {type.toLowerCase()}
-                          </h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {typeFlavors.map((flavor) => {
-                              const isSelected = selectedFlavors.find(f => f.id === flavor.id)
-                              const canSelect = !isSelected && selectedFlavors.length < selectedSize.maxFlavors
-
-                              return (
-                                <div
-                                  key={flavor.id}
-                                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                                    isSelected
-                                      ? 'border-red-500 bg-red-50'
-                                      : canSelect
-                                      ? 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                                      : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
-                                  }`}
-                                  onClick={() => canSelect && handleFlavorToggle(flavor)}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                      <div className="flex items-center space-x-2 mb-1">
-                                        <span className="font-medium text-sm">{flavor.name}</span>
-                                        <Badge className={`text-xs ${getFlavorTypeColor(flavor.type)}`}>
-                                          {flavor.type}
-                                        </Badge>
-                                      </div>
-                                      <p className="text-xs text-gray-600">{flavor.description}</p>
-                                    </div>
-                                    {isSelected && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleFlavorToggle(flavor)
-                                        }}
-                                        className="h-6 w-6 p-0"
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              )
-                            })}
+                        <div
+                          key={flavor.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-red-500 bg-red-50'
+                              : canSelect
+                              ? 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+                              : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                          }`}
+                          onClick={() => {
+                            if (canSelect) {
+                              if (isSelected) {
+                                setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                              } else {
+                                setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
+                              }
+                            }
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="font-medium text-sm">{flavor.name}</span>
+                                <Badge className="text-xs bg-green-100 text-green-800">
+                                  TRADICIONAL
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-gray-600">{flavor.description}</p>
+                            </div>
+                            {isSelected && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                }}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       )
@@ -304,18 +445,92 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 </div>
               )}
 
-              {/* Borda Recheada */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-base font-medium">Borda Recheada</Label>
-                  <p className="text-sm text-gray-600">+ R$ 4,99</p>
+              {/* Borda Recheada (apenas se for pizza) */}
+              {(item.isPizza || pizzaQuantity > 0) && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Borda Recheada</Label>
+                    <p className="text-sm text-gray-600">+ R$ 4,99</p>
+                  </div>
+                  <Switch
+                    checked={stuffedCrust}
+                    onCheckedChange={setStuffedCrust}
+                  />
                 </div>
-                <Switch
-                  checked={stuffedCrust}
-                  onCheckedChange={setStuffedCrust}
-                />
-              </div>
+              )}
             </>
+          )}
+
+          {/* Itens Extras (Refri, Batatas, etc) */}
+          {extraItems.length > 0 && (
+            <div>
+              <Label className="text-base font-medium mb-3 block text-gray-900">
+                Adicionar Itens ao Combo
+              </Label>
+              <div className="space-y-3">
+                {extraItems.map((extraItem) => (
+                  <div key={extraItem.id} className="border rounded-lg p-3">
+                    {extraItem.options && extraItem.options.length > 0 ? (
+                      // Se tem opções, mostrar cada opção como checkbox
+                      <div className="space-y-2">
+                        <div className="font-medium text-sm text-gray-900">{extraItem.name}</div>
+                        {extraItem.description && (
+                          <p className="text-xs text-gray-600 mb-2">{extraItem.description}</p>
+                        )}
+                        {extraItem.options
+                          .filter((option) => option.isActive)
+                          .map((option) => {
+                            const isSelected = isExtraItemSelected(extraItem, option.id)
+                            return (
+                              <label
+                                key={option.id}
+                                className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleExtraItem(extraItem, option.id)}
+                                  className="w-4 h-4 text-red-500 rounded"
+                                />
+                                <span className="text-sm text-gray-900">{option.name}</span>
+                                {option.description && (
+                                  <span className="text-xs text-gray-600">({option.description})</span>
+                                )}
+                                {option.price > 0 && (
+                                  <span className="text-sm font-medium text-gray-700 ml-auto">
+                                    + R$ {option.price.toFixed(2).replace('.', ',')}
+                                  </span>
+                                )}
+                              </label>
+                            )
+                          })}
+                      </div>
+                    ) : (
+                      // Se não tem opções, mostrar o item como checkbox simples
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isExtraItemSelected(extraItem)}
+                          onChange={() => toggleExtraItem(extraItem)}
+                          className="w-4 h-4 text-red-500 rounded"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-900">{extraItem.name}</span>
+                          {extraItem.description && (
+                            <p className="text-xs text-gray-600">{extraItem.description}</p>
+                          )}
+                        </div>
+                        {extraItem.price > 0 && (
+                          <span className="text-sm font-medium text-gray-700">
+                            + R$ {extraItem.price.toFixed(2).replace('.', ',')}
+                          </span>
+                        )}
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Observações */}

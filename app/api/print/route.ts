@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/prisma'
+import { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } from 'node-thermal-printer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -159,34 +160,136 @@ function getPaymentMethodText(method: string) {
 
 async function sendToPrinter(content: string, printType: string) {
   try {
-    const printerIP = process.env.PRINTER_IP
-    const printerPort = process.env.PRINTER_PORT || '9100'
+    // Buscar configurações da impressora
+    const settings = await prisma.systemSettings.findFirst()
+    // Tentar usar nome da impressora das configurações, variável de ambiente ou padrão
+    const printerName = settings?.printerName || process.env.PRINTER_NAME || 'ELGIN i8'
     
-    if (!printerIP) {
-      console.log('Impressora não configurada. Conteúdo para impressão:')
-      console.log(content)
-      return
+    console.log(`Tentando imprimir na impressora: ${printerName}`)
+    console.log(`Tipo: ${printType}`)
+    
+    // Criar instância da impressora térmica
+    const printer = new ThermalPrinter({
+      type: PrinterTypes.EPSON, // Elgin i8 usa comandos ESC/POS compatíveis com Epson
+      interface: 'printer:' + printerName, // Nome da impressora no Windows
+      characterSet: CharacterSet.PC852_LATIN2,
+      removeSpecialCharacters: false,
+      lineCharacter: '-',
+      breakLine: BreakLine.WORD,
+      options: {
+        timeout: 5000
+      }
+    })
+
+    // Verificar se a impressora está conectada
+    const isConnected = await printer.isPrinterConnected()
+    
+    if (!isConnected) {
+      console.warn('Impressora não encontrada. Tentando usar nome padrão ou porta USB...')
+      
+      // Tentar alternativas
+      const alternativeNames = [
+        'ELGIN i8',
+        'ELGIN',
+        'Bematech',
+        'EPSON TM-T20'
+      ]
+      
+      let connected = false
+      for (const name of alternativeNames) {
+        try {
+          const altPrinter = new ThermalPrinter({
+            type: PrinterTypes.EPSON,
+            interface: 'printer:' + name,
+            characterSet: CharacterSet.PC852_LATIN2,
+            removeSpecialCharacters: false,
+            lineCharacter: '-',
+            breakLine: BreakLine.WORD,
+            options: {
+              timeout: 3000
+            }
+          })
+          
+          if (await altPrinter.isPrinterConnected()) {
+            console.log(`Impressora encontrada: ${name}`)
+            Object.assign(printer, altPrinter)
+            connected = true
+            break
+          }
+        } catch (e) {
+          // Continuar tentando
+        }
+      }
+      
+      if (!connected) {
+        console.log('Impressora não encontrada. Conteúdo para impressão:')
+        console.log(content)
+        console.log('\n--- Para configurar a impressora: ---')
+        console.log('1. Instale o driver da Elgin i8')
+        console.log('2. Configure o nome da impressora nas Configurações do Sistema')
+        console.log('3. Ou defina a variável PRINTER_NAME no .env')
+        return
+      }
     }
 
-    // Em produção, usar uma biblioteca como 'node-printer' ou fazer requisição HTTP para a impressora
-    // Por enquanto, apenas logar o conteúdo
-    console.log(`Enviando para impressora ${printerIP}:${printerPort}`)
-    console.log(`Tipo: ${printType}`)
-    console.log('Conteúdo:')
+    // Preparar conteúdo para impressão formatado
+    printer.alignCenter()
+    printer.bold(true)
+    printer.println('CENTRAL DAS PIZZAS')
+    printer.bold(false)
+    printer.drawLine()
+    printer.alignLeft()
+    
+    // Adicionar conteúdo linha por linha
+    const lines = content.split('\n')
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+      
+      if (trimmedLine === '') {
+        printer.newLine()
+      } else if (trimmedLine.startsWith('=')) {
+        printer.drawLine()
+      } else if (trimmedLine.includes('PEDIDO PARA COZINHA') || trimmedLine.includes('CUPOM FISCAL')) {
+        printer.alignCenter()
+        printer.bold(true)
+        printer.println(trimmedLine.replace(/[=]/g, '').trim())
+        printer.bold(false)
+        printer.alignLeft()
+        printer.drawLine()
+      } else if (trimmedLine.includes('TOTAL:') || trimmedLine.includes('SUBTOTAL:')) {
+        printer.bold(true)
+        printer.println(trimmedLine)
+        printer.bold(false)
+      } else if (trimmedLine.includes('Data/Hora:') || trimmedLine.includes('Pedido:') || trimmedLine.includes('Cliente:')) {
+        printer.println(trimmedLine)
+      } else {
+        printer.println(trimmedLine)
+      }
+    }
+    
+    // Adicionar linhas finais
+    printer.newLine()
+    printer.drawLine()
+    printer.alignCenter()
+    printer.println('OBRIGADO PELA PREFERÊNCIA!')
+    printer.newLine()
+    printer.newLine()
+    
+    // Cortar papel (se a impressora suportar)
+    printer.cut()
+    
+    // Executar impressão
+    await printer.execute()
+    
+    console.log('✅ Comanda impressa com sucesso na impressora:', printerName)
+    
+  } catch (error: any) {
+    console.error('Erro ao enviar para impressora:', error)
+    console.log('Conteúdo que seria impresso:')
     console.log(content)
     
-    // Simulação de envio para impressora
-    // await fetch(`http://${printerIP}:${printerPort}`, {
-    //   method: 'POST',
-    //   body: content,
-    //   headers: {
-    //     'Content-Type': 'text/plain'
-    //   }
-    // })
-    
-  } catch (error) {
-    console.error('Erro ao enviar para impressora:', error)
-    throw error
+    // Não lançar erro para não quebrar o fluxo, apenas logar
+    // throw error
   }
 }
 

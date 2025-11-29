@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Printer, Eye, Save, Download } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Printer, Eye, Save, Download, Usb, CheckCircle } from 'lucide-react'
 import { DashboardShell } from '@/components/dashboard/shell'
 import { ProtectedRoute } from '@/components/protected-route'
 import { UserRole } from '@/lib/constants'
+import { usePrinter } from '@/hooks/use-printer'
 import toast from 'react-hot-toast'
 
 interface PrintSettings {
@@ -56,6 +58,7 @@ export default function PrintSettingsPage() {
   const [settings, setSettings] = useState<PrintSettings>(defaultSettings)
   const [previewContent, setPreviewContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const { port, isConnected, printerName, selectPrinter, disconnectPrinter } = usePrinter()
 
   // Sample order data for preview
   const sampleOrder = {
@@ -223,6 +226,7 @@ export default function PrintSettingsPage() {
     toast.success('Arquivo baixado!')
   }
 
+
   return (
     <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
       <DashboardShell>
@@ -241,6 +245,82 @@ export default function PrintSettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Configurações */}
             <div className="space-y-6">
+              {/* Seleção de Impressora */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Printer className="h-5 w-5" />
+                    Seleção de Impressora
+                  </CardTitle>
+                  <CardDescription>
+                    Selecione a impressora USB conectada ao computador
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isConnected || printerName ? (
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <div>
+                            <p className="font-semibold text-green-900 dark:text-green-100">
+                              Impressora Conectada
+                            </p>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                              {printerName || 'Impressora USB'}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700">
+                          <Usb className="h-3 w-3 mr-1" />
+                          Conectada
+                        </Badge>
+                      </div>
+                      {port && (
+                        <Button
+                          onClick={disconnectPrinter}
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 w-full"
+                        >
+                          Desconectar Impressora
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Nenhuma impressora selecionada. Clique no botão abaixo para escolher uma impressora USB.
+                      </p>
+                      <Button
+                        onClick={selectPrinter}
+                        disabled={!('serial' in navigator)}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Usb className="h-4 w-4 mr-2" />
+                        Selecionar Impressora USB
+                      </Button>
+                      {!('serial' in navigator) && (
+                        <p className="text-xs text-red-500 mt-2">
+                          ⚠️ Seu navegador não suporta esta funcionalidade. Use Chrome ou Edge.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>💡 <strong>Como funciona:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Clique em "Selecionar Impressora USB"</li>
+                      <li>O navegador abrirá um diálogo para escolher o dispositivo</li>
+                      <li>Selecione sua impressora Elgin i8</li>
+                      <li>A impressora será salva automaticamente</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Informações do Restaurante</CardTitle>

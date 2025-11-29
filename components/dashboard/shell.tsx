@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { PropsWithChildren, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Smartphone, LogOut, Sun, Moon, Printer, ChefHat } from 'lucide-react'
+import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Smartphone, LogOut, Sun, Moon, Printer, ChefHat, MessageSquare } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useSession } from 'next-auth/react'
 import { UserRole } from '@/lib/constants'
@@ -19,6 +19,7 @@ const allNavItems: NavItem[] = [
   { href: '/admin/reports', label: 'Relatórios', icon: BarChart3, roles: [UserRole.ADMIN] },
   { href: '/admin/settings', label: 'Configurações', icon: Settings, roles: [UserRole.ADMIN] },
   { href: '/admin/print', label: 'Impressão', icon: Printer, roles: [UserRole.ADMIN] },
+  { href: '/admin/chatbot', label: 'Chatbot', icon: MessageSquare, roles: [UserRole.ADMIN, UserRole.MANAGER] },
   { href: '/admin/ifood/dashboard', label: 'iFood', icon: Smartphone, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER] },
   { href: '/client/menu', label: 'Cardápio', icon: Package, roles: [UserRole.CLIENT] },
   { href: '/client/orders', label: 'Meus Pedidos', icon: ShoppingCart, roles: [UserRole.CLIENT] },
@@ -88,6 +89,15 @@ export function DashboardShell({ children }: PropsWithChildren) {
         </header>
 
         <main className="flex-1 p-4 sm:p-6">{children}</main>
+        
+        {/* Footer */}
+        <footer className="border-t bg-card/50 backdrop-blur py-4 px-4 sm:px-6">
+          <div className="flex justify-center">
+            <p className="text-muted-foreground text-xs">
+              Powered By: <span className="font-semibold text-foreground">Lucas Nunes</span>
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   )

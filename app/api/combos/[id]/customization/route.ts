@@ -8,24 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Não autorizado' },
-        { status: 401 }
-      )
-    }
-
-    // Verificar se o usuário tem permissão para gerenciar combos
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
-      return NextResponse.json(
-        { message: 'Sem permissão' },
-        { status: 403 }
-      )
-    }
-
+    // Permitir acesso público para clientes visualizarem itens extras
     const comboId = params.id
 
     const customizationItems = await prisma.comboCustomizationItem.findMany({
@@ -47,6 +30,13 @@ export async function GET(
         order: 'asc'
       }
     })
+
+    // Transformar para incluir preço do item (se não tiver opções)
+    const itemsWithPrice = customizationItems.map(item => ({
+      ...item,
+      price: item.options && item.options.length > 0 ? 0 : 0, // Preço será das opções ou 0
+      // Se não tiver opções, o preço pode vir de um campo adicional ou ser 0
+    }))
 
     return NextResponse.json(customizationItems)
   } catch (error) {

@@ -84,6 +84,31 @@ export async function POST(request: NextRequest) {
 
     console.log('User ID da sessão:', userId)
 
+    // Se usuário logado e forneceu novo endereço, salvar
+    if (userId && address && !addressId && deliveryType === 'DELIVERY') {
+      try {
+        console.log('Salvando novo endereço para usuário logado')
+        const newAddress = await prisma.address.create({
+          data: {
+            userId: userId,
+            street: address.street,
+            number: address.number,
+            complement: address.complement || '',
+            neighborhood: address.neighborhood,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode,
+            isDefault: false // Não definir como padrão automaticamente
+          }
+        })
+        orderAddressId = newAddress.id
+        console.log('Endereço salvo:', orderAddressId)
+      } catch (error) {
+        console.error('Erro ao salvar endereço:', error)
+        // Continuar mesmo se falhar ao salvar endereço
+      }
+    }
+
     // Se não estiver logado, criar ou buscar usuário público
     if (!userId) {
       console.log('Usuário não logado, criando/buscando usuário público')

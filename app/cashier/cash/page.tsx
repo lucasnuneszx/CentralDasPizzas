@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProtectedRoute } from '@/components/protected-route'
 import { UserRole } from '@/lib/constants'
-import { ArrowLeft, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, DollarSign, Clock, CheckCircle, AlertCircle, Edit, Trash2, Star, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface CashLog {
@@ -16,6 +16,7 @@ interface CashLog {
   type: string
   amount: number
   description?: string
+  isFavorite?: boolean
   createdAt: string
   order?: {
     id: string
@@ -44,6 +45,9 @@ export default function CashControl() {
   const [closeAmount, setCloseAmount] = useState('')
   const [openAmount, setOpenAmount] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [editingLog, setEditingLog] = useState<CashLog | null>(null)
+  const [editAmount, setEditAmount] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -144,6 +148,79 @@ export default function CashControl() {
       style: 'currency',
       currency: 'BRL'
     }).format(amount)
+  }
+
+  const handleEditLog = (log: CashLog) => {
+    setEditingLog(log)
+    setEditAmount(log.amount.toString())
+    setEditDescription(log.description || '')
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingLog) return
+
+    try {
+      const response = await fetch(`/api/cash/logs/${editingLog.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: parseFloat(editAmount) || 0,
+          description: editDescription
+        })
+      })
+
+      if (response.ok) {
+        toast.success('Movimentação atualizada!')
+        setEditingLog(null)
+        setEditAmount('')
+        setEditDescription('')
+        fetchCashData()
+      } else {
+        toast.error('Erro ao atualizar movimentação')
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar movimentação')
+    }
+  }
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta movimentação?')) return
+
+    try {
+      const response = await fetch(`/api/cash/logs/${logId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast.success('Movimentação excluída!')
+        fetchCashData()
+      } else {
+        toast.error('Erro ao excluir movimentação')
+      }
+    } catch (error) {
+      toast.error('Erro ao excluir movimentação')
+    }
+  }
+
+  const handleToggleFavorite = async (log: CashLog) => {
+    try {
+      const response = await fetch(`/api/cash/logs/${log.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isFavorite: !log.isFavorite
+        })
+      })
+
+      if (response.ok) {
+        toast.success(log.isFavorite ? 'Favorito removido' : 'Marcado como favorito')
+        fetchCashData()
+      } else {
+        toast.error('Erro ao atualizar favorito')
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar favorito')
+    }
   }
 
   return (
@@ -317,8 +394,13 @@ export default function CashControl() {
                         </p>
                       ) : (
                         cashLogs.map((log) => (
-                          <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center space-x-4">
+                          <div 
+                            key={log.id} 
+                            className={`flex items-center justify-between p-4 border rounded-lg transition-all hover:shadow-md ${
+                              log.isFavorite ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700' : ''
+                            }`}
+                          >
+                            <div className="flex items-center space-x-4 flex-1">
                               <div className={`p-2 rounded-full ${
                                 log.type === 'OPEN' ? 'bg-green-100' :
                                 log.type === 'CLOSE' ? 'bg-red-100' :
@@ -328,24 +410,72 @@ export default function CashControl() {
                                 {log.type === 'CLOSE' && <AlertCircle className="h-4 w-4 text-red-600" />}
                                 {log.type === 'ORDER' && <DollarSign className="h-4 w-4 text-blue-600" />}
                               </div>
-                              <div>
-                                <p className="font-medium">
-                                  {log.type === 'OPEN' && 'Abertura do caixa'}
-                                  {log.type === 'CLOSE' && 'Fechamento do caixa'}
-                                  {log.type === 'ORDER' && `Pedido #${log.order?.id.slice(-8)}`}
-                                </p>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">
+                                    {log.type === 'OPEN' && 'Abertura do caixa'}
+                                    {log.type === 'CLOSE' && 'Fechamento do caixa'}
+                                    {log.type === 'ORDER' && `Pedido #${log.order?.id.slice(-8)}`}
+                                  </p>
+                                  {log.isFavorite && (
+                                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                  )}
+                                </div>
                                 {log.description && (
                                   <p className="text-sm text-gray-600">{log.description}</p>
                                 )}
                                 <p className="text-xs text-gray-500">{formatDate(log.createdAt)}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className={`font-bold ${
-                                log.type === 'ORDER' ? 'text-green-600' : 'text-gray-600'
-                              }`}>
-                                {log.type === 'ORDER' ? '+' : ''}{formatCurrency(log.amount)}
-                              </p>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right mr-4">
+                                <p className={`font-bold ${
+                                  log.type === 'ORDER' ? 'text-green-600' : 'text-gray-600'
+                                }`}>
+                                  {log.type === 'ORDER' ? '+' : ''}{formatCurrency(log.amount)}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditLog(log)}
+                                  className="h-8 w-8 p-0"
+                                  title="Editar"
+                                  disabled={log.type === 'OPEN' || log.type === 'CLOSE'}
+                                >
+                                  <Edit className={`h-4 w-4 ${
+                                    log.type === 'OPEN' || log.type === 'CLOSE' 
+                                      ? 'text-gray-300 dark:text-gray-600' 
+                                      : 'text-blue-500 hover:text-blue-600'
+                                  }`} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleToggleFavorite(log)}
+                                  className="h-8 w-8 p-0"
+                                  title={log.isFavorite ? 'Remover dos favoritos' : 'Marcar como favorito'}
+                                >
+                                  <Star className={`h-4 w-4 ${
+                                    log.isFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'
+                                  }`} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteLog(log.id)}
+                                  className="h-8 w-8 p-0"
+                                  title="Excluir"
+                                  disabled={log.type === 'OPEN' || log.type === 'CLOSE'}
+                                >
+                                  <Trash2 className={`h-4 w-4 ${
+                                    log.type === 'OPEN' || log.type === 'CLOSE' 
+                                      ? 'text-gray-300 dark:text-gray-600' 
+                                      : 'text-red-500 hover:text-red-600'
+                                  }`} />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))
@@ -459,6 +589,76 @@ export default function CashControl() {
                       onClick={openCash}
                     >
                       Abrir Caixa
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Modal para Editar Movimentação */}
+        {editingLog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Editar Movimentação</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingLog(null)
+                      setEditAmount('')
+                      setEditDescription('')
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <CardDescription>
+                  Edite os dados da movimentação
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="editAmount">Valor</Label>
+                    <Input
+                      id="editAmount"
+                      type="number"
+                      step="0.01"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editDescription">Descrição</Label>
+                    <Input
+                      id="editDescription"
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Descrição da movimentação"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingLog(null)
+                        setEditAmount('')
+                        setEditDescription('')
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={handleSaveEdit}
+                      disabled={!editAmount}
+                    >
+                      Salvar
                     </Button>
                   </div>
                 </div>

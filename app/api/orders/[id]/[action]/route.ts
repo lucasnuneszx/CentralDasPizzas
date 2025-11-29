@@ -110,6 +110,22 @@ async function acceptOrder(order: any, userId: string) {
     })
 
     // IMPRESSÃO AUTOMÁTICA ao aceitar
+    // Nota: A impressão será feita no cliente usando a porta serial selecionada
+    // Apenas registrar no log que o pedido deve ser impresso
+    try {
+      await prisma.cashLog.create({
+        data: {
+          orderId: order.id,
+          type: 'ORDER_PRINTED',
+          amount: 0,
+          description: `Pedido confirmado - aguardando impressão - #${order.id.slice(-8)}`
+        }
+      })
+    } catch (printError) {
+      console.error('Erro ao registrar impressão:', printError)
+      // Não bloquear o fluxo se falhar
+    }
+
     await prisma.cashLog.create({
       data: {
         orderId: order.id,

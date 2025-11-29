@@ -46,6 +46,7 @@
     "next": "14.0.4",
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
+    "node-thermal-printer": "^4.5.0",
     "openai": "^6.9.1",
     "react": "^18",
     "react-dom": "^18",

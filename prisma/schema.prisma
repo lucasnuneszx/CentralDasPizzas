@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -117,6 +117,7 @@ model Combo {
   categoryId  String
   isPizza     Boolean  @default(false)
   allowCustomization Boolean @default(false)
+  pizzaQuantity Int    @default(1) // Quantidade de pizzas no combo (1 ou 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -251,7 +252,9 @@ model CashLog {
   type        String   // OPEN, CLOSE, ORDER, ORDER_CONFIRMED, ORDER_CANCELLED, ORDER_PRINTED
   amount      Float
   description String?
+  isFavorite  Boolean  @default(false) // Marcar como favorito
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   order Order? @relation(fields: [orderId], references: [id])
 
@@ -274,15 +277,26 @@ model SystemSettings {
   ifoodApiSecret    String?
   printerIp         String?
   printerPort       String?
+  printerName       String?  // Nome da impressora USB (ex: "ELGIN i8")
+  printerSerialPort String?  // Dados da porta serial selecionada (JSON)
   autoPrint         Boolean  @default(true)
   taxRate           Float    @default(0)
   deliveryFee       Float    @default(0)
   minOrderValue     Float    @default(0)
   autoCloseTime     String?  @default("23:00")
   autoCloseEnabled  Boolean  @default(false)
-  premiumFlavorPrice Float   @default(15.00)
-  especialFlavorPrice Float  @default(20.00)
+  premiumFlavorPrice Float    @default(15.00)
+  especialFlavorPrice Float   @default(20.00)
   stuffedCrustPrice Float    @default(4.99)
+  // WhatsApp Integration
+  whatsappProvider   String?  // 'evolution', 'business', 'twilio'
+  whatsappApiUrl     String?  // URL da API (Evolution API)
+  whatsappApiKey     String?  // API Key
+  whatsappInstanceName String? // Nome da instância (Evolution API)
+  whatsappPhoneNumberId String? // Phone Number ID (Business API)
+  whatsappAccessToken String? // Access Token (Business API)
+  whatsappBusinessAccountId String? // Business Account ID
+  whatsappConnected   Boolean @default(false) // Status da conexão
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -381,4 +395,18 @@ model DeliveryArea {
 
   @@unique([name, city, state])
   @@map("delivery_areas")
+}
+
+model ChatbotTemplate {
+  id          String   @id @default(cuid())
+  name        String   // Nome do template (ex: "Pedido Confirmado")
+  trigger     String   // Trigger/evento (ex: "ORDER_CONFIRMED", "ORDER_READY")
+  message     String   // Mensagem do template (suporta variáveis como {customerName}, {orderNumber})
+  isActive    Boolean  @default(true)
+  order       Int      @default(0) // Ordem de exibição
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([trigger])
+  @@map("chatbot_templates")
 }

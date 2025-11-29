@@ -160,6 +160,51 @@ export async function POST(request: NextRequest) {
           }
         })
 
+        // IMPRESSÃO AUTOMÁTICA para pedidos do iFood
+        try {
+          const orderForPrint = await prisma.order.findUnique({
+            where: { id: order.id },
+            include: {
+              items: {
+                include: {
+                  combo: true
+                }
+              },
+              address: true,
+              user: true
+            }
+          })
+
+          if (orderForPrint) {
+            // Chamar API de impressão para cozinha
+            await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/print`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                orderId: order.id,
+                printType: 'kitchen'
+              })
+            }).catch(err => {
+              console.error('Erro ao imprimir pedido iFood:', err)
+            })
+
+            // Registrar impressão no log
+            await prisma.cashLog.create({
+              data: {
+                orderId: order.id,
+                type: 'ORDER_PRINTED',
+                amount: 0,
+                description: `Pedido iFood impresso automaticamente - #${order.id.slice(-8)}`
+              }
+            })
+          }
+        } catch (printError) {
+          console.error('Erro na impressão automática do pedido iFood:', printError)
+          // Não bloquear o fluxo se a impressão falhar
+        }
+
         syncedOrders.push({
           id: order.id,
           ifoodOrderId: ifoodOrder.id,

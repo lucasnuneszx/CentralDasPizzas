@@ -182,6 +182,23 @@ async function syncIfoodOrders() {
             description: `Venda iFood - Pedido #${order.id.slice(-8)}`
           }
         })
+
+        // IMPRESSÃO AUTOMÁTICA para pedidos do iFood
+        // Nota: A impressão será feita no cliente usando a porta serial selecionada
+        // Apenas registrar no log que o pedido deve ser impresso
+        try {
+          await prisma.cashLog.create({
+            data: {
+              orderId: order.id,
+              type: 'ORDER_PRINTED',
+              amount: 0,
+              description: `Pedido iFood confirmado - aguardando impressão - #${order.id.slice(-8)}`
+            }
+          })
+        } catch (printError) {
+          console.error('Erro ao registrar impressão do pedido iFood:', printError)
+          // Não bloquear o fluxo se falhar
+        }
       }
     }
   } catch (error) {

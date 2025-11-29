@@ -18,7 +18,9 @@ import {
   Eye,
   RefreshCw,
   Filter,
-  Truck
+  Truck,
+  MessageSquare,
+  Send
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -466,14 +468,65 @@ export default function OrdersManagement() {
                           )}
 
                           {order.status === 'CONFIRMED' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOrderAction(order.id, 'PRINT')}
+                                disabled={isProcessing === order.id}
+                              >
+                                <Printer className="w-4 h-4 mr-1" />
+                                Reimprimir
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleSendMessage(order, 'ORDER_CONFIRMED')}
+                                disabled={isProcessing === order.id || !order.customerPhone}
+                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+                              >
+                                <MessageSquare className="w-4 h-4 mr-1" />
+                                Enviar Msg
+                              </Button>
+                            </>
+                          )}
+
+                          {order.status === 'PREPARING' && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleOrderAction(order.id, 'PRINT')}
-                              disabled={isProcessing === order.id}
+                              onClick={() => handleSendMessage(order, 'ORDER_PREPARING')}
+                              disabled={isProcessing === order.id || !order.customerPhone}
+                              className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300"
                             >
-                              <Printer className="w-4 h-4 mr-1" />
-                              Reimprimir
+                              <Send className="w-4 h-4 mr-1" />
+                              Pedido em Preparação
+                            </Button>
+                          )}
+
+                          {order.status === 'READY' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSendMessage(order, 'ORDER_READY')}
+                              disabled={isProcessing === order.id || !order.customerPhone}
+                              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                            >
+                              <Send className="w-4 h-4 mr-1" />
+                              Pronto para Retirada
+                            </Button>
+                          )}
+
+                          {order.status === 'OUT_FOR_DELIVERY' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSendMessage(order, 'ORDER_OUT_FOR_DELIVERY')}
+                              disabled={isProcessing === order.id || !order.customerPhone}
+                              className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300"
+                            >
+                              <Send className="w-4 h-4 mr-1" />
+                              Saiu para Entrega
                             </Button>
                           )}
 

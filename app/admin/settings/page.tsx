@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ImageUpload } from '@/components/image-upload'
-import { Save, Upload, Eye, EyeOff } from 'lucide-react'
+import { Save, Upload, Eye, EyeOff, Usb } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { requestSerialPort } from '@/lib/printer-client'
 
 interface SystemSettings {
   id?: string
@@ -27,6 +28,7 @@ interface SystemSettings {
   ifoodApiSecret?: string
   printerIp?: string
   printerPort?: string
+  printerName?: string
   autoPrint: boolean
   taxRate: number
   deliveryFee: number
@@ -51,6 +53,7 @@ export default function SettingsPage() {
     ifoodApiSecret: '',
     printerIp: '',
     printerPort: '9100',
+    printerName: '',
     autoPrint: true,
     taxRate: 0,
     deliveryFee: 0,
@@ -78,6 +81,61 @@ export default function SettingsPage() {
       toast.error('Erro ao carregar configurações')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSelectPrinter = async () => {
+    try {
+      if (!('serial' in navigator)) {
+        toast.error('Seu navegador não suporta seleção de impressora USB. Use Chrome ou Edge.')
+        return
+      }
+
+      const port = await requestSerialPort()
+      
+      if (port) {
+        // Abrir porta
+        await port.open({ baudRate: 9600 })
+        
+        // Obter informações da porta
+        const portInfo = port.getInfo()
+        const printerName = portInfo.usbVendorId && portInfo.usbProductId 
+          ? `USB Printer (${portInfo.usbVendorId}:${portInfo.usbProductId})`
+          : 'Impressora USB Selecionada'
+        
+        // Atualizar estado
+        setSettings(prev => ({
+          ...prev,
+          printerName: printerName
+        }))
+
+        // Salvar nas configurações
+        const response = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...settings,
+            printerName: printerName,
+            printerSerialPort: JSON.stringify({
+              vendorId: portInfo.usbVendorId,
+              productId: portInfo.usbProductId
+            })
+          })
+        })
+
+        if (response.ok) {
+          toast.success('Impressora selecionada e salva com sucesso!')
+        }
+      }
+    } catch (error: any) {
+      if (error.name === 'NotFoundError') {
+        toast.error('Nenhuma impressora selecionada')
+      } else if (error.name === 'SecurityError') {
+        toast.error('Permissão negada. Permita o acesso à impressora.')
+      } else {
+        console.error('Erro ao selecionar impressora:', error)
+        toast.error('Erro ao selecionar impressora: ' + (error.message || 'Erro desconhecido'))
+      }
     }
   }
 
@@ -374,6 +432,22 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                  📋 Como obter as credenciais do iFood:
+                </h4>
+                <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-2 list-decimal list-inside">
+                  <li>Acesse o <strong>Painel do Parceiro iFood</strong>: <a href="https://parceiro.ifood.com.br" target="_blank" rel="noopener noreferrer" className="underline">parceiro.ifood.com.br</a></li>
+                  <li>Faça login com suas credenciais de restaurante parceiro</li>
+                  <li>Vá em <strong>Configurações</strong> → <strong>Integrações</strong> → <strong>API</strong></li>
+                  <li>Clique em <strong>"Gerar Credenciais"</strong> ou <strong>"Criar Aplicação"</strong></li>
+                  <li>Copie a <strong>API Key</strong> e o <strong>API Secret</strong> gerados</li>
+                  <li>Cole as credenciais nos campos abaixo e salve</li>
+                </ol>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
+                  💡 <strong>Dica:</strong> Se não encontrar a opção de API, entre em contato com o suporte do iFood para ativar a integração via API.
+                </p>
+              </div>
               <div>
                 <Label htmlFor="ifoodApiKey">API Key</Label>
                 <Input
@@ -446,6 +520,33 @@ export default function SettingsPage() {
                     onChange={(e) => setSettings(prev => ({ ...prev, printerPort: e.target.value }))}
                     placeholder="9100"
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="printerName">Selecionar Impressora USB</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="printerName"
+                      value={settings.printerName || ''}
+                      onChange={(e) => setSettings(prev => ({ ...prev, printerName: e.target.value }))}
+                      placeholder="Clique no botão para selecionar a impressora"
+                      readOnly
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleSelectPrinter}
+                      disabled={!('serial' in navigator)}
+                      variant="outline"
+                    >
+                      <Usb className="h-4 w-4 mr-2" />
+                      Selecionar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {('serial' in navigator) 
+                      ? 'Clique em "Selecionar" para escolher a impressora USB conectada'
+                      : '⚠️ Use Chrome ou Edge para selecionar impressora USB'}
+                  </p>
                 </div>
               </div>
             </CardContent>

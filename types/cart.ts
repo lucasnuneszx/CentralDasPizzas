@@ -34,6 +34,8 @@ export interface CustomizedItem {
   size?: PizzaSize
   selectedSize?: PizzaSize
   flavors?: PizzaFlavor[]
+  flavorsPizza2?: PizzaFlavor[]
+  extraItems?: { [key: string]: { optionId?: string; quantity: number } }
   observations: string
   stuffedCrust: boolean
   totalPrice: number

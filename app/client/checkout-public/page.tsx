@@ -218,10 +218,10 @@ function CheckoutPublicContent() {
     }
 
     if (formData.deliveryType === DeliveryType.DELIVERY) {
-      // Para usuários logados, verificar se selecionou um endereço
+      // Para usuários logados, verificar se selecionou um endereço ou forneceu um novo
       if (session?.user) {
-        if (!formData.selectedAddressId) {
-          toast.error('Selecione um endereço para entrega')
+        if (!formData.selectedAddressId && (!formData.address.street || !formData.address.number || !formData.address.city || !formData.address.state)) {
+          toast.error('Selecione um endereço ou preencha um novo endereço para entrega')
           setIsLoading(false)
           return
         }
@@ -236,13 +236,25 @@ function CheckoutPublicContent() {
     }
 
     // Validar dados do cliente
-    if (!formData.customerName || !formData.customerPhone) {
-      toast.error('Preencha nome e telefone')
+    if (!formData.customerName) {
+      toast.error('Preencha o nome')
       setIsLoading(false)
       return
     }
 
     try {
+      // Se usuário não logado e entrega, salvar endereço
+      let savedAddressId = formData.selectedAddressId
+      if (!session?.user && formData.deliveryType === DeliveryType.DELIVERY && formData.address.street) {
+        try {
+          // Criar endereço temporário para o pedido
+          // Nota: Em produção, você pode querer criar um usuário temporário ou salvar de outra forma
+          // Por enquanto, vamos incluir o endereço no pedido diretamente
+        } catch (error) {
+          console.error('Erro ao processar endereço:', error)
+        }
+      }
+
       const orderData = {
         items: cart.map(item => ({
           comboId: item.combo.id,
@@ -255,12 +267,15 @@ function CheckoutPublicContent() {
         total: getFinalTotal(),
         customer: {
           name: formData.customerName,
-          phone: formData.customerPhone,
+          phone: formData.customerPhone || '',
           email: formData.customerEmail || ''
         },
-        // Para usuários logados, usar addressId; para não logados, usar address
+        // Para usuários logados: se selecionou endereço existente, usar addressId; se forneceu novo endereço, usar address
+        // Para não logados, sempre usar address
         addressId: session?.user && formData.selectedAddressId ? formData.selectedAddressId : null,
-        address: !session?.user && formData.deliveryType === DeliveryType.DELIVERY ? formData.address : null
+        address: formData.deliveryType === DeliveryType.DELIVERY && 
+                 (!session?.user || (!formData.selectedAddressId && formData.address.street)) 
+                 ? formData.address : null
       }
 
       console.log('Dados do pedido sendo enviados:', orderData)
@@ -278,7 +293,8 @@ function CheckoutPublicContent() {
         console.log('Pedido criado com sucesso:', result)
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
-        router.push('/client/menu')
+        // Redirecionar para área de pedidos (admin/orders)
+        router.push('/admin/orders')
       } else {
         const error = await response.json()
         console.error('Erro na resposta:', error)
@@ -314,20 +330,28 @@ function CheckoutPublicContent() {
           // Buscar área de entrega correspondente ao endereço
           const deliveryArea = deliveryAreas.find(area => 
             area.name === selectedAddress.neighborhood && 
-            area.city === selectedAddress.city
+            area.city === selectedAddress.city &&
+            area.isActive
           )
-          return deliveryArea?.deliveryFee || settings?.deliveryFee || 5.00
+          if (deliveryArea && deliveryArea.deliveryFee) {
+            return deliveryArea.deliveryFee
+          }
         }
       }
       
       // Se usuário não logado, usar área selecionada
       if (!session?.user && formData.selectedDeliveryAreaId) {
-        const selectedArea = deliveryAreas.find(area => area.id === formData.selectedDeliveryAreaId)
-        return selectedArea?.deliveryFee || settings?.deliveryFee || 5.00
+        const selectedArea = deliveryAreas.find(area => 
+          area.id === formData.selectedDeliveryAreaId && 
+          area.isActive
+        )
+        if (selectedArea && selectedArea.deliveryFee) {
+          return selectedArea.deliveryFee
+        }
       }
       
-      // Fallback para taxa padrão
-      return settings?.deliveryFee || 5.00
+      // Se não encontrou área, retornar 0 para forçar seleção
+      return 0
     }
     return 0
   }
@@ -396,27 +420,29 @@ function CheckoutPublicContent() {
                        onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                        required
                        disabled={!!session?.user}
+                       readOnly={!!session?.user}
                      />
                    </div>
                    <div>
-                     <Label htmlFor="customerPhone">Telefone *</Label>
+                     <Label htmlFor="customerPhone">Telefone</Label>
                      <Input
                        id="customerPhone"
                        value={formData.customerPhone}
                        onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                       required
                        disabled={!!session?.user}
+                       readOnly={!!session?.user}
                      />
                    </div>
                  </div>
                  <div>
-                   <Label htmlFor="customerEmail">E-mail (opcional)</Label>
+                   <Label htmlFor="customerEmail">E-mail</Label>
                    <Input
                      id="customerEmail"
                      type="email"
                      value={formData.customerEmail}
                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                      disabled={!!session?.user}
+                     readOnly={!!session?.user}
                    />
                  </div>
                </CardContent>
@@ -523,31 +549,159 @@ function CheckoutPublicContent() {
                    {session?.user && addresses.length > 0 ? (
                      // Usuário logado - mostrar endereços salvos
                      <div className="space-y-3">
-                       <Label>Selecione um endereço:</Label>
-                       {addresses.map((address) => (
-                         <label key={address.id} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                           <input
-                             type="radio"
-                             name="selectedAddress"
-                             value={address.id}
-                             checked={formData.selectedAddressId === address.id}
-                             onChange={(e) => setFormData({ ...formData, selectedAddressId: e.target.value })}
-                             className="text-primary"
-                           />
-                           <div className="flex-1">
-                             <div className="font-medium">
-                               {address.street}, {address.number}
-                               {address.complement && ` - ${address.complement}`}
+                       <div className="flex items-center justify-between">
+                         <Label>Selecione um endereço ou adicione um novo:</Label>
+                         <Button
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             setFormData({ ...formData, selectedAddressId: '', address: {
+                               street: '',
+                               number: '',
+                               complement: '',
+                               neighborhood: '',
+                               city: '',
+                               state: '',
+                               zipCode: ''
+                             }})
+                           }}
+                         >
+                           + Novo Endereço
+                         </Button>
+                       </div>
+                       {formData.selectedAddressId ? (
+                         <>
+                           {addresses.map((address) => (
+                             <label key={address.id} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                               <input
+                                 type="radio"
+                                 name="selectedAddress"
+                                 value={address.id}
+                                 checked={formData.selectedAddressId === address.id}
+                                 onChange={(e) => setFormData({ ...formData, selectedAddressId: e.target.value, address: {
+                                   street: '',
+                                   number: '',
+                                   complement: '',
+                                   neighborhood: '',
+                                   city: '',
+                                   state: '',
+                                   zipCode: ''
+                                 }})}
+                                 className="text-primary"
+                               />
+                               <div className="flex-1">
+                                 <div className="font-medium">
+                                   {address.street}, {address.number}
+                                   {address.complement && ` - ${address.complement}`}
+                                 </div>
+                                 <div className="text-sm text-gray-600">
+                                   {address.neighborhood}, {address.city} - {address.state}
+                                 </div>
+                                 <div className="text-sm text-gray-500">
+                                   CEP: {address.zipCode}
+                                 </div>
+                               </div>
+                             </label>
+                           ))}
+                         </>
+                       ) : (
+                         // Formulário para novo endereço
+                         <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                           <Label className="text-lg font-semibold">Novo Endereço</Label>
+                           <div>
+                             <Label htmlFor="street">Rua *</Label>
+                             <Input
+                               id="street"
+                               value={formData.address.street}
+                               onChange={(e) => setFormData({ 
+                                 ...formData, 
+                                 address: { ...formData.address, street: e.target.value }
+                               })}
+                               required
+                             />
+                           </div>
+                           
+                           <div className="grid grid-cols-2 gap-4">
+                             <div>
+                               <Label htmlFor="number">Número *</Label>
+                               <Input
+                                 id="number"
+                                 value={formData.address.number}
+                                 onChange={(e) => setFormData({ 
+                                   ...formData, 
+                                   address: { ...formData.address, number: e.target.value }
+                                 })}
+                                 required
+                               />
                              </div>
-                             <div className="text-sm text-gray-600">
-                               {address.neighborhood}, {address.city} - {address.state}
-                             </div>
-                             <div className="text-sm text-gray-500">
-                               CEP: {address.zipCode}
+                             <div>
+                               <Label htmlFor="complement">Complemento</Label>
+                               <Input
+                                 id="complement"
+                                 value={formData.address.complement}
+                                 onChange={(e) => setFormData({ 
+                                   ...formData, 
+                                   address: { ...formData.address, complement: e.target.value }
+                                 })}
+                               />
                              </div>
                            </div>
-                         </label>
-                       ))}
+                           
+                           <div>
+                             <Label htmlFor="neighborhood">Bairro *</Label>
+                             <Input
+                               id="neighborhood"
+                               value={formData.address.neighborhood}
+                               onChange={(e) => setFormData({ 
+                                 ...formData, 
+                                 address: { ...formData.address, neighborhood: e.target.value }
+                               })}
+                               required
+                             />
+                           </div>
+                           
+                           <div className="grid grid-cols-2 gap-4">
+                             <div>
+                               <Label htmlFor="city">Cidade *</Label>
+                               <Input
+                                 id="city"
+                                 value={formData.address.city}
+                                 onChange={(e) => setFormData({ 
+                                   ...formData, 
+                                   address: { ...formData.address, city: e.target.value }
+                                 })}
+                                 required
+                               />
+                             </div>
+                             <div>
+                               <Label htmlFor="state">Estado *</Label>
+                               <Input
+                                 id="state"
+                                 value={formData.address.state}
+                                 onChange={(e) => setFormData({ 
+                                   ...formData, 
+                                   address: { ...formData.address, state: e.target.value }
+                                 })}
+                                 required
+                               />
+                             </div>
+                           </div>
+                           
+                           <div>
+                             <Label htmlFor="zipCode">CEP *</Label>
+                             <Input
+                               id="zipCode"
+                               value={formData.address.zipCode}
+                               onChange={(e) => setFormData({ 
+                                 ...formData, 
+                                 address: { ...formData.address, zipCode: e.target.value }
+                               })}
+                               required
+                             />
+                           </div>
+                         </div>
+                       )}
                      </div>
                    ) : (
                      // Usuário não logado - campos manuais
@@ -779,6 +933,9 @@ function CheckoutPublicContent() {
             <div className="text-center">
               <p className="text-gray-600 text-sm">
                 &copy; 2024 Central das Pizzas. Todos os direitos reservados.
+              </p>
+              <p className="text-gray-500 text-xs mt-2">
+                Powered By: <span className="font-semibold">Lucas Nunes</span>
               </p>
             </div>
             

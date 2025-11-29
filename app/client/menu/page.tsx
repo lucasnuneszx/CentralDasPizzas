@@ -236,24 +236,15 @@ export default function MenuPage() {
   }
 
   const handleItemCustomize = async (combo: Combo) => {
-    if (combo.isPizza) {
-      // Verificar se a pizza tem tamanhos configurados
-      try {
-        const response = await fetch(`/api/pizza-sizes?comboId=${combo.id}`)
-        if (response.ok) {
-          const sizes = await response.json()
-          if (sizes.length > 0) {
-            // Pizza com tamanhos - usar seletor simples
-            setSelectingSize(combo)
-            return
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao verificar tamanhos:', error)
-      }
+    const pizzaQuantity = (combo as any).pizzaQuantity || 0
+    
+    // Se for pizza ou tiver quantidade de pizzas, sempre usar o customizador completo para mostrar sabores
+    if (combo.isPizza || pizzaQuantity > 0) {
+      setCustomizingItem(combo)
+      return
     }
     
-    // Pizza sem tamanhos ou combo normal - usar personalizador completo
+    // Para combos normais sem pizzas, usar personalizador básico
     setCustomizingItem(combo)
   }
 
@@ -499,7 +490,10 @@ export default function MenuPage() {
                     variant="outline" 
                     size="sm" 
                     className="text-xs md:text-sm"
-                    onClick={() => window.open(`tel:${settings.restaurantPhone?.replace(/\D/g, '')}`, '_self')}
+                    onClick={() => {
+                      const phoneNumber = settings.restaurantPhone?.replace(/\D/g, '')
+                      window.open(`https://wa.me/${phoneNumber}`, '_blank')
+                    }}
                   >
                     <Phone className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                     <span className="hidden md:inline">{settings.restaurantPhone}</span>
@@ -895,6 +889,9 @@ export default function MenuPage() {
             <div className="text-center">
               <p className="text-gray-600 text-sm">
                 &copy; 2024 Central das Pizzas. Todos os direitos reservados.
+              </p>
+              <p className="text-gray-500 text-xs mt-2">
+                Powered By: <span className="font-semibold">Lucas Nunes</span>
               </p>
             </div>
             

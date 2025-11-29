@@ -35,6 +35,7 @@ import {
 import { IfoodIframePopup } from '@/components/ifood-iframe-popup'
 import { NotificationCenter } from '@/components/notification-center'
 import { SiteLogo } from '@/components/site-logo'
+import { ActiveOrders } from '@/components/dashboard/active-orders'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -54,22 +55,23 @@ export default function Dashboard() {
     switch (session?.user.role) {
       case UserRole.ADMIN:
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Package className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <Package className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Gestão de Combos</CardTitle>
-                <CardDescription className="text-blue-100">
+                <CardTitle className="text-white text-base">Gestão de Combos</CardTitle>
+                <CardDescription className="text-blue-100 text-xs">
                   Adicionar, editar e gerenciar combos e produtos
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/combos')}
                 >
                   Acessar
@@ -77,21 +79,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Menu className="h-8 w-8" />
-                  <Filter className="h-5 w-5 opacity-80" />
+                  <Menu className="h-7 w-7" />
+                  <Filter className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Categorias</CardTitle>
-                <CardDescription className="text-indigo-100">
+                <CardTitle className="text-white text-base">Categorias</CardTitle>
+                <CardDescription className="text-indigo-100 text-xs">
                   Gerenciar categorias do cardápio
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/categories')}
                 >
                   Acessar
@@ -99,21 +101,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <ChefHat className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <ChefHat className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Sabores</CardTitle>
-                <CardDescription className="text-orange-100">
+                <CardTitle className="text-white text-base">Sabores</CardTitle>
+                <CardDescription className="text-orange-100 text-xs">
                   Gerenciar sabores de pizza
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/flavors')}
                 >
                   Gerenciar Sabores
@@ -121,21 +123,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-teal-500 to-teal-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-teal-500 to-teal-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Package className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <Package className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Extras</CardTitle>
-                <CardDescription className="text-teal-100">
+                <CardTitle className="text-white text-base">Extras</CardTitle>
+                <CardDescription className="text-teal-100 text-xs">
                   Bebidas e acompanhamentos
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/extras')}
                 >
                   Gerenciar Extras
@@ -143,21 +145,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Users className="h-8 w-8" />
-                  <Shield className="h-5 w-5 opacity-80" />
+                  <Users className="h-7 w-7" />
+                  <Shield className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Gestão de Usuários</CardTitle>
-                <CardDescription className="text-green-100">
+                <CardTitle className="text-white text-base">Gestão de Usuários</CardTitle>
+                <CardDescription className="text-green-100 text-xs">
                   Gerenciar funcionários e permissões
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/users')}
                 >
                   Acessar
@@ -165,21 +167,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <BarChart3 className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <BarChart3 className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Relatórios</CardTitle>
-                <CardDescription className="text-purple-100">
+                <CardTitle className="text-white text-base">Relatórios</CardTitle>
+                <CardDescription className="text-purple-100 text-xs">
                   Relatórios de vendas e financeiros
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/reports')}
                 >
                   Acessar
@@ -187,21 +189,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Settings className="h-8 w-8" />
-                  <Zap className="h-5 w-5 opacity-80" />
+                  <Settings className="h-7 w-7" />
+                  <Zap className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Configurações</CardTitle>
-                <CardDescription className="text-orange-100">
+                <CardTitle className="text-white text-base">Configurações</CardTitle>
+                <CardDescription className="text-orange-100 text-xs">
                   Configurações do sistema e integrações
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/settings')}
                 >
                   Acessar
@@ -209,21 +211,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Truck className="h-8 w-8" />
-                  <Zap className="h-5 w-5 opacity-80" />
+                  <Truck className="h-7 w-7" />
+                  <Zap className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Motoboys</CardTitle>
-                <CardDescription className="text-cyan-100">
+                <CardTitle className="text-white text-base">Motoboys</CardTitle>
+                <CardDescription className="text-cyan-100 text-xs">
                   Gestão de motoboys e status
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/delivery-persons')}
                 >
                   Gerenciar Motoboys
@@ -231,21 +233,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <MapPin className="h-8 w-8" />
-                  <DollarSign className="h-5 w-5 opacity-80" />
+                  <MapPin className="h-7 w-7" />
+                  <DollarSign className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Áreas de Entrega</CardTitle>
-                <CardDescription className="text-amber-100">
+                <CardTitle className="text-white text-base">Áreas de Entrega</CardTitle>
+                <CardDescription className="text-amber-100 text-xs">
                   Configure bairros e taxas de entrega
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/delivery-areas')}
                 >
                   Gerenciar Áreas
@@ -253,21 +255,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <ShoppingCart className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <ShoppingCart className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Pedidos</CardTitle>
-                <CardDescription className="text-emerald-100">
+                <CardTitle className="text-white text-base">Pedidos</CardTitle>
+                <CardDescription className="text-emerald-100 text-xs">
                   Gestão de pedidos e entregas
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/orders')}
                 >
                   Gerenciar Pedidos
@@ -275,21 +277,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-pink-500 to-pink-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-pink-500 to-pink-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Smartphone className="h-8 w-8" />
-                  <TrendingUp className="h-5 w-5 opacity-80" />
+                  <Smartphone className="h-7 w-7" />
+                  <TrendingUp className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Dashboard iFood</CardTitle>
-                <CardDescription className="text-pink-100">
+                <CardTitle className="text-white text-base">Dashboard iFood</CardTitle>
+                <CardDescription className="text-pink-100 text-xs">
                   Gestão de pedidos e integração iFood
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/ifood/dashboard')}
                 >
                   Acessar
@@ -297,21 +299,21 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:scale-105">
-              <CardHeader className="pb-3">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:scale-[1.02]">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Clock className="h-8 w-8" />
-                  <Zap className="h-5 w-5 opacity-80" />
+                  <Clock className="h-7 w-7" />
+                  <Zap className="h-4 w-4 opacity-80" />
                 </div>
-                <CardTitle className="text-white text-lg">Fechamento Automático</CardTitle>
-                <CardDescription className="text-indigo-100">
+                <CardTitle className="text-white text-base">Fechamento Automático</CardTitle>
+                <CardDescription className="text-indigo-100 text-xs">
                   Configure fechamento automático de caixa
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
                   variant="secondary" 
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  className="w-full bg-white/20 hover:bg-white/30 text-white border-0 text-sm py-1.5"
                   onClick={() => router.push('/admin/cash/auto-close')}
                 >
                   Acessar
@@ -319,6 +321,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+          
+          {/* Área de Pedidos em Andamento */}
+          <ActiveOrders />
+          </>
         )
 
       case UserRole.MANAGER:
@@ -598,7 +604,9 @@ export default function Dashboard() {
             <span className="text-sm text-muted-foreground">Sistema Online</span>
           </div>
         </div>
-        {getDashboardContent()}
+        <div>
+          {getDashboardContent()}
+        </div>
         <IfoodIframePopup 
           isOpen={showIfoodPopup}
           onClose={() => setShowIfoodPopup(false)}
@@ -607,13 +615,6 @@ export default function Dashboard() {
           isOpen={showNotifications}
           onClose={() => setShowNotifications(false)}
         />
-        
-        {/* Footer */}
-        <footer className="mt-16 pt-8 border-t border-gray-200">
-          <div className="flex justify-center">
-            <SiteLogo />
-          </div>
-        </footer>
       </DashboardShell>
     </ProtectedRoute>
   )

@@ -597,6 +597,9 @@ export default function Checkout() {
               <p className="text-gray-600 text-sm">
                 &copy; 2024 Central das Pizzas. Todos os direitos reservados.
               </p>
+              <p className="text-gray-500 text-xs mt-2">
+                Powered By: <span className="font-semibold">Lucas Nunes</span>
+              </p>
             </div>
             
             {/* Espaço vazio para balancear o layout */}
