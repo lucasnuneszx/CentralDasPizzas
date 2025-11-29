@@ -27,7 +27,22 @@ export async function PUT(
     }
 
     const orderId = params.id
-    const { deliveryPerson, status } = await request.json()
+    const body = await request.json()
+    const { deliveryPerson, status } = body
+
+    console.log('=== ATUALIZANDO PEDIDO ===')
+    console.log('Order ID:', orderId)
+    console.log('Body recebido:', body)
+    console.log('Status:', status)
+    console.log('Delivery Person:', deliveryPerson)
+
+    // Validar que há algo para atualizar
+    if (status === undefined && deliveryPerson === undefined) {
+      return NextResponse.json(
+        { message: 'Nenhum dado fornecido para atualização' },
+        { status: 400 }
+      )
+    }
 
     // Atualizar o pedido
     const updateData: any = {}
@@ -37,7 +52,7 @@ export async function PUT(
     }
     
     // Atualizar status para qualquer valor, não apenas DELIVERED
-    if (status !== undefined) {
+    if (status !== undefined && status !== null) {
       updateData.status = status
       
       // Adicionar timestamps específicos baseados no status
@@ -52,6 +67,8 @@ export async function PUT(
         updateData.cancelledBy = session.user.id
       }
     }
+
+    console.log('Dados para atualizar:', updateData)
 
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
@@ -97,10 +114,20 @@ export async function PUT(
       message: 'Pedido atualizado com sucesso',
       order: updatedOrder
     })
-  } catch (error) {
-    console.error('Erro ao atualizar pedido:', error)
+  } catch (error: any) {
+    console.error('=== ERRO AO ATUALIZAR PEDIDO ===')
+    console.error('Tipo do erro:', typeof error)
+    console.error('Mensagem:', error?.message)
+    console.error('Stack:', error?.stack)
+    console.error('Código:', error?.code)
+    console.error('Erro completo:', JSON.stringify(error, null, 2))
+    
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+        code: error?.code
+      },
       { status: 500 }
     )
   }

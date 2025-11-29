@@ -87,10 +87,20 @@ export async function POST(
           { status: 400 }
         )
     }
-  } catch (error) {
-    console.error('Erro ao processar ação do pedido:', error)
+  } catch (error: any) {
+    console.error('=== ERRO AO PROCESSAR AÇÃO DO PEDIDO ===')
+    console.error('Tipo do erro:', typeof error)
+    console.error('Mensagem:', error?.message)
+    console.error('Stack:', error?.stack)
+    console.error('Código:', error?.code)
+    console.error('Erro completo:', JSON.stringify(error, null, 2))
+    
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+        code: error?.code
+      },
       { status: 500 }
     )
   }
@@ -98,6 +108,10 @@ export async function POST(
 
 async function acceptOrder(order: any, userId: string) {
   try {
+    console.log('=== ACEITANDO PEDIDO ===')
+    console.log('Order ID:', order.id)
+    console.log('User ID:', userId)
+    
     // Atualizar status do pedido
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
@@ -105,8 +119,18 @@ async function acceptOrder(order: any, userId: string) {
         status: 'CONFIRMED',
         confirmedAt: new Date(),
         confirmedBy: userId
+      },
+      select: {
+        id: true,
+        status: true,
+        total: true,
+        userId: true,
+        createdAt: true,
+        updatedAt: true
       }
     })
+    
+    console.log('Pedido atualizado:', updatedOrder)
 
     // Criar notificação para o cliente
     await prisma.notification.create({
@@ -168,6 +192,10 @@ async function acceptOrder(order: any, userId: string) {
 
 async function rejectOrder(order: any, userId: string) {
   try {
+    console.log('=== REJEITANDO PEDIDO ===')
+    console.log('Order ID:', order.id)
+    console.log('User ID:', userId)
+    
     // Atualizar status do pedido
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
@@ -175,8 +203,18 @@ async function rejectOrder(order: any, userId: string) {
         status: 'CANCELLED',
         cancelledAt: new Date(),
         cancelledBy: userId
+      },
+      select: {
+        id: true,
+        status: true,
+        total: true,
+        userId: true,
+        createdAt: true,
+        updatedAt: true
       }
     })
+    
+    console.log('Pedido atualizado:', updatedOrder)
 
     // Criar notificação para o cliente
     await prisma.notification.create({
