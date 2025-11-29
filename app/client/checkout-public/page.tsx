@@ -99,14 +99,38 @@ function CheckoutPublicContent() {
 
   const [settings, setSettings] = useState<any>(null)
 
-  const loadUserData = useCallback(() => {
+  const loadUserData = useCallback(async () => {
     if (session?.user) {
-      setFormData(prev => ({
-        ...prev,
-        customerName: session.user.name || '',
-        customerEmail: session.user.email || '',
-        customerPhone: (session.user as any).phone || ''
-      }))
+      try {
+        // Buscar dados completos do usuário da API
+        const userResponse = await fetch('/api/user/me')
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          setFormData(prev => ({
+            ...prev,
+            customerName: userData.name || session.user.name || '',
+            customerEmail: userData.email || session.user.email || '',
+            customerPhone: userData.phone || (session.user as any).phone || ''
+          }))
+        } else {
+          // Fallback para dados da sessão
+          setFormData(prev => ({
+            ...prev,
+            customerName: session.user.name || '',
+            customerEmail: session.user.email || '',
+            customerPhone: (session.user as any).phone || ''
+          }))
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error)
+        // Fallback para dados da sessão
+        setFormData(prev => ({
+          ...prev,
+          customerName: session.user.name || '',
+          customerEmail: session.user.email || '',
+          customerPhone: (session.user as any).phone || ''
+        }))
+      }
     }
   }, [session?.user])
 
@@ -256,11 +280,21 @@ function CheckoutPublicContent() {
       }
 
       const orderData = {
-        items: cart.map(item => ({
-          comboId: item.combo.id,
-          quantity: item.quantity,
-          price: item.combo.price
-        })),
+        items: cart.map((item: any) => {
+          const customizedItem = item as any
+          return {
+            comboId: customizedItem.combo.id,
+            quantity: customizedItem.quantity,
+            price: customizedItem.totalPrice || customizedItem.combo.price,
+            // Incluir dados de personalização
+            flavors: customizedItem.flavors ? customizedItem.flavors.map((f: any) => f.id || f) : undefined,
+            flavorsPizza2: customizedItem.flavorsPizza2 ? customizedItem.flavorsPizza2.map((f: any) => f.id || f) : undefined,
+            extraItems: customizedItem.extraItems || undefined,
+            size: customizedItem.size ? customizedItem.size.id : undefined,
+            observations: customizedItem.observations || undefined,
+            stuffedCrust: customizedItem.stuffedCrust || false
+          }
+        }),
         deliveryType: formData.deliveryType,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
@@ -275,7 +309,16 @@ function CheckoutPublicContent() {
         addressId: session?.user && formData.selectedAddressId ? formData.selectedAddressId : null,
         address: formData.deliveryType === DeliveryType.DELIVERY && 
                  (!session?.user || (!formData.selectedAddressId && formData.address.street)) 
-                 ? formData.address : null
+                 ? {
+                     ...formData.address,
+                     // Se não logado e selecionou bairro, usar dados do bairro selecionado
+                     neighborhood: !session?.user && formData.selectedDeliveryAreaId 
+                       ? deliveryAreas.find(a => a.id === formData.selectedDeliveryAreaId)?.name || formData.address.neighborhood
+                       : formData.address.neighborhood,
+                     city: !session?.user && formData.selectedDeliveryAreaId 
+                       ? deliveryAreas.find(a => a.id === formData.selectedDeliveryAreaId)?.city || formData.address.city
+                       : formData.address.city
+                   } : null
       }
 
       console.log('Dados do pedido sendo enviados:', orderData)
@@ -310,9 +353,10 @@ function CheckoutPublicContent() {
 
   const getTotalPrice = () => {
     try {
-      return cart.reduce((total, item) => {
-        const price = item.combo?.price || 0
-        const quantity = item.quantity || 0
+      return cart.reduce((total, item: any) => {
+        const customizedItem = item as any
+        const price = customizedItem.totalPrice || customizedItem.combo?.price || 0
+        const quantity = customizedItem.quantity || 0
         return total + (price * quantity)
       }, 0)
     } catch (error) {
@@ -424,13 +468,14 @@ function CheckoutPublicContent() {
                      />
                    </div>
                    <div>
-                     <Label htmlFor="customerPhone">Telefone</Label>
+                     <Label htmlFor="customerPhone">Telefone (opcional)</Label>
                      <Input
                        id="customerPhone"
                        value={formData.customerPhone}
                        onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                        disabled={!!session?.user}
                        readOnly={!!session?.user}
+                       placeholder="Opcional"
                      />
                    </div>
                  </div>
@@ -443,6 +488,7 @@ function CheckoutPublicContent() {
                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                      disabled={!!session?.user}
                      readOnly={!!session?.user}
+                     required={!session?.user}
                    />
                  </div>
                </CardContent>
@@ -455,17 +501,53 @@ function CheckoutPublicContent() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {cart.map((item) => (
-                    <div key={item.combo.id} className="flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">{item.combo.name}</span>
-                        <span className="text-gray-600 ml-2">x{item.quantity}</span>
+                  {cart.map((item: any) => {
+                    const customizedItem = item as any
+                    const pizzaQuantity = customizedItem.pizzaQuantity || 1
+                    
+                    return (
+                      <div key={customizedItem.id || customizedItem.combo.id} className="border-b pb-3 last:border-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="font-medium">{customizedItem.combo.name}</div>
+                            <div className="text-sm text-gray-600">x{customizedItem.quantity}</div>
+                            
+                            {/* Sabores Pizza 1 */}
+                            {customizedItem.flavors && customizedItem.flavors.length > 0 && (
+                              <div className="text-sm text-gray-700 mt-1">
+                                <span className="font-semibold">Sabores:</span> {customizedItem.flavors.map((f: any) => f.name).join(', ')}
+                              </div>
+                            )}
+                            
+                            {/* Sabores Pizza 2 (se houver) */}
+                            {pizzaQuantity > 1 && customizedItem.flavorsPizza2 && customizedItem.flavorsPizza2.length > 0 && (
+                              <div className="text-sm text-gray-700 mt-1">
+                                <span className="font-semibold">Sabores:</span> {customizedItem.flavorsPizza2.map((f: any) => f.name).join(', ')}
+                              </div>
+                            )}
+                            
+                            {/* Itens Extras */}
+                            {customizedItem.extraItems && Object.keys(customizedItem.extraItems).length > 0 && (
+                              <div className="text-sm text-gray-700 mt-1 space-y-1">
+                                {Object.entries(customizedItem.extraItems).map(([key, value]: [string, any]) => {
+                                  // Buscar nome do item extra (precisa buscar da API ou ter no item)
+                                  const extraItemName = value.name || `Item Extra ${key}`
+                                  return (
+                                    <div key={key}>
+                                      {value.quantity}x {extraItemName}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium ml-4">
+                            R$ {((customizedItem.totalPrice || customizedItem.combo.price) * customizedItem.quantity).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-medium">
-                        R$ {(item.combo.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">
                       <span>Subtotal:</span>
@@ -750,7 +832,11 @@ function CheckoutPublicContent() {
                          <select
                            id="deliveryArea"
                            value={formData.selectedDeliveryAreaId}
-                           onChange={(e) => setFormData({ ...formData, selectedDeliveryAreaId: e.target.value })}
+                           onChange={(e) => {
+                             setFormData({ ...formData, selectedDeliveryAreaId: e.target.value })
+                             // Forçar atualização do componente para recalcular taxa
+                             setRefreshKey(prev => prev + 1)
+                           }}
                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                            required
                          >

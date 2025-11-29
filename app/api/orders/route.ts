@@ -114,10 +114,10 @@ export async function POST(request: NextRequest) {
       console.log('Usuário não logado, criando/buscando usuário público')
       try {
         // Validar dados do cliente para pedidos públicos
-        if (!customer || !customer.name || !customer.phone) {
-          console.error('ERRO: Dados do cliente obrigatórios')
+        if (!customer || !customer.name) {
+          console.error('ERRO: Nome do cliente obrigatório')
           return NextResponse.json(
-            { message: 'Dados do cliente obrigatórios' },
+            { message: 'Nome do cliente obrigatório' },
             { status: 400 }
           )
         }
@@ -211,14 +211,75 @@ export async function POST(request: NextRequest) {
 
     // Criar os itens do pedido
     console.log('Criando itens do pedido...')
-    await prisma.orderItem.createMany({
-      data: items.map((item: any) => ({
-        orderId: order.id,
-        comboId: item.comboId,
-        quantity: parseInt(item.quantity.toString()),
-        price: parseFloat(item.price.toString())
-      }))
-    })
+    for (const item of items) {
+      // Validar se o combo existe
+      const comboExists = await prisma.combo.findUnique({
+        where: { id: item.comboId }
+      })
+      
+      if (!comboExists) {
+        console.error(`ERRO: Combo não encontrado: ${item.comboId}`)
+        throw new Error(`Combo não encontrado: ${item.comboId}`)
+      }
+
+      const orderItem = await prisma.orderItem.create({
+        data: {
+          orderId: order.id,
+          comboId: item.comboId,
+          quantity: parseInt(item.quantity.toString()),
+          price: parseFloat(item.price.toString()),
+          // Salvar dados de personalização
+          selectedFlavors: item.flavors ? JSON.stringify(item.flavors) : null,
+          observations: item.observations || null,
+          pizzaSizeId: item.size || null,
+          extras: item.extraItems || item.stuffedCrust ? JSON.stringify({
+            extraItems: item.extraItems || {},
+            stuffedCrust: item.stuffedCrust || false,
+            flavorsPizza2: item.flavorsPizza2 || []
+          }) : null
+        }
+      })
+
+      // Criar itens extras se existirem
+      if (item.extraItems && typeof item.extraItems === 'object') {
+        for (const [extraItemKey, extraData] of Object.entries(item.extraItems)) {
+          const extra = extraData as any
+          // extraItemKey pode ser "extraItemId" ou "extraItemId-optionId"
+          const [extraItemId, optionId] = extraItemKey.includes('-') 
+            ? extraItemKey.split('-') 
+            : [extraItemKey, extra.optionId || null]
+          
+          try {
+            // Validar se o extraItem existe
+            const extraItemExists = await prisma.extraItem.findUnique({
+              where: { id: extraItemId }
+            })
+            
+            if (!extraItemExists) {
+              console.warn(`ExtraItem não encontrado: ${extraItemId}, pulando...`)
+              continue
+            }
+
+            await prisma.orderItemExtra.create({
+              data: {
+                orderItemId: orderItem.id,
+                extraItemId: extraItemId,
+                quantity: extra.quantity || 1
+              }
+            })
+          } catch (error: any) {
+            console.error('Erro ao criar item extra:', error?.message || error)
+            // Continuar mesmo se falhar
+          }
+        }
+      }
+
+      // Se houver flavorsPizza2, criar um segundo item ou salvar no extras
+      if (item.flavorsPizza2 && Array.isArray(item.flavorsPizza2) && item.flavorsPizza2.length > 0) {
+        // Já está sendo salvo no campo extras acima
+        console.log('Sabores da pizza 2 salvos:', item.flavorsPizza2)
+      }
+    }
     console.log('Itens do pedido criados:', items.length)
 
     // Criar pizzas personalizadas se existirem

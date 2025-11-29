@@ -28,13 +28,22 @@ export default function SignIn() {
       })
 
       if (result?.error) {
-        toast.error('Credenciais inválidas')
-      } else {
+        console.error('Erro no login:', result.error)
+        // Mensagens mais específicas baseadas no erro
+        if (result.error === 'CredentialsSignin') {
+          toast.error('Email ou senha incorretos. Verifique suas credenciais.')
+        } else {
+          toast.error(`Erro: ${result.error}`)
+        }
+      } else if (result?.ok) {
         toast.success('Login realizado com sucesso!')
         router.push('/dashboard')
+      } else {
+        toast.error('Erro desconhecido ao fazer login')
       }
     } catch (error) {
-      toast.error('Erro ao fazer login')
+      console.error('Erro ao fazer login:', error)
+      toast.error('Erro ao conectar com o servidor. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -65,8 +74,9 @@ export default function SignIn() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="seu@email.com"
+                  placeholder="admin@centraldaspizzas.com"
                   className="input-focus"
+                  autoComplete="email"
                 />
               </div>
               
@@ -78,9 +88,14 @@ export default function SignIn() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Sua senha"
+                  placeholder="Digite sua senha"
                   className="input-focus"
+                  autoComplete="current-password"
                 />
+              </div>
+              
+              <div className="text-xs text-gray-500 text-center">
+                <p>Primeira vez? Acesse: <a href="/api/setup/create-users" target="_blank" className="text-blue-500 hover:underline">/api/setup/create-users</a> para criar usuários</p>
               </div>
               
               <Button 

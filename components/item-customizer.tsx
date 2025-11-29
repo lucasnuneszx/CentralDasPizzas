@@ -200,13 +200,13 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const getFlavorTypeColor = (type: string) => {
     switch (type) {
       case 'TRADICIONAL':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-600 text-white font-semibold'
       case 'PREMIUM':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-600 text-white font-semibold'
       case 'ESPECIAL':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-600 text-white font-semibold'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-700 text-white font-semibold'
     }
   }
 
@@ -300,8 +300,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                         onClick={() => handleSizeSelect(size)}
                       >
                         <div className="font-semibold">{size.name}</div>
-                        <div className="text-xs opacity-80">{size.slices} fatias</div>
-                        <div className="text-xs opacity-80">Até {size.maxFlavors} sabores</div>
+                        <div className="text-xs font-medium">{size.slices} fatias</div>
+                        <div className="text-xs font-medium">Até {size.maxFlavors} sabores</div>
                         <div className="font-bold">R$ {size.basePrice.toFixed(2).replace('.', ',')}</div>
                       </Button>
                     ))}
@@ -314,12 +314,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 <Label className="text-base font-medium mb-3 block text-gray-900">
                   {pizzaQuantity > 1 ? 'Sabor Pizza 1' : 'Escolha os Sabores Tradicionais'}
                   {selectedSize && (
-                    <span className="text-sm text-gray-500 ml-2">
+                    <span className="text-sm text-gray-700 font-medium ml-2">
                       ({selectedFlavors.length}/{selectedSize.maxFlavors})
                     </span>
                   )}
                   {!selectedSize && (
-                    <span className="text-sm text-gray-500 ml-2">
+                    <span className="text-sm text-gray-700 font-medium ml-2">
                       ({selectedFlavors.length} selecionado{selectedFlavors.length !== 1 ? 's' : ''})
                     </span>
                   )}
@@ -333,24 +333,24 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                     return (
                       <div
                         key={flavor.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                           isSelected
-                            ? 'border-red-500 bg-red-50'
+                            ? 'border-red-600 bg-red-100 shadow-md'
                             : canSelect
-                            ? 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                            : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                            ? 'border-gray-300 hover:border-red-500 hover:bg-red-50'
+                            : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
                         }`}
                         onClick={() => canSelect && handleFlavorToggle(flavor)}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-medium text-sm">{flavor.name}</span>
-                              <Badge className="text-xs bg-green-100 text-green-800">
+                              <span className="font-semibold text-sm text-gray-900">{flavor.name}</span>
+                              <Badge className="text-xs bg-green-600 text-white font-semibold px-2 py-0.5">
                                 TRADICIONAL
                               </Badge>
                             </div>
-                            <p className="text-xs text-gray-600">{flavor.description}</p>
+                            <p className="text-xs text-gray-700">{flavor.description}</p>
                           </div>
                           {isSelected && (
                             <Button
@@ -397,12 +397,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                       return (
                         <div
                           key={flavor.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                             isSelected
-                              ? 'border-red-500 bg-red-50'
+                              ? 'border-red-600 bg-red-100 shadow-md'
                               : canSelect
-                              ? 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                              : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                              ? 'border-gray-300 hover:border-red-500 hover:bg-red-50'
+                              : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
                           }`}
                           onClick={() => {
                             if (canSelect) {
@@ -416,13 +416,13 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="font-medium text-sm">{flavor.name}</span>
-                                <Badge className="text-xs bg-green-100 text-green-800">
+                                <div className="flex items-center space-x-2 mb-1">
+                                <span className="font-semibold text-sm text-gray-900">{flavor.name}</span>
+                                <Badge className="text-xs bg-green-600 text-white font-semibold px-2 py-0.5">
                                   TRADICIONAL
                                 </Badge>
                               </div>
-                              <p className="text-xs text-gray-600">{flavor.description}</p>
+                              <p className="text-xs text-gray-700">{flavor.description}</p>
                             </div>
                             {isSelected && (
                               <Button
@@ -449,8 +449,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               {(item.isPizza || pizzaQuantity > 0) && (
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-base font-medium">Borda Recheada</Label>
-                    <p className="text-sm text-gray-600">+ R$ 4,99</p>
+                    <Label className="text-base font-semibold text-gray-900">Borda Recheada</Label>
+                    <p className="text-sm font-medium text-gray-800">+ R$ 4,99</p>
                   </div>
                   <Switch
                     checked={stuffedCrust}
@@ -473,9 +473,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                     {extraItem.options && extraItem.options.length > 0 ? (
                       // Se tem opções, mostrar cada opção como checkbox
                       <div className="space-y-2">
-                        <div className="font-medium text-sm text-gray-900">{extraItem.name}</div>
+                        <div className="font-semibold text-sm text-gray-900">{extraItem.name}</div>
                         {extraItem.description && (
-                          <p className="text-xs text-gray-600 mb-2">{extraItem.description}</p>
+                          <p className="text-xs text-gray-700 mb-2">{extraItem.description}</p>
                         )}
                         {extraItem.options
                           .filter((option) => option.isActive)
@@ -492,12 +492,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                                   onChange={() => toggleExtraItem(extraItem, option.id)}
                                   className="w-4 h-4 text-red-500 rounded"
                                 />
-                                <span className="text-sm text-gray-900">{option.name}</span>
+                                <span className="text-sm font-semibold text-gray-900">{option.name}</span>
                                 {option.description && (
-                                  <span className="text-xs text-gray-600">({option.description})</span>
+                                  <span className="text-xs text-gray-700">({option.description})</span>
                                 )}
                                 {option.price > 0 && (
-                                  <span className="text-sm font-medium text-gray-700 ml-auto">
+                                  <span className="text-sm font-bold text-gray-900 ml-auto">
                                     + R$ {option.price.toFixed(2).replace('.', ',')}
                                   </span>
                                 )}
@@ -515,13 +515,13 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                           className="w-4 h-4 text-red-500 rounded"
                         />
                         <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-900">{extraItem.name}</span>
+                          <span className="text-sm font-semibold text-gray-900">{extraItem.name}</span>
                           {extraItem.description && (
-                            <p className="text-xs text-gray-600">{extraItem.description}</p>
+                            <p className="text-xs text-gray-700">{extraItem.description}</p>
                           )}
                         </div>
                         {extraItem.price && extraItem.price > 0 && (
-                          <span className="text-sm font-medium text-gray-700">
+                          <span className="text-sm font-bold text-gray-900">
                             + R$ {extraItem.price.toFixed(2).replace('.', ',')}
                           </span>
                         )}
@@ -535,7 +535,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
           {/* Observações */}
           <div>
-            <Label className="text-base font-medium mb-2 block text-gray-900">
+            <Label className="text-base font-semibold mb-2 block text-gray-900">
               Observações
             </Label>
             <Textarea
@@ -543,7 +543,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
               rows={3}
-              className="border-gray-300 text-gray-900 placeholder-gray-500 focus:border-red-500 focus:ring-red-500"
+              className="border-gray-400 text-gray-900 placeholder-gray-600 focus:border-red-500 focus:ring-red-500 bg-white"
             />
           </div>
         </div>
@@ -555,7 +555,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               <div className="text-2xl font-bold text-red-600">
                 R$ {calculatePrice().toFixed(2).replace('.', ',')}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm font-medium text-gray-800">
                 {quantity}x {item.name}
               </div>
             </div>
