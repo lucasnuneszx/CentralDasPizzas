@@ -122,16 +122,21 @@ export async function PUT(
       }
     })
 
-    // Registrar no log do caixa
+    // Registrar no log do caixa (usar tipo válido)
     if (status === 'DELIVERED') {
-      await prisma.cashLog.create({
-        data: {
-          orderId: orderId,
-          type: 'ORDER_DELIVERED',
-          amount: 0,
-          description: `Pedido entregue - #${orderId.slice(-8)}${deliveryPerson ? ` - Motoboy: ${deliveryPerson}` : ''}`
-        }
-      })
+      try {
+        await prisma.cashLog.create({
+          data: {
+            orderId: orderId,
+            type: 'ORDER', // Usar tipo válido conforme schema
+            amount: 0,
+            description: `Pedido entregue - #${orderId.slice(-8)}${deliveryPerson ? ` - Motoboy: ${deliveryPerson}` : ''}`
+          }
+        })
+      } catch (cashError) {
+        console.error('Erro ao registrar no caixa (não crítico):', cashError)
+        // Não bloquear se falhar
+      }
     }
 
     return NextResponse.json({
