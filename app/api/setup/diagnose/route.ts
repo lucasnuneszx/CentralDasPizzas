@@ -33,17 +33,25 @@ export async function GET(request: NextRequest) {
     }
     
     // Tentar conectar ao banco (sem mostrar erros detalhados)
-    let connectionTest = { success: false, error: '' }
+    let connectionTest = { success: false, error: '', details: {} as any }
     if (canConnect) {
       try {
         const { prisma } = await import('@/lib/prisma')
         await prisma.$connect()
+        // Testar uma query simples
+        await prisma.$queryRaw`SELECT 1`
         await prisma.$disconnect()
-        connectionTest = { success: true, error: '' }
+        connectionTest = { success: true, error: '', details: { message: 'Conexão bem-sucedida' } }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao conectar'
         connectionTest = {
           success: false,
-          error: error instanceof Error ? error.message : 'Erro desconhecido ao conectar'
+          error: errorMessage,
+          details: {
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+            errorCode: error instanceof Error && 'code' in error ? (error as any).code : 'N/A',
+            fullError: errorMessage.substring(0, 500) // Limitar tamanho
+          }
         }
       }
     }
@@ -64,6 +72,12 @@ export async function GET(request: NextRequest) {
         : 'Não configurado',
       databaseUrlLength: databaseUrlTrimmed.length,
       databaseUrlStartsWith: databaseUrlTrimmed.substring(0, 30),
+      databaseUrlFirstChars: databaseUrlTrimmed.substring(0, 20).split('').map(c => ({
+        char: c,
+        code: c.charCodeAt(0),
+        isWhitespace: /\s/.test(c)
+      })),
+      databaseUrlRaw: databaseUrlTrimmed.replace(/:[^:@]+@/, ':****@'),
       connectionTest,
       allDatabaseVars: Object.keys(process.env).filter(k => k.includes('DATABASE')).map(k => ({
         key: k,

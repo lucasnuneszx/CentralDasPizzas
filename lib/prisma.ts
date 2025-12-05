@@ -7,12 +7,22 @@ const globalForPrisma = globalThis as unknown as {
 // Função para validar e obter DATABASE_URL
 function getDatabaseUrl(): string {
   // Tentar múltiplas formas de obter a variável
-  const databaseUrl = process.env.DATABASE_URL?.trim() || ''
+  let databaseUrl = process.env.DATABASE_URL || ''
+  
+  // Limpar a URL: remover espaços, quebras de linha, e caracteres invisíveis
+  databaseUrl = databaseUrl
+    .trim()
+    .replace(/\r\n/g, '')
+    .replace(/\n/g, '')
+    .replace(/\r/g, '')
+    .replace(/\s+/g, '')
   
   // Log para debug (sem mostrar a senha completa)
   if (databaseUrl) {
     const urlPreview = databaseUrl.replace(/:[^:@]+@/, ':****@')
     console.log('📊 DATABASE_URL detectada:', urlPreview.substring(0, 80) + '...')
+    console.log('📊 DATABASE_URL length:', databaseUrl.length)
+    console.log('📊 DATABASE_URL starts with:', databaseUrl.substring(0, 15))
   } else {
     console.error('❌ DATABASE_URL não encontrada em process.env')
     console.error('Variáveis disponíveis:', Object.keys(process.env).filter(k => k.includes('DATABASE')))
@@ -24,14 +34,17 @@ function getDatabaseUrl(): string {
     throw new Error(error)
   }
 
-  // Validar formato
-  if (!databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) {
-    const error = `DATABASE_URL deve começar com postgresql:// ou postgres://. Valor recebido: ${databaseUrl.substring(0, 50)}...`
+  // Validar formato - verificar se começa com o protocolo correto
+  const trimmedStart = databaseUrl.trimStart()
+  if (!trimmedStart.startsWith('postgresql://') && !trimmedStart.startsWith('postgres://')) {
+    const error = `DATABASE_URL deve começar com postgresql:// ou postgres://. Valor recebido (primeiros 50 chars): "${databaseUrl.substring(0, 50)}" | Length: ${databaseUrl.length} | First char code: ${databaseUrl.charCodeAt(0)}`
     console.error('❌', error)
-    throw new Error(error)
+    console.error('❌ DATABASE_URL completa (mascarada):', databaseUrl.replace(/:[^:@]+@/, ':****@'))
+    throw new Error(`DATABASE_URL deve começar com postgresql:// ou postgres://. Valor recebido: ${databaseUrl.substring(0, 50)}...`)
   }
 
-  return databaseUrl
+  // Retornar a URL limpa
+  return trimmedStart
 }
 
 // Obter DATABASE_URL validada
@@ -49,14 +62,21 @@ try {
 }
 
 // Criar Prisma Client com configuração apropriada
+// IMPORTANTE: Sobrescrever a URL do schema.prisma com a URL validada
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   datasources: {
     db: {
-      url: databaseUrl
+      url: databaseUrl // URL já validada e limpa
     }
   }
 })
+
+// Garantir que a URL está correta após criação
+if (databaseUrl && !databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) {
+  console.error('❌ ERRO CRÍTICO: DATABASE_URL inválida após validação:', databaseUrl.substring(0, 50))
+  throw new Error(`DATABASE_URL inválida: deve começar com postgresql:// ou postgres://`)
+}
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
