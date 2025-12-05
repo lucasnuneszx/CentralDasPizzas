@@ -9,13 +9,12 @@ function getDatabaseUrl(): string {
   // Tentar múltiplas formas de obter a variável
   let databaseUrl = process.env.DATABASE_URL || ''
   
-  // Limpar a URL: remover espaços, quebras de linha, e caracteres invisíveis
-  databaseUrl = databaseUrl
-    .trim()
-    .replace(/\r\n/g, '')
-    .replace(/\n/g, '')
-    .replace(/\r/g, '')
-    .replace(/\s+/g, '')
+  // IMPORTANTE: NÃO usar .trim() ou .replace(/\s+/g, '') pois isso pode alterar a senha!
+  // Apenas remover quebras de linha e espaços APENAS no início e fim
+  // Remover quebras de linha do final (comum no Railway)
+  databaseUrl = databaseUrl.replace(/\r\n$/, '').replace(/\n$/, '').replace(/\r$/, '')
+  // Remover espaços APENAS no início e fim (não no meio, onde está a senha)
+  databaseUrl = databaseUrl.trimStart().trimEnd()
   
   // Log para debug (sem mostrar a senha completa)
   if (databaseUrl) {
@@ -35,16 +34,18 @@ function getDatabaseUrl(): string {
   }
 
   // Validar formato - verificar se começa com o protocolo correto
-  const trimmedStart = databaseUrl.trimStart()
-  if (!trimmedStart.startsWith('postgresql://') && !trimmedStart.startsWith('postgres://')) {
+  // NÃO fazer trimStart aqui, apenas verificar se começa corretamente (pode ter espaços no início que serão removidos)
+  const urlToCheck = databaseUrl.trimStart()
+  if (!urlToCheck.startsWith('postgresql://') && !urlToCheck.startsWith('postgres://')) {
     const error = `DATABASE_URL deve começar com postgresql:// ou postgres://. Valor recebido (primeiros 50 chars): "${databaseUrl.substring(0, 50)}" | Length: ${databaseUrl.length} | First char code: ${databaseUrl.charCodeAt(0)}`
     console.error('❌', error)
     console.error('❌ DATABASE_URL completa (mascarada):', databaseUrl.replace(/:[^:@]+@/, ':****@'))
     throw new Error(`DATABASE_URL deve começar com postgresql:// ou postgres://. Valor recebido: ${databaseUrl.substring(0, 50)}...`)
   }
 
-  // Retornar a URL limpa
-  return trimmedStart
+  // Retornar a URL limpa (apenas espaços removidos do início e fim, quebras de linha removidas do final)
+  // IMPORTANTE: NÃO alterar nada no meio da URL (especialmente a senha)
+  return databaseUrl.trimStart().trimEnd()
 }
 
 // Obter DATABASE_URL validada
