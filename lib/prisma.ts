@@ -51,23 +51,30 @@ function getDatabaseUrl(): string {
 let databaseUrl: string
 try {
   databaseUrl = getDatabaseUrl()
+  
+  // CRÍTICO: Sobrescrever process.env.DATABASE_URL ANTES do Prisma ler do schema.prisma
+  // Isso garante que o Prisma use a URL limpa e validada
+  process.env.DATABASE_URL = databaseUrl
+  console.log('✅ DATABASE_URL sobrescrita no process.env com URL validada')
+  
 } catch (error) {
   // Em desenvolvimento, permitir continuar sem DATABASE_URL (usará SQLite)
   if (process.env.NODE_ENV === 'development') {
     console.warn('⚠️ DATABASE_URL não configurada, mas continuando em modo desenvolvimento')
     databaseUrl = 'file:./prisma/dev.db'
+    process.env.DATABASE_URL = databaseUrl
   } else {
     throw error
   }
 }
 
 // Criar Prisma Client com configuração apropriada
-// IMPORTANTE: Sobrescrever a URL do schema.prisma com a URL validada
+// IMPORTANTE: O schema.prisma agora lerá a URL limpa de process.env.DATABASE_URL
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   datasources: {
     db: {
-      url: databaseUrl // URL já validada e limpa
+      url: databaseUrl // URL já validada e limpa (também sobrescrevemos process.env)
     }
   }
 })
