@@ -48,7 +48,8 @@ export default function SignIn() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">Central Das Pizzas</h1>
           <p className="mt-2 text-sm text-gray-600">Sistema PDV</p>
-          <p className="mt-1 text-xs text-gray-400">v5.0 - JWT Auth</p>
+          <p className="mt-1 text-xs text-gray-400">v5.0 - JWT Auth System</p>
+          <p className="mt-0.5 text-xs text-gray-300">Build: {new Date().toISOString().split('T')[0]}</p>
         </div>
         
         <Card>

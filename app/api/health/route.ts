@@ -207,9 +207,10 @@ export async function GET(request: NextRequest) {
       status: 'ok',
       timestamp: new Date().toISOString(),
       serverTimestamp: timestamp,
-      version: '5.0-JWT-AUTH-SYSTEM', // Versão para identificar se o deploy foi aplicado
+      version: '5.1-JWT-AUTH-SYSTEM-NO-CACHE', // Versão para identificar se o deploy foi aplicado
       DEPLOYED: true, // Flag obrigatória para identificar deploy
       authSystem: 'JWT', // Sistema de autenticação JWT
+      buildDate: new Date().toISOString(), // Data do build para verificar atualização
       routes: {
         login: '/api/auth/login',
         me: '/api/auth/me',
