@@ -146,6 +146,15 @@ export async function GET(request: NextRequest) {
     const databaseUrl = process.env.DATABASE_URL?.trim() || ''
     
     // Verificações básicas sem importar Prisma
+    const nextAuthChecks = {
+      hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+      hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+      nextAuthUrl: process.env.NEXTAUTH_URL || 'Não configurado',
+      nextAuthSecretLength: process.env.NEXTAUTH_SECRET?.length || 0,
+      isPublicUrl: process.env.NEXTAUTH_URL?.startsWith('https://') && !process.env.NEXTAUTH_URL?.includes('localhost'),
+      hasCorrectProtocol: process.env.NEXTAUTH_URL?.startsWith('https://') || process.env.NEXTAUTH_URL?.startsWith('http://'),
+    }
+    
     const envCheck = {
       hasDatabaseUrl: !!databaseUrl,
       hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
@@ -158,7 +167,8 @@ export async function GET(request: NextRequest) {
           ? '✅ Válido' 
           : '❌ Formato inválido')
         : '❌ Não configurado',
-      databaseUrlPreview: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'Não configurado'
+      databaseUrlPreview: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'Não configurado',
+      nextAuth: nextAuthChecks
     }
 
     // Se action foi especificado mas não foi reconhecido, mostrar isso
@@ -182,10 +192,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Sempre retornar informações completas mesmo sem action
+    const nextAuthRecommendations = [
+      !nextAuthChecks.hasNextAuthUrl && '❌ NEXTAUTH_URL não configurado - Configure no Railway',
+      !nextAuthChecks.hasNextAuthSecret && '❌ NEXTAUTH_SECRET não configurado - Configure no Railway',
+      !nextAuthChecks.isPublicUrl && '⚠️ NEXTAUTH_URL deve ser URL pública (https://...) e não localhost',
+      nextAuthChecks.hasNextAuthUrl && nextAuthChecks.hasNextAuthSecret && nextAuthChecks.isPublicUrl && '✅ Configuração NextAuth parece correta',
+    ].filter(Boolean)
+    
     return NextResponse.json({ 
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: envCheck,
+      nextAuthDiagnostic: {
+        checks: nextAuthChecks,
+        recommendations: nextAuthRecommendations
+      },
       message: envCheck.hasNextAuthSecret && envCheck.hasNextAuthUrl 
         ? '✅ Variáveis de ambiente configuradas corretamente'
         : '⚠️ Algumas variáveis de ambiente podem estar faltando',
@@ -197,7 +218,7 @@ export async function GET(request: NextRequest) {
       },
       note: action 
         ? `Ação recebida: "${action}" - Se não foi processada, o deploy pode não ter sido aplicado ainda`
-        : 'Adicione ?action=diagnose para diagnóstico completo'
+        : 'Adicione ?action=diagnose para diagnóstico completo ou ?action=test-nextauth para diagnóstico NextAuth'
     }, { status: 200, headers })
   } catch (error) {
     // Mesmo em caso de erro, retornar 200 para não falhar o healthcheck
