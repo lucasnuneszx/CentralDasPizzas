@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { NextResponse } from 'next/server'
+import { getAuthenticatedUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const authUser = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!authUser) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -16,7 +15,7 @@ export async function GET() {
 
     // Buscar dados completos do usuário incluindo telefone
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: authUser.id },
       select: {
         id: true,
         name: true,

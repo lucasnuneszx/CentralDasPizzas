@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -10,42 +9,28 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BrowserCompatibilityCheck } from '@/components/browser-compatibility-check'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Garantir que o signIn usa a URL correta (pública)
-      const baseUrl = window.location.origin
-      console.log('🔐 Tentando login com baseUrl:', baseUrl)
-      
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-        callbackUrl: `${baseUrl}/dashboard`,
-      })
+      const result = await login(email, password)
 
-      if (result?.error) {
-        console.error('Erro no login:', result.error)
-        // Mensagens mais específicas baseadas no erro
-        if (result.error === 'CredentialsSignin') {
-          toast.error('Email ou senha incorretos. Verifique suas credenciais.')
-        } else {
-          toast.error(`Erro: ${result.error}`)
-        }
-      } else if (result?.ok) {
+      if (result.success) {
         toast.success('Login realizado com sucesso!')
         router.push('/dashboard')
+        router.refresh()
       } else {
-        toast.error('Erro desconhecido ao fazer login')
+        toast.error(result.error || 'Email ou senha incorretos')
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error)

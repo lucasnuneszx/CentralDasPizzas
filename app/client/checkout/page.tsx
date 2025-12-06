@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ interface CartItem {
 }
 
 export default function Checkout() {
-  const { data: session } = useSession()
+  const { user } = useAuth()
   const router = useRouter()
   const [addresses, setAddresses] = useState<Address[]>([])
   const [cart, setCart] = useState<CartItem[]>([])

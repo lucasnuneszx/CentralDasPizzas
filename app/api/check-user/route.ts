@@ -1,35 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
-import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session) {
-      return NextResponse.json({
-        authenticated: false,
-        message: 'Usuário não autenticado'
-      })
-    }
-
-    // Buscar dados completos do usuário
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email || '' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true
-      }
-    })
-
     if (!user) {
       return NextResponse.json({
         authenticated: false,
-        message: 'Usuário não encontrado no banco de dados'
+        message: 'Usuário não autenticado'
       })
     }
 
@@ -41,10 +20,6 @@ export async function GET(request: NextRequest) {
         email: user.email,
         role: user.role,
         isActive: user.isActive
-      },
-      session: {
-        user: session.user,
-        expires: session.expires
       }
     })
 

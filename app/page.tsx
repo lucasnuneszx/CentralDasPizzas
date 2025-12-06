@@ -1,29 +1,29 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Pizza, ShoppingCart, Users, ChefHat, Star, Clock, Shield, Zap } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const { user, loading, authenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (loading) return
 
-    if (session) {
+    if (authenticated && user) {
       router.push('/dashboard')
     } else {
       // Redirecionar para o cardápio público se não estiver logado
       router.push('/client/menu')
     }
-  }, [session, status, router])
+  }, [user, loading, authenticated, router])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
         <div className="text-center">

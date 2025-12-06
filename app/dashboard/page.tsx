@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
@@ -40,14 +40,14 @@ import { useState } from 'react'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Dashboard() {
-  const { data: session } = useSession()
+  const { user, logout } = useAuth()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showIfoodPopup, setShowIfoodPopup] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
   const handleSignOut = () => {
-    // Implementar logout
+    logout()
     router.push('/auth/signin')
   }
 
