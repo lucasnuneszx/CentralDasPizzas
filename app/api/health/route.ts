@@ -203,13 +203,18 @@ export async function GET(request: NextRequest) {
       nextAuthChecks.hasNextAuthUrl && nextAuthChecks.hasNextAuthSecret && nextAuthChecks.isPublicUrl && '✅ Configuração NextAuth parece correta',
     ].filter(Boolean)
     
-    return NextResponse.json({ 
+    const response = { 
       status: 'ok',
       timestamp: new Date().toISOString(),
+      serverTimestamp: timestamp,
+      version: '2.0', // Versão para identificar se o deploy foi aplicado
       environment: envCheck,
       nextAuthDiagnostic: {
         checks: nextAuthChecks,
-        recommendations: nextAuthRecommendations
+        recommendations: nextAuthRecommendations,
+        summary: nextAuthChecks.hasNextAuthUrl && nextAuthChecks.hasNextAuthSecret && nextAuthChecks.isPublicUrl 
+          ? '✅ NextAuth configurado corretamente'
+          : '⚠️ NextAuth precisa de configuração'
       },
       message: envCheck.hasNextAuthSecret && envCheck.hasNextAuthUrl 
         ? '✅ Variáveis de ambiente configuradas corretamente'
@@ -222,8 +227,16 @@ export async function GET(request: NextRequest) {
       },
       note: action 
         ? `Ação recebida: "${action}" - Se não foi processada, o deploy pode não ter sido aplicado ainda`
-        : 'Adicione ?action=diagnose para diagnóstico completo ou ?action=test-nextauth para diagnóstico NextAuth'
-    }, { status: 200, headers })
+        : 'Adicione ?action=diagnose para diagnóstico completo ou ?action=test-nextauth para diagnóstico NextAuth',
+      // Informações adicionais para debug
+      debug: {
+        actionReceived: action || null,
+        forceParam: force || null,
+        requestUrl: request.url
+      }
+    }
+    
+    return NextResponse.json(response, { status: 200, headers })
   } catch (error) {
     // Mesmo em caso de erro, retornar 200 para não falhar o healthcheck
     // O Railway vai reiniciar se houver problema real
