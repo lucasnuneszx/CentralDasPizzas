@@ -1,0 +1,6 @@
+# Este arquivo força o Railway a fazer rebuild completo
+# Última atualização: $(date)
+CACHE_BUST_VERSION=5.3.0-$(date +%s)
+FORCE_REBUILD=true
+CLEAR_CACHE=true
+

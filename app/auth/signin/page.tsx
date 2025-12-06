@@ -17,7 +17,7 @@ export const fetchCache = 'force-no-store'
 export const runtime = 'nodejs'
 
 // Versão única para forçar atualização
-const BUILD_VERSION = `v5.1-${Date.now()}`
+const BUILD_VERSION = `v5.3-${Date.now()}-${Math.random().toString(36).substring(7)}`
 
 export default function SignIn() {
   const [email, setEmail] = useState('')

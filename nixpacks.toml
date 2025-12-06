@@ -1,0 +1,19 @@
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "npm-9_x"]
+
+[phases.install]
+cmds = [
+  "npm ci --prefer-offline --no-audit",
+  "npm cache clean --force"
+]
+
+[phases.build]
+cmds = [
+  "rm -rf .next",
+  "rm -rf node_modules/.cache",
+  "npm run railway:build"
+]
+
+[start]
+cmd = "npm start"
+

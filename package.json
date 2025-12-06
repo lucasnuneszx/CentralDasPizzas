@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "rm -rf .next && rm -rf node_modules/.cache && prisma generate && next build",
+    "railway:build": "rm -rf .next && rm -rf node_modules/.cache && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",

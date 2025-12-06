@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Forçar rebuild completo - desabilitar todos os caches
+  generateBuildId: async () => {
+    return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  },
   images: {
     remotePatterns: [
       {
