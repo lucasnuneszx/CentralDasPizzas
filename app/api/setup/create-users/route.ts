@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 /**
@@ -41,6 +40,13 @@ export async function GET(request: NextRequest) {
         currentValue: databaseUrl.substring(0, 100)
       }, { status: 500 })
     }
+
+    // CRÍTICO: Garantir que process.env.DATABASE_URL está correto ANTES de importar Prisma
+    // Isso garante que o Prisma use a URL validada
+    process.env.DATABASE_URL = databaseUrl.trim()
+    
+    // Importar Prisma DEPOIS de garantir que DATABASE_URL está correto
+    const { prisma } = await import('@/lib/prisma')
 
     const hashedPassword = await bcrypt.hash('123456', 12)
 
