@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser, hasRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@/lib/constants'
 import bcrypt from 'bcryptjs'
@@ -10,9 +9,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    if (!user || !(await hasRole('ADMIN'))) {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 
@@ -80,9 +79,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    if (!user || !(await hasRole('ADMIN'))) {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 
@@ -96,7 +95,7 @@ export async function DELETE(
     }
 
     // Não permitir deletar o próprio usuário
-    if (session.user.id === params.id) {
+    if (user.id === params.id) {
       return NextResponse.json({ message: 'Não é possível deletar seu próprio usuário' }, { status: 400 })
     }
 

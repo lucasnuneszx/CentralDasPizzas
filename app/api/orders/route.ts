@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -15,8 +14,8 @@ export async function GET() {
     }
 
     // Para admins e managers, retornar todos os pedidos. Para outros, apenas do usuário
-    const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'MANAGER'
-    const whereClause = isAdmin ? {} : { userId: session.user.id }
+    const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER'
+    const whereClause = isAdmin ? {} : { userId: user.id }
 
     const orders = await prisma.order.findMany({
       where: whereClause,
@@ -103,8 +102,8 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== INÍCIO DO PROCESSAMENTO DE PEDIDO ===')
     
-    const session = await getServerSession(authOptions)
-    console.log('Session encontrada:', !!session)
+    const user = await getAuthenticatedUser()
+    console.log('User encontrado:', !!user)
     
     const body = await request.json()
     console.log('Body recebido:', JSON.stringify(body, null, 2))
@@ -147,7 +146,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let userId = session?.user?.id
+    let userId = user?.id || null
     let orderAddressId = addressId
 
     console.log('User ID da sessão:', userId)

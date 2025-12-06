@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser, hasRole } from '@/lib/auth'
 import { UserRole } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticação
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    const user = await getAuthenticatedUser()
+    if (!user || !(await hasRole('ADMIN'))) {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 
