@@ -2,16 +2,23 @@ import { NextResponse } from 'next/server'
 import { verifyCredentials, setSession } from '@/lib/auth'
 
 export async function POST(request: Request) {
+  console.log('🔐 POST /api/login chamado')
+  
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    console.log('📥 Body recebido:', { email: body.email, hasPassword: !!body.password })
+    
+    const { email, password } = body
     
     if (!email || !password) {
+      console.log('❌ Campos faltando:', { hasEmail: !!email, hasPassword: !!password })
       return NextResponse.json(
         { error: 'Email e senha são obrigatórios' },
         { status: 400 }
       )
     }
     
+    console.log('🔍 Verificando credenciais para:', email)
     const user = await verifyCredentials(email, password)
     
     if (!user) {
@@ -36,6 +43,7 @@ export async function POST(request: Request) {
       )
     }
     
+    console.log('📤 Retornando resposta de sucesso')
     // Retornar resposta com headers que garantem funcionamento cross-device
     return NextResponse.json({
       success: true,
@@ -54,7 +62,7 @@ export async function POST(request: Request) {
       }
     })
   } catch (error) {
-    console.error('Error in login:', error)
+    console.error('❌ Erro inesperado em /api/login:', error)
     return NextResponse.json(
       { error: 'Erro ao processar login' },
       { status: 500 }

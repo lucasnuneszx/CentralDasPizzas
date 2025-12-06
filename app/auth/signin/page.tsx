@@ -20,20 +20,34 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Proteção contra duplo clique
+    if (isLoading) {
+      console.log('⚠️ Login já em andamento, ignorando clique duplo')
+      return
+    }
+    
     setIsLoading(true)
+    console.log('🔐 Iniciando login para:', email)
 
     try {
+      console.log('📡 Chamando /api/login...')
       const result = await login(email, password)
+      console.log('📥 Resposta do login:', result)
 
       if (result.success) {
+        console.log('✅ Login bem-sucedido! Redirecionando...')
         toast.success('Login realizado com sucesso!')
+        // Aguardar um pouco para garantir que cookies foram salvos
+        await new Promise(resolve => setTimeout(resolve, 100))
         router.push('/dashboard')
         router.refresh()
       } else {
+        console.error('❌ Login falhou:', result.error)
         toast.error(result.error || 'Email ou senha incorretos')
       }
     } catch (error) {
-      console.error('Erro ao fazer login:', error)
+      console.error('❌ Erro ao fazer login:', error)
       toast.error('Erro ao conectar com o servidor. Tente novamente.')
     } finally {
       setIsLoading(false)

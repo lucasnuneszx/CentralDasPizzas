@@ -62,6 +62,7 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🌐 Fazendo fetch para /api/login...')
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -71,9 +72,17 @@ export function useAuth() {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('📡 Resposta recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      })
+
       const data = await response.json()
+      console.log('📦 Dados recebidos:', data)
 
       if (data.success && data.user) {
+        console.log('✅ Login bem-sucedido, atualizando estado...')
         setAuthState({
           user: data.user,
           loading: false,
@@ -81,10 +90,11 @@ export function useAuth() {
         })
         return { success: true, user: data.user }
       } else {
+        console.error('❌ Login falhou na resposta:', data)
         return { success: false, error: data.error || 'Erro ao fazer login' }
       }
     } catch (error) {
-      console.error('Error in login:', error)
+      console.error('❌ Erro na requisição de login:', error)
       return { success: false, error: 'Erro ao conectar com o servidor' }
     }
   }
