@@ -172,14 +172,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Se action foi especificado mas não foi reconhecido, mostrar isso
-    if (action && action !== 'diagnose' && action !== 'create-users' && action !== 'create-tables') {
+    if (action && action !== 'diagnose' && action !== 'create-users' && action !== 'create-tables' && action !== 'test-nextauth') {
       return NextResponse.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         warning: `Ação "${action}" não reconhecida`,
-        availableActions: ['diagnose', 'create-users', 'create-tables'],
+        availableActions: ['diagnose', 'create-users', 'create-tables', 'test-nextauth'],
         environment: envCheck,
-        message: 'Use ?action=diagnose, ?action=create-users ou ?action=create-tables'
+        message: 'Use ?action=diagnose, ?action=create-users, ?action=create-tables ou ?action=test-nextauth'
       }, { status: 200, headers })
     }
 
