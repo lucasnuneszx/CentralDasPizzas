@@ -162,9 +162,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    if (!user || !(await hasRole('ADMIN'))) {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -17,7 +16,7 @@ export async function GET() {
     // Buscar notificações não lidas primeiro, depois as lidas
     const notifications = await prisma.notification.findMany({
       where: {
-        userId: session.user.id
+        userId: user.id
       },
       orderBy: [
         { read: 'asc' },
@@ -38,9 +37,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Criar notificação
     const notification = await prisma.notification.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         type,
         source,
         title,

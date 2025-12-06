@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -15,8 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para fechar o caixa
-    const allowedRoles = ['ADMIN', 'MANAGER', 'CASHIER']
-    if (!allowedRoles.includes(session.user.role as any)) {
+    if (!(await hasAnyRole(['ADMIN', 'MANAGER', 'CASHIER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

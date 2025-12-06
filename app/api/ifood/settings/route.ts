@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -15,8 +14,7 @@ export async function GET() {
     }
 
     // Verificar se o usuário tem permissão para acessar configurações
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
+    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }
@@ -26,7 +24,7 @@ export async function GET() {
     // Buscar configurações do iFood
     const settings = await prisma.ifoodSettings.findFirst({
       where: {
-        userId: session.user.id
+        userId: user.id
       }
     })
 
@@ -54,9 +52,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -64,8 +62,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para acessar configurações
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
+    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }
@@ -77,7 +74,7 @@ export async function PUT(request: NextRequest) {
     // Upsert configurações do iFood
     const settings = await prisma.ifoodSettings.upsert({
       where: {
-        userId: session.user.id
+        userId: user.id
       },
       update: {
         apiUrl: settingsData.apiUrl,
@@ -90,7 +87,7 @@ export async function PUT(request: NextRequest) {
         logo: settingsData.logo
       },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         apiUrl: settingsData.apiUrl,
         apiKey: settingsData.apiKey,
         merchantId: settingsData.merchantId,

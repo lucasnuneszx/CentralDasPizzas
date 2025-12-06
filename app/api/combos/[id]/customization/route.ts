@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -53,9 +52,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -63,8 +62,7 @@ export async function POST(
     }
 
     // Verificar se o usuário tem permissão para gerenciar combos
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
+    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

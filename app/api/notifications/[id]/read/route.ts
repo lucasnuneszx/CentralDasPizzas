@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { getAuthenticatedUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function PUT(
@@ -8,9 +7,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await getAuthenticatedUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { message: 'Não autorizado' },
         { status: 401 }
@@ -23,7 +22,7 @@ export async function PUT(
     const notification = await prisma.notification.update({
       where: {
         id: notificationId,
-        userId: session.user.id // Garantir que só o usuário pode marcar suas notificações
+        userId: user.id // Garantir que só o usuário pode marcar suas notificações
       },
       data: {
         read: true
