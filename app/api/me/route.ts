@@ -3,9 +3,21 @@ import { getAuthenticatedUser } from '@/lib/auth'
 
 export async function GET() {
   try {
+    // Debug: verificar cookies recebidos
+    const cookieHeader = await import('next/headers').then(m => m.cookies())
+    const sessionCookie = cookieHeader.get('admin_session')
+    const userIdCookie = cookieHeader.get('user_id')
+    
+    console.log('🔍 /api/me - Cookies recebidos:', {
+      hasSession: !!sessionCookie,
+      hasUserId: !!userIdCookie,
+      userIdValue: userIdCookie?.value,
+    })
+    
     const user = await getAuthenticatedUser()
     
     if (!user) {
+      console.log('❌ /api/me - Usuário não autenticado')
       return NextResponse.json(
         { authenticated: false, message: 'Usuário não autenticado' },
         { 
@@ -18,6 +30,8 @@ export async function GET() {
         }
       )
     }
+    
+    console.log('✅ /api/me - Usuário autenticado:', user.email)
     
     return NextResponse.json({
       authenticated: true,

@@ -45,23 +45,24 @@ export async function verifyCredentials(email: string, password: string) {
  * Configuração otimizada para funcionar em todos os dispositivos
  */
 export function setSession(userId: string) {
-  // Detectar se está em produção (HTTPS)
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.VERCEL_URL || 
-                       process.env.RAILWAY_ENVIRONMENT
-  
+  // Railway sempre usa HTTPS, então sempre usar secure: true
+  // Usar 'lax' que funciona na maioria dos casos e é mais compatível
   const cookieOptions: any = {
     httpOnly: true,
     path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 dias
-    secure: isProduction, // true em produção (HTTPS), false em desenvolvimento
-    // Usar 'lax' como padrão (funciona na maioria dos casos)
-    // 'none' só funciona com secure: true e pode ser bloqueado
-    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    secure: true, // Sempre true em Railway (HTTPS)
+    sameSite: 'lax' as const, // Mais compatível que 'none'
   }
   
-  cookies().set(SESSION_COOKIE, '1', cookieOptions)
-  cookies().set(USER_ID_COOKIE, userId, cookieOptions)
+  try {
+    cookies().set(SESSION_COOKIE, '1', cookieOptions)
+    cookies().set(USER_ID_COOKIE, userId, cookieOptions)
+    console.log('✅ Cookies definidos com sucesso para userId:', userId)
+  } catch (error) {
+    console.error('❌ Erro ao definir cookies:', error)
+    throw error
+  }
 }
 
 /**
@@ -69,22 +70,23 @@ export function setSession(userId: string) {
  * Garante que os cookies sejam removidos corretamente
  */
 export function clearSession() {
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.VERCEL_URL || 
-                       process.env.RAILWAY_ENVIRONMENT
-  
   const cookieOptions: any = {
     httpOnly: true,
     path: '/',
-    secure: isProduction,
-    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    secure: true,
+    sameSite: 'lax' as const,
     maxAge: 0, // Expira imediatamente
   }
   
-  cookies().set(SESSION_COOKIE, '', cookieOptions)
-  cookies().set(USER_ID_COOKIE, '', cookieOptions)
-  cookies().delete(SESSION_COOKIE)
-  cookies().delete(USER_ID_COOKIE)
+  try {
+    cookies().set(SESSION_COOKIE, '', cookieOptions)
+    cookies().set(USER_ID_COOKIE, '', cookieOptions)
+    cookies().delete(SESSION_COOKIE)
+    cookies().delete(USER_ID_COOKIE)
+    console.log('✅ Cookies removidos com sucesso')
+  } catch (error) {
+    console.error('❌ Erro ao remover cookies:', error)
+  }
 }
 
 /**
