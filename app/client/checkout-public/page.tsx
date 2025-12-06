@@ -101,7 +101,7 @@ function CheckoutPublicContent() {
   const [settings, setSettings] = useState<any>(null)
 
   const loadUserData = useCallback(async () => {
-    if (session?.user) {
+    if (user) {
       try {
         // Buscar dados completos do usuário da API
         const userResponse = await fetch('/api/user/me')
@@ -109,41 +109,41 @@ function CheckoutPublicContent() {
           const userData = await userResponse.json()
           setFormData(prev => ({
             ...prev,
-            customerName: userData.name || session.user.name || '',
-            customerEmail: userData.email || session.user.email || '',
-            customerPhone: userData.phone || (session.user as any).phone || ''
+            customerName: userData.name || user.name || '',
+            customerEmail: userData.email || user.email || '',
+            customerPhone: userData.phone || ''
           }))
         } else {
-          // Fallback para dados da sessão
+          // Fallback para dados do usuário
           setFormData(prev => ({
             ...prev,
-            customerName: session.user.name || '',
-            customerEmail: session.user.email || '',
-            customerPhone: (session.user as any).phone || ''
+            customerName: user.name || '',
+            customerEmail: user.email || '',
+            customerPhone: ''
           }))
         }
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error)
-        // Fallback para dados da sessão
+        // Fallback para dados do usuário
         setFormData(prev => ({
           ...prev,
-          customerName: session.user.name || '',
-          customerEmail: session.user.email || '',
-          customerPhone: (session.user as any).phone || ''
+          customerName: user.name || '',
+          customerEmail: user.email || '',
+          customerPhone: ''
         }))
       }
     }
-  }, [session?.user])
+  }, [user])
 
   useEffect(() => {
     loadCartFromStorage()
     loadSettings()
     loadDeliveryAreas()
-    if (session?.user) {
+    if (user) {
       loadUserData()
       loadUserAddresses()
     }
-  }, [session, loadUserData])
+  }, [user, loadUserData])
 
 
   const loadSettings = async () => {
@@ -245,7 +245,7 @@ function CheckoutPublicContent() {
 
     if (formData.deliveryType === DeliveryType.DELIVERY) {
       // Para usuários logados, verificar se selecionou um endereço ou forneceu um novo
-      if (session?.user) {
+      if (user) {
         if (!formData.selectedAddressId && (!formData.address.street || !formData.address.number || !formData.address.city || !formData.address.state)) {
           toast.error('Selecione um endereço ou preencha um novo endereço para entrega')
           setIsLoading(false)
@@ -271,7 +271,7 @@ function CheckoutPublicContent() {
     try {
       // Se usuário não logado e entrega, salvar endereço
       let savedAddressId = formData.selectedAddressId
-      if (!session?.user && formData.deliveryType === DeliveryType.DELIVERY && formData.address.street) {
+      if (!user && formData.deliveryType === DeliveryType.DELIVERY && formData.address.street) {
         try {
           // Criar endereço temporário para o pedido
           // Nota: Em produção, você pode querer criar um usuário temporário ou salvar de outra forma
@@ -336,16 +336,16 @@ function CheckoutPublicContent() {
         },
         // Para usuários logados: se selecionou endereço existente, usar addressId; se forneceu novo endereço, usar address
         // Para não logados, sempre usar address
-        addressId: session?.user && formData.selectedAddressId ? formData.selectedAddressId : null,
+        addressId: user && formData.selectedAddressId ? formData.selectedAddressId : null,
         address: formData.deliveryType === DeliveryType.DELIVERY && 
-                 (!session?.user || (!formData.selectedAddressId && formData.address.street)) 
+                 (!user || (!formData.selectedAddressId && formData.address.street)) 
                  ? {
                      ...formData.address,
                      // Se não logado e selecionou bairro, usar dados do bairro selecionado
-                     neighborhood: !session?.user && formData.selectedDeliveryAreaId 
+                     neighborhood: !user && formData.selectedDeliveryAreaId 
                        ? deliveryAreas.find(a => a.id === formData.selectedDeliveryAreaId)?.name || formData.address.neighborhood
                        : formData.address.neighborhood,
-                     city: !session?.user && formData.selectedDeliveryAreaId 
+                     city: !user && formData.selectedDeliveryAreaId 
                        ? deliveryAreas.find(a => a.id === formData.selectedDeliveryAreaId)?.city || formData.address.city
                        : formData.address.city
                    } : null
@@ -402,7 +402,7 @@ function CheckoutPublicContent() {
     let fee = 0
     if (formData.deliveryType === DeliveryType.DELIVERY) {
       // Se usuário logado, usar taxa do endereço selecionado
-      if (session?.user && formData.selectedAddressId) {
+      if (user && formData.selectedAddressId) {
         const selectedAddress = addresses.find(addr => addr.id === formData.selectedAddressId)
         if (selectedAddress) {
           const deliveryArea = deliveryAreas.find(area => 
@@ -414,7 +414,7 @@ function CheckoutPublicContent() {
             fee = deliveryArea.deliveryFee
           }
         }
-      } else if (!session?.user && formData.selectedDeliveryAreaId) {
+      } else if (!user && formData.selectedDeliveryAreaId) {
         // Se usuário não logado, usar área selecionada
         const selectedArea = deliveryAreas.find(area => 
           area.id === formData.selectedDeliveryAreaId && 
@@ -426,7 +426,7 @@ function CheckoutPublicContent() {
       }
     }
     setDeliveryFee(fee)
-  }, [formData.deliveryType, formData.selectedAddressId, formData.selectedDeliveryAreaId, session?.user, addresses, deliveryAreas])
+  }, [formData.deliveryType, formData.selectedAddressId, formData.selectedDeliveryAreaId, user, addresses, deliveryAreas])
 
   const getDeliveryFee = () => {
     return deliveryFee
@@ -483,7 +483,7 @@ function CheckoutPublicContent() {
                    Dados do Cliente
                  </CardTitle>
                  <CardDescription>
-                   {session?.user ? 'Seus dados estão preenchidos automaticamente' : 'Preencha seus dados para o pedido'}
+                   {user ? 'Seus dados estão preenchidos automaticamente' : 'Preencha seus dados para o pedido'}
                  </CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
@@ -495,8 +495,8 @@ function CheckoutPublicContent() {
                        value={formData.customerName}
                        onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                        required
-                       disabled={!!session?.user}
-                       readOnly={!!session?.user}
+                       disabled={!!user}
+                       readOnly={!!user}
                      />
                    </div>
                    <div>
@@ -505,8 +505,8 @@ function CheckoutPublicContent() {
                        id="customerPhone"
                        value={formData.customerPhone}
                        onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                       disabled={!!session?.user}
-                       readOnly={!!session?.user}
+                       disabled={!!user}
+                       readOnly={!!user}
                        placeholder="Opcional"
                      />
                    </div>
@@ -518,9 +518,9 @@ function CheckoutPublicContent() {
                      type="email"
                      value={formData.customerEmail}
                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                     disabled={!!session?.user}
-                     readOnly={!!session?.user}
-                     required={!session?.user}
+                     disabled={!!user}
+                     readOnly={!!user}
+                     required={!user}
                    />
                  </div>
                </CardContent>
@@ -660,7 +660,7 @@ function CheckoutPublicContent() {
                    </CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
-                   {session?.user && addresses.length > 0 ? (
+                   {user && addresses.length > 0 ? (
                      // Usuário logado - mostrar endereços salvos
                      <div className="space-y-3">
                        <div className="flex items-center justify-between">

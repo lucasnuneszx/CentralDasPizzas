@@ -1,13 +1,13 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@/lib/constants'
 
 export default function DebugPage() {
-  const { data: session, status } = useSession()
+  const { user, loading, authenticated } = useAuth()
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
@@ -41,21 +41,21 @@ export default function DebugPage() {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <strong>Status:</strong> {status}
+                <strong>Status:</strong> {loading ? 'Carregando...' : authenticated ? 'Autenticado' : 'Não autenticado'}
               </div>
               <div>
-                <strong>Autenticado:</strong> {session ? 'Sim' : 'Não'}
+                <strong>Autenticado:</strong> {authenticated ? 'Sim' : 'Não'}
               </div>
-              {session && (
+              {user && (
                 <>
                   <div>
-                    <strong>Email:</strong> {session.user?.email}
+                    <strong>Email:</strong> {user.email}
                   </div>
                   <div>
-                    <strong>Nome:</strong> {session.user?.name}
+                    <strong>Nome:</strong> {user.name}
                   </div>
                   <div>
-                    <strong>Role:</strong> {session.user?.role}
+                    <strong>Role:</strong> {user.role}
                   </div>
                 </>
               )}
