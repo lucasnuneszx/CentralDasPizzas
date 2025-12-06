@@ -42,28 +42,47 @@ export async function verifyCredentials(email: string, password: string) {
 
 /**
  * Define a sessão do usuário após login bem-sucedido
+ * Configuração otimizada para funcionar em todos os dispositivos
  */
 export function setSession(userId: string) {
-  cookies().set(SESSION_COOKIE, '1', {
+  // Detectar se está em produção (HTTPS)
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                       process.env.VERCEL_URL || 
+                       process.env.RAILWAY_ENVIRONMENT
+  
+  const cookieOptions: any = {
     httpOnly: true,
     path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 7 dias
-  })
-  cookies().set(USER_ID_COOKIE, userId, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 7, // 7 dias
-  })
+    secure: isProduction, // true em produção (HTTPS), false em desenvolvimento
+    // Usar 'lax' como padrão (funciona na maioria dos casos)
+    // 'none' só funciona com secure: true e pode ser bloqueado
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+  }
+  
+  cookies().set(SESSION_COOKIE, '1', cookieOptions)
+  cookies().set(USER_ID_COOKIE, userId, cookieOptions)
 }
 
 /**
  * Remove a sessão do usuário (logout)
+ * Garante que os cookies sejam removidos corretamente
  */
 export function clearSession() {
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                       process.env.VERCEL_URL || 
+                       process.env.RAILWAY_ENVIRONMENT
+  
+  const cookieOptions: any = {
+    httpOnly: true,
+    path: '/',
+    secure: isProduction,
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    maxAge: 0, // Expira imediatamente
+  }
+  
+  cookies().set(SESSION_COOKIE, '', cookieOptions)
+  cookies().set(USER_ID_COOKIE, '', cookieOptions)
   cookies().delete(SESSION_COOKIE)
   cookies().delete(USER_ID_COOKIE)
 }

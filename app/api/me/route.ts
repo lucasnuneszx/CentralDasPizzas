@@ -8,7 +8,14 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { authenticated: false, message: 'Usuário não autenticado' },
-        { status: 401 }
+        { 
+          status: 401,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': 'true',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       )
     }
     
@@ -20,6 +27,12 @@ export async function GET() {
         name: user.name,
         role: user.role,
         isActive: user.isActive,
+      }
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       }
     })
   } catch (error) {

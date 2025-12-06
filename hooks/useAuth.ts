@@ -31,7 +31,10 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/me')
+      const response = await fetch('/api/me', {
+        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
+        cache: 'no-store', // Não usar cache
+      })
       const data = await response.json()
 
       if (data.authenticated && data.user) {
@@ -64,6 +67,7 @@ export function useAuth() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
         body: JSON.stringify({ email, password }),
       })
 
@@ -87,7 +91,10 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await fetch('/api/logout', { method: 'POST' })
+      await fetch('/api/logout', { 
+        method: 'POST',
+        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
+      })
       setAuthState({
         user: null,
         loading: false,

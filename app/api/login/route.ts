@@ -21,8 +21,10 @@ export async function POST(request: Request) {
       )
     }
     
+    // Definir sessão ANTES de retornar resposta
     setSession(user.id)
     
+    // Retornar resposta com headers que garantem funcionamento cross-device
     return NextResponse.json({
       success: true,
       user: {
@@ -30,6 +32,12 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: user.role,
+      }
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       }
     })
   } catch (error) {
