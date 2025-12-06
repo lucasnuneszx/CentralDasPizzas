@@ -207,7 +207,8 @@ export async function GET(request: NextRequest) {
       status: 'ok',
       timestamp: new Date().toISOString(),
       serverTimestamp: timestamp,
-      version: '2.0', // Versão para identificar se o deploy foi aplicado
+      version: '3.0-DEPLOYED', // Versão para identificar se o deploy foi aplicado
+      DEPLOYED: true, // Flag obrigatória para identificar deploy
       environment: envCheck,
       nextAuthDiagnostic: {
         checks: nextAuthChecks,
