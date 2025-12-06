@@ -1,0 +1,2 @@
+postgresql://postgres:ugxyXIugblBPQunDiEpEegPNTUlFyGMx@metro.proxy.rlwy.net:22809/railway
+
