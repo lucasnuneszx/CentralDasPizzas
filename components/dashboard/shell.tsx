@@ -6,7 +6,7 @@ import { PropsWithChildren, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Smartphone, LogOut, Sun, Moon, Printer, ChefHat, MessageSquare } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { UserRole } from '@/lib/constants'
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<any>; roles: UserRole[] }
@@ -29,13 +29,13 @@ const allNavItems: NavItem[] = [
 export function DashboardShell({ children }: PropsWithChildren) {
   const pathname = usePathname()
   const router = useRouter()
-  const { data: session } = useSession()
+  const { user } = useAuth()
 
   const visibleItems = useMemo(() => {
-    const role = session?.user?.role as UserRole | undefined
+    const role = user?.role as UserRole | undefined
     if (!role) return []
     return allNavItems.filter(item => item.roles.includes(role))
-  }, [session])
+  }, [user])
 
   return (
     <div className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[260px_1fr]">
