@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Desabilitar completamente cache estático
-  output: 'standalone',
   images: {
     remotePatterns: [
       {
