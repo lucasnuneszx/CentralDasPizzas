@@ -207,8 +207,15 @@ export async function GET(request: NextRequest) {
       status: 'ok',
       timestamp: new Date().toISOString(),
       serverTimestamp: timestamp,
-      version: '3.0-DEPLOYED', // Versão para identificar se o deploy foi aplicado
+      version: '4.0-NEW-AUTH-SYSTEM', // Versão para identificar se o deploy foi aplicado
       DEPLOYED: true, // Flag obrigatória para identificar deploy
+      newAuthSystem: true, // Indica que o novo sistema de autenticação está ativo
+      routes: {
+        login: '/api/login',
+        logout: '/api/logout',
+        me: '/api/me',
+        checkUser: '/api/check-user'
+      },
       environment: envCheck,
       nextAuthDiagnostic: {
         checks: nextAuthChecks,
