@@ -10,8 +10,18 @@ import { NextRequest, NextResponse } from 'next/server'
  * ?action=diagnose - Diagnóstico completo
  */
 export async function GET(request: NextRequest) {
+  // Forçar bypass de cache
+  const headers = {
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
+  
   const { searchParams } = new URL(request.url)
   const action = searchParams.get('action')
+  
+  // Log para debug
+  console.log('🔍 Health endpoint chamado:', { action, url: request.url })
   
   // Se houver ação, executar funcionalidade de setup
   if (action === 'create-users') {
@@ -56,7 +66,7 @@ export async function GET(request: NextRequest) {
           caixa: { email: 'caixa@centraldaspizzas.com', password: '123456' },
           cozinha: { email: 'cozinha@centraldaspizzas.com', password: '123456' }
         }
-      })
+      }, { headers })
     } catch (error: any) {
       return NextResponse.json({
         success: false,
@@ -77,7 +87,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Tabelas criadas com sucesso!'
-      })
+      }, { headers })
     } catch (error: any) {
       return NextResponse.json({
         success: false,
@@ -102,7 +112,7 @@ export async function GET(request: NextRequest) {
           : '❌ Não configurado',
         databaseUrlPreview: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'Não configurado'
       }
-    })
+    }, { headers })
   }
   
   // Comportamento padrão (healthcheck)
@@ -130,8 +140,9 @@ export async function GET(request: NextRequest) {
       environment: envCheck,
       message: envCheck.hasNextAuthSecret && envCheck.hasNextAuthUrl 
         ? '✅ Variáveis de ambiente configuradas corretamente'
-        : '⚠️ Algumas variáveis de ambiente podem estar faltando'
-    }, { status: 200 })
+        : '⚠️ Algumas variáveis de ambiente podem estar faltando',
+      note: action ? `Ação recebida: ${action}` : 'Nenhuma ação especificada. Use ?action=diagnose, ?action=create-users ou ?action=create-tables'
+    }, { status: 200, headers })
   } catch (error) {
     // Mesmo em caso de erro, retornar 200 para não falhar o healthcheck
     // O Railway vai reiniciar se houver problema real
