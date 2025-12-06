@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { getAuthUser } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const authUser = await getAuthenticatedUser()
+    const authUser = await getAuthUser(request)
     
     if (!authUser) {
       return NextResponse.json(

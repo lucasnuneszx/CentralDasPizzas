@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 
 export async function PUT(
@@ -7,7 +7,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function PUT(
     }
 
     // Verificar se o usuário tem permissão para gerenciar motoboys
-    if (!(await hasAnyRole(['ADMIN', 'MANAGER', 'CASHIER']))) {
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER', 'CASHIER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@/lib/constants'
 
@@ -8,9 +8,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
-    if (!user || !(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!user || !(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Acesso negado' },
         { status: 403 }
@@ -45,9 +45,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
-    if (!user || !(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!user || !(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Acesso negado' },
         { status: 403 }

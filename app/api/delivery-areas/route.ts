@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Permitir acesso público para áreas de entrega (necessário para checkout)
     const areas = await prisma.deliveryArea.findMany({
@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })

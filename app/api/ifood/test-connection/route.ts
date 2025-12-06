@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para acessar configurações
-    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

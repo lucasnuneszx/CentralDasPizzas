@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 
 // Simulação da API do iFood (em produção, usar a API real)
 const IFOOD_API_BASE = process.env.IFOOD_API_URL || 'https://api.ifood.com.br'
 const IFOOD_API_KEY = process.env.IFOOD_API_KEY || ''
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function GET() {
     }
 
     // Verificar se o usuário tem permissão para acessar integrações
-    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }
@@ -58,7 +58,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para acessar integrações
-    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

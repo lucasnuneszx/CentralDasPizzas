@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser, hasAnyRole } from '@/lib/auth'
+import { getAuthUser, checkRole, checkAnyRole } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Permitir acesso público para sabores tradicionais (necessário para customização)
     const flavors = await prisma.pizzaFlavor.findMany({
@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser()
+    const user = await getAuthUser(request)
     
     if (!user) {
       return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para gerenciar sabores
-    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }

@@ -207,14 +207,12 @@ export async function GET(request: NextRequest) {
       status: 'ok',
       timestamp: new Date().toISOString(),
       serverTimestamp: timestamp,
-      version: '4.0-NEW-AUTH-SYSTEM', // Versão para identificar se o deploy foi aplicado
+      version: '5.0-JWT-AUTH-SYSTEM', // Versão para identificar se o deploy foi aplicado
       DEPLOYED: true, // Flag obrigatória para identificar deploy
-      newAuthSystem: true, // Indica que o novo sistema de autenticação está ativo
+      authSystem: 'JWT', // Sistema de autenticação JWT
       routes: {
-        login: '/api/login',
-        logout: '/api/logout',
-        me: '/api/me',
-        checkUser: '/api/check-user'
+        login: '/api/auth/login',
+        me: '/api/auth/me',
       },
       environment: envCheck,
       nextAuthDiagnostic: {

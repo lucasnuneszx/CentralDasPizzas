@@ -70,7 +70,12 @@ export function ActiveOrders() {
 
   const fetchActiveOrders = async () => {
     try {
-      const response = await fetch('/api/orders')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const response = await fetch('/api/orders', {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`,
+        } : {},
+      })
       if (!response.ok) {
         console.error('Erro ao buscar pedidos:', response.status, response.statusText)
         setOrders([])
@@ -161,9 +166,13 @@ export function ActiveOrders() {
       // Remover do estado local imediatamente para feedback visual
       setOrders(prevOrders => prevOrders.filter(o => o.id !== order.id))
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
       const response = await fetch(`/api/orders/${order.id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        }
       })
 
       const result = await response.json()
@@ -232,9 +241,13 @@ export function ActiveOrders() {
 
   const handlePrintOrder = async (order: Order) => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
       const response = await fetch(`/api/orders/${order.id}/print`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        }
       })
 
       if (response.ok) {
@@ -262,9 +275,13 @@ export function ActiveOrders() {
         )
       )
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
       const response = await fetch(`/api/orders/${order.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ status: newStatus })
       })
 

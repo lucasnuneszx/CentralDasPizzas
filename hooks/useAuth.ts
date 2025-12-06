@@ -17,6 +17,8 @@ interface AuthState {
   authenticated: boolean
 }
 
+const TOKEN_KEY = 'auth_token'
+
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -31,10 +33,22 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/me', {
-        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
-        cache: 'no-store', // Não usar cache
+      const token = localStorage.getItem(TOKEN_KEY)
+      if (!token) {
+        setAuthState({
+          user: null,
+          loading: false,
+          authenticated: false,
+        })
+        return
+      }
+
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       })
+
       const data = await response.json()
 
       if (data.authenticated && data.user) {
@@ -44,6 +58,7 @@ export function useAuth() {
           authenticated: true,
         })
       } else {
+        localStorage.removeItem(TOKEN_KEY)
         setAuthState({
           user: null,
           loading: false,
@@ -52,6 +67,7 @@ export function useAuth() {
       }
     } catch (error) {
       console.error('Error checking auth:', error)
+      localStorage.removeItem(TOKEN_KEY)
       setAuthState({
         user: null,
         loading: false,
@@ -62,27 +78,18 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('🌐 Fazendo fetch para /api/login...')
-      const response = await fetch('/api/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
         body: JSON.stringify({ email, password }),
       })
 
-      console.log('📡 Resposta recebida:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-      })
-
       const data = await response.json()
-      console.log('📦 Dados recebidos:', data)
 
-      if (data.success && data.user) {
-        console.log('✅ Login bem-sucedido, atualizando estado...')
+      if (data.success && data.token && data.user) {
+        localStorage.setItem(TOKEN_KEY, data.token)
         setAuthState({
           user: data.user,
           loading: false,
@@ -90,30 +97,27 @@ export function useAuth() {
         })
         return { success: true, user: data.user }
       } else {
-        console.error('❌ Login falhou na resposta:', data)
         return { success: false, error: data.error || 'Erro ao fazer login' }
       }
     } catch (error) {
-      console.error('❌ Erro na requisição de login:', error)
+      console.error('Error in login:', error)
       return { success: false, error: 'Erro ao conectar com o servidor' }
     }
   }
 
   const logout = async () => {
-    try {
-      await fetch('/api/logout', { 
-        method: 'POST',
-        credentials: 'include', // CRÍTICO: Incluir cookies na requisição
-      })
-      setAuthState({
-        user: null,
-        loading: false,
-        authenticated: false,
-      })
-      router.push('/auth/signin')
-    } catch (error) {
-      console.error('Error in logout:', error)
-    }
+    localStorage.removeItem(TOKEN_KEY)
+    setAuthState({
+      user: null,
+      loading: false,
+      authenticated: false,
+    })
+    router.push('/auth/signin')
+  }
+
+  const getToken = () => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(TOKEN_KEY)
   }
 
   return {
@@ -121,6 +125,7 @@ export function useAuth() {
     login,
     logout,
     refresh: checkAuth,
+    getToken,
   }
 }
 
