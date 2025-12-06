@@ -1,10 +1,111 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Endpoint de healthcheck - NÃO deve importar Prisma para evitar erros na inicialização
  * Este endpoint deve responder rapidamente sem depender do banco de dados
+ * 
+ * Também aceita ações de setup via query parameter:
+ * ?action=create-users - Cria usuários padrão
+ * ?action=create-tables - Cria tabelas no banco
+ * ?action=diagnose - Diagnóstico completo
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const action = searchParams.get('action')
+  
+  // Se houver ação, executar funcionalidade de setup
+  if (action === 'create-users') {
+    try {
+      const { prisma } = await import('@/lib/prisma')
+      const bcrypt = await import('bcryptjs')
+      
+      const hashedPassword = await bcrypt.default.hash('123456', 12)
+      
+      const users = [
+        { name: 'Administrador', email: 'admin@centraldaspizzas.com', password: hashedPassword, role: 'ADMIN' },
+        { name: 'Gerente', email: 'gerente@centraldaspizzas.com', password: hashedPassword, role: 'MANAGER' },
+        { name: 'Caixa', email: 'caixa@centraldaspizzas.com', password: hashedPassword, role: 'CASHIER' },
+        { name: 'Cozinha', email: 'cozinha@centraldaspizzas.com', password: hashedPassword, role: 'KITCHEN' }
+      ]
+      
+      const created = []
+      const existing = []
+      
+      for (const user of users) {
+        try {
+          const existingUser = await prisma.user.findUnique({ where: { email: user.email } })
+          if (existingUser) {
+            existing.push(user.email)
+          } else {
+            await prisma.user.create({ data: user })
+            created.push(user.email)
+          }
+        } catch (error: any) {
+          console.error(`Erro ao criar usuário ${user.email}:`, error.message)
+        }
+      }
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Usuários processados',
+        created,
+        existing,
+        credentials: {
+          admin: { email: 'admin@centraldaspizzas.com', password: '123456' },
+          gerente: { email: 'gerente@centraldaspizzas.com', password: '123456' },
+          caixa: { email: 'caixa@centraldaspizzas.com', password: '123456' },
+          cozinha: { email: 'cozinha@centraldaspizzas.com', password: '123456' }
+        }
+      })
+    } catch (error: any) {
+      return NextResponse.json({
+        success: false,
+        message: 'Erro ao criar usuários',
+        error: error.message
+      }, { status: 500 })
+    }
+  }
+  
+  if (action === 'create-tables') {
+    try {
+      const { execSync } = await import('child_process')
+      execSync('npx prisma db push --accept-data-loss --skip-generate', {
+        stdio: 'inherit',
+        env: { ...process.env },
+        cwd: process.cwd()
+      })
+      return NextResponse.json({
+        success: true,
+        message: 'Tabelas criadas com sucesso!'
+      })
+    } catch (error: any) {
+      return NextResponse.json({
+        success: false,
+        message: 'Erro ao criar tabelas',
+        error: error.message
+      }, { status: 500 })
+    }
+  }
+  
+  if (action === 'diagnose') {
+    const databaseUrl = process.env.DATABASE_URL?.trim() || ''
+    return NextResponse.json({
+      success: true,
+      environment: {
+        hasDatabaseUrl: !!databaseUrl,
+        hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+        hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+        databaseUrlFormat: databaseUrl 
+          ? (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://') 
+            ? '✅ Válido' 
+            : '❌ Formato inválido')
+          : '❌ Não configurado',
+        databaseUrlPreview: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'Não configurado'
+      }
+    })
+  }
+  
+  // Comportamento padrão (healthcheck)
   try {
     // Verificações básicas sem importar Prisma
     const envCheck = {
