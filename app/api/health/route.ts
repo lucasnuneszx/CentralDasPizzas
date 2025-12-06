@@ -115,25 +115,47 @@ export async function GET(request: NextRequest) {
     }, { headers })
   }
   
-  // Comportamento padrão (healthcheck)
+  // Comportamento padrão (healthcheck) - SEMPRE incluir informações úteis
   try {
+    const databaseUrl = process.env.DATABASE_URL?.trim() || ''
+    
     // Verificações básicas sem importar Prisma
     const envCheck = {
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasDatabaseUrl: !!databaseUrl,
       hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
       hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
       nextAuthUrl: process.env.NEXTAUTH_URL || 'Não configurado',
       nodeEnv: process.env.NODE_ENV,
       isProduction: process.env.NODE_ENV === 'production',
-      databaseUrlFormat: process.env.DATABASE_URL 
-        ? (process.env.DATABASE_URL.startsWith('postgresql://') || process.env.DATABASE_URL.startsWith('postgres://') 
+      databaseUrlFormat: databaseUrl 
+        ? (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://') 
           ? '✅ Válido' 
           : '❌ Formato inválido')
-        : '❌ Não configurado'
+        : '❌ Não configurado',
+      databaseUrlPreview: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'Não configurado'
     }
 
-    // Sempre retornar 200 para o healthcheck passar
-    // Mesmo que algumas variáveis estejam faltando, a aplicação está rodando
+    // Se action foi especificado mas não foi reconhecido, mostrar isso
+    if (action && action !== 'diagnose' && action !== 'create-users' && action !== 'create-tables') {
+      return NextResponse.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        warning: `Ação "${action}" não reconhecida`,
+        availableActions: ['diagnose', 'create-users', 'create-tables'],
+        environment: envCheck,
+        message: 'Use ?action=diagnose, ?action=create-users ou ?action=create-tables'
+      }, { status: 200, headers })
+    }
+
+    // Se action=diagnose foi especificado mas não foi processado acima, processar aqui
+    if (action === 'diagnose') {
+      return NextResponse.json({
+        success: true,
+        environment: envCheck
+      }, { headers })
+    }
+
+    // Sempre retornar informações completas mesmo sem action
     return NextResponse.json({ 
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -141,7 +163,14 @@ export async function GET(request: NextRequest) {
       message: envCheck.hasNextAuthSecret && envCheck.hasNextAuthUrl 
         ? '✅ Variáveis de ambiente configuradas corretamente'
         : '⚠️ Algumas variáveis de ambiente podem estar faltando',
-      note: action ? `Ação recebida: ${action}` : 'Nenhuma ação especificada. Use ?action=diagnose, ?action=create-users ou ?action=create-tables'
+      availableActions: {
+        diagnose: '/api/health?action=diagnose',
+        createUsers: '/api/health?action=create-users',
+        createTables: '/api/health?action=create-tables'
+      },
+      note: action 
+        ? `Ação recebida: "${action}" - Se não foi processada, o deploy pode não ter sido aplicado ainda`
+        : 'Adicione ?action=diagnose para diagnóstico completo'
     }, { status: 200, headers })
   } catch (error) {
     // Mesmo em caso de erro, retornar 200 para não falhar o healthcheck
