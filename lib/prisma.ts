@@ -95,7 +95,9 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
     db: {
       url: finalUrl // URL já validada e limpa (também sobrescrevemos process.env)
     }
-  }
+  },
+  // Configurações adicionais para melhorar conexão em diferentes dispositivos
+  errorFormat: 'minimal',
 })
 
 // Garantir que a URL está correta após criação

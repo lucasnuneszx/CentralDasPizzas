@@ -8,6 +8,7 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
+  trustHost: true, // CRÍTICO: Permite funcionar em qualquer dispositivo/rede
   useSecureCookies: process.env.NEXTAUTH_URL?.startsWith('https://'),
   cookies: {
     sessionToken: {
