@@ -10,18 +10,22 @@ import { NextRequest, NextResponse } from 'next/server'
  * ?action=diagnose - Diagnóstico completo
  */
 export async function GET(request: NextRequest) {
-  // Forçar bypass de cache
+  // Forçar bypass de cache com timestamp único
+  const timestamp = Date.now()
   const headers = {
-    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0, private',
     'Pragma': 'no-cache',
-    'Expires': '0'
+    'Expires': '0',
+    'X-Timestamp': timestamp.toString(),
+    'X-Request-ID': Math.random().toString(36).substring(7)
   }
   
   const { searchParams } = new URL(request.url)
   const action = searchParams.get('action')
+  const force = searchParams.get('force') // Parâmetro para forçar atualização
   
   // Log para debug
-  console.log('🔍 Health endpoint chamado:', { action, url: request.url })
+  console.log('🔍 Health endpoint chamado:', { action, url: request.url, timestamp, force })
   
   // Se houver ação, executar funcionalidade de setup
   if (action === 'create-users') {
