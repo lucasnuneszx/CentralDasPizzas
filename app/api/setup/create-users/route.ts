@@ -153,10 +153,8 @@ export async function GET(request: NextRequest) {
     }
     
     const envCheck = {
-      hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
-      hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+      hasJwtSecret: !!process.env.JWT_SECRET,
       hasDatabaseUrl: !!databaseUrlTrimmed,
-      nextAuthUrl: process.env.NEXTAUTH_URL || 'Não configurado',
       databaseUrlStatus,
       databaseUrlIssue,
       databaseUrlFix,
@@ -200,9 +198,8 @@ export async function GET(request: NextRequest) {
       loginInstructions: {
         message: 'Para fazer login, verifique se todas as variáveis estão configuradas:',
         required: [
-          `NEXTAUTH_SECRET: ${envCheck.hasNextAuthSecret ? '✅ Configurado' : '❌ FALTANDO'}`,
-          `NEXTAUTH_URL: ${envCheck.hasNextAuthUrl ? `✅ ${envCheck.nextAuthUrl}` : '❌ FALTANDO'}`,
-          `DATABASE_URL: ${envCheck.databaseUrlStatus}`
+          `DATABASE_URL: ${envCheck.databaseUrlStatus}`,
+          `JWT_SECRET: ${envCheck.hasJwtSecret ? '✅ Configurado (opcional)' : '⚠️ Não configurado (usando padrão)'}`
         ],
         databaseUrlDetails: {
           status: envCheck.databaseUrlStatus,
