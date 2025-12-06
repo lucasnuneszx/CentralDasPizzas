@@ -1,0 +1,33 @@
+# 🌐 URLs do Sistema - Central Das Pizzas
+
+## URL Base
+https://centraldaspizzassul.up.railway.app
+
+## 🔐 Autenticação
+- Login: https://centraldaspizzassul.up.railway.app/auth/signin
+- Cadastro: https://centraldaspizzassul.up.railway.app/auth/signup
+
+## 📊 Dashboard
+- Dashboard: https://centraldaspizzassul.up.railway.app/dashboard
+- Pedidos: https://centraldaspizzassul.up.railway.app/dashboard/orders
+
+## 🍕 Menu Público
+- Menu: https://centraldaspizzassul.up.railway.app/client/menu
+
+## 🔧 API - Autenticação
+- Login: https://centraldaspizzassul.up.railway.app/api/auth/login
+- Verificar usuário: https://centraldaspizzassul.up.railway.app/api/auth/me
+
+## 🛠️ API - Setup e Diagnóstico
+- Healthcheck: https://centraldaspizzassul.up.railway.app/api/health
+- Diagnóstico: https://centraldaspizzassul.up.railway.app/api/health?action=diagnose
+- Criar usuários: https://centraldaspizzassul.up.railway.app/api/health?action=create-users
+- Criar tabelas: https://centraldaspizzassul.up.railway.app/api/health?action=create-tables
+- Setup completo: https://centraldaspizzassul.up.railway.app/api/setup/create-users
+
+## 👤 Credenciais Padrão
+- Admin: admin@centraldaspizzas.com / 123456
+- Gerente: gerente@centraldaspizzas.com / 123456
+- Caixa: caixa@centraldaspizzas.com / 123456
+- Cozinha: cozinha@centraldaspizzas.com / 123456
+
