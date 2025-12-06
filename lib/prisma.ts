@@ -69,13 +69,31 @@ try {
   }
 }
 
+// Garantir que process.env.DATABASE_URL está correto ANTES de criar Prisma Client
+// O Prisma valida o schema.prisma que usa env("DATABASE_URL"), então precisamos garantir que está correto
+if (process.env.DATABASE_URL !== databaseUrl) {
+  console.log('⚠️ Corrigindo process.env.DATABASE_URL antes de criar Prisma Client')
+  console.log('Antes:', process.env.DATABASE_URL?.substring(0, 30) + '...')
+  process.env.DATABASE_URL = databaseUrl
+  console.log('Depois:', process.env.DATABASE_URL.substring(0, 30) + '...')
+}
+
+// Verificar novamente antes de criar
+const finalUrl = process.env.DATABASE_URL || databaseUrl
+if (!finalUrl.startsWith('postgresql://') && !finalUrl.startsWith('postgres://')) {
+  console.error('❌ ERRO: URL ainda inválida antes de criar Prisma:', finalUrl.substring(0, 50))
+  throw new Error(`DATABASE_URL inválida: ${finalUrl.substring(0, 50)}...`)
+}
+
+console.log('✅ Criando Prisma Client com URL validada:', finalUrl.replace(/:[^:@]+@/, ':****@').substring(0, 60) + '...')
+
 // Criar Prisma Client com configuração apropriada
 // IMPORTANTE: O schema.prisma agora lerá a URL limpa de process.env.DATABASE_URL
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   datasources: {
     db: {
-      url: databaseUrl // URL já validada e limpa (também sobrescrevemos process.env)
+      url: finalUrl // URL já validada e limpa (também sobrescrevemos process.env)
     }
   }
 })
