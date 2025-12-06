@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Desabilitar completamente cache estático
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -20,7 +22,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Desabilitar cache para páginas de autenticação e forçar renderização dinâmica
+  // Desabilitar cache para TODAS as rotas de autenticação
   async headers() {
     return [
       {
@@ -28,7 +30,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, max-age=0, private, proxy-revalidate',
+            value: 'no-store, no-cache, must-revalidate, max-age=0, private, proxy-revalidate, s-maxage=0',
           },
           {
             key: 'Pragma',
@@ -41,6 +43,10 @@ const nextConfig = {
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
+          },
+          {
+            key: 'Vary',
+            value: '*',
           },
         ],
       },

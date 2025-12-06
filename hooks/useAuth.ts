@@ -33,6 +33,16 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
+      // Verificar se localStorage está disponível (compatibilidade com todos os dispositivos)
+      if (typeof window === 'undefined' || !window.localStorage) {
+        setAuthState({
+          user: null,
+          loading: false,
+          authenticated: false,
+        })
+        return
+      }
+
       const token = localStorage.getItem(TOKEN_KEY)
       if (!token) {
         setAuthState({
@@ -44,9 +54,13 @@ export function useAuth() {
       }
 
       const response = await fetch('/api/auth/me', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
+        cache: 'no-store',
       })
 
       const data = await response.json()
@@ -78,11 +92,18 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
+      // Verificar se localStorage está disponível
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return { success: false, error: 'LocalStorage não disponível neste dispositivo' }
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
+        cache: 'no-store',
         body: JSON.stringify({ email, password }),
       })
 
@@ -106,7 +127,9 @@ export function useAuth() {
   }
 
   const logout = async () => {
-    localStorage.removeItem(TOKEN_KEY)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(TOKEN_KEY)
+    }
     setAuthState({
       user: null,
       loading: false,
@@ -116,7 +139,7 @@ export function useAuth() {
   }
 
   const getToken = () => {
-    if (typeof window === 'undefined') return null
+    if (typeof window === 'undefined' || !window.localStorage) return null
     return localStorage.getItem(TOKEN_KEY)
   }
 

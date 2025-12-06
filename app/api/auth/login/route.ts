@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { generateToken } from '@/lib/jwt'
 import bcrypt from 'bcryptjs'
 
+// Forçar renderização dinâmica - sem cache
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
