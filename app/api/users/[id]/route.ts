@@ -54,7 +54,7 @@ export async function PUT(
       updateData.password = await bcrypt.hash(password, 12)
     }
 
-    const user = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: params.id },
       data: updateData,
       select: {
@@ -67,7 +67,7 @@ export async function PUT(
       }
     })
 
-    return NextResponse.json(user)
+    return NextResponse.json(updatedUser)
   } catch (error) {
     console.error('Erro ao atualizar usuário:', error)
     return NextResponse.json({ message: 'Erro interno do servidor' }, { status: 500 })

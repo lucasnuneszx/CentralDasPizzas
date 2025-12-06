@@ -9,10 +9,10 @@ import { UserRole } from '@/lib/constants'
 export default function DebugPage() {
   const { user, loading, authenticated } = useAuth()
   const [userData, setUserData] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(false)
 
   const checkUser = async () => {
-    setLoading(true)
+    setChecking(true)
     try {
       const response = await fetch('/api/check-user')
       const data = await response.json()
@@ -20,7 +20,7 @@ export default function DebugPage() {
     } catch (error) {
       console.error('Erro ao verificar usuário:', error)
     } finally {
-      setLoading(false)
+      setChecking(false)
     }
   }
 
@@ -70,7 +70,7 @@ export default function DebugPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {loading ? (
+              {checking ? (
                 <div>Carregando...</div>
               ) : userData ? (
                 <>

@@ -82,13 +82,13 @@ export async function POST(
 
     switch (action) {
       case 'accept':
-        return await acceptOrder(order, session.user.id)
+        return await acceptOrder(order, user.id)
       
       case 'reject':
-        return await rejectOrder(order, session.user.id)
+        return await rejectOrder(order, user.id)
       
       case 'print':
-        return await printOrder(order, session.user.id)
+        return await printOrder(order, user.id)
       
       default:
         return NextResponse.json(

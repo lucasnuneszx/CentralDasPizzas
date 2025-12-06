@@ -63,13 +63,13 @@ export async function PUT(
       // Adicionar timestamps específicos baseados no status
       if (status === 'CONFIRMED') {
         updateData.confirmedAt = new Date()
-        updateData.confirmedBy = session.user.id
+        updateData.confirmedBy = user.id
       } else if (status === 'DELIVERED') {
         updateData.deliveredAt = new Date()
-        updateData.deliveredBy = session.user.id
+        updateData.deliveredBy = user.id
       } else if (status === 'CANCELLED') {
         updateData.cancelledAt = new Date()
-        updateData.cancelledBy = session.user.id
+        updateData.cancelledBy = user.id
       }
     }
 

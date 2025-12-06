@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    const user = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         email,
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(user, { status: 201 })
+    return NextResponse.json(newUser, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar usuário:', error)
     return NextResponse.json({ message: 'Erro interno do servidor' }, { status: 500 })

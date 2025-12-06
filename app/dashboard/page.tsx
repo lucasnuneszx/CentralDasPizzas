@@ -52,7 +52,7 @@ export default function Dashboard() {
   }
 
   const getDashboardContent = () => {
-    switch (session?.user.role) {
+    switch (user?.role) {
       case UserRole.ADMIN:
         return (
           <>

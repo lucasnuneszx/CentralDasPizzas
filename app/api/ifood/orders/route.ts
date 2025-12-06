@@ -68,8 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o usuário tem permissão para acessar integrações
-    const allowedRoles = ['ADMIN', 'MANAGER']
-    if (!allowedRoles.includes(session.user.role as any)) {
+    if (!(await hasAnyRole(['ADMIN', 'MANAGER']))) {
       return NextResponse.json(
         { message: 'Sem permissão' },
         { status: 403 }
