@@ -118,6 +118,13 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Garantir que redirecionamentos sempre usam a URL pública correta
+      const publicUrl = process.env.NEXTAUTH_URL || baseUrl
+      if (url.startsWith('/')) return `${publicUrl}${url}`
+      if (new URL(url).origin === publicUrl) return url
+      return publicUrl
     }
   },
   pages: {

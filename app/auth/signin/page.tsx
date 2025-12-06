@@ -22,10 +22,15 @@ export default function SignIn() {
     setIsLoading(true)
 
     try {
+      // Garantir que o signIn usa a URL correta (pública)
+      const baseUrl = window.location.origin
+      console.log('🔐 Tentando login com baseUrl:', baseUrl)
+      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl: `${baseUrl}/dashboard`,
       })
 
       if (result?.error) {
