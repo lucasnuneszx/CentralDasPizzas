@@ -1,0 +1,42 @@
+═══════════════════════════════════════════════════════════
+✅ URLs FUNCIONAIS - Usando /api/health com parâmetros
+═══════════════════════════════════════════════════════════
+
+1. Health Check Normal (sem parâmetros)
+   https://centraldaspizzas.up.railway.app/api/health
+
+2. Diagnóstico Completo
+   https://centraldaspizzas.up.railway.app/api/health?action=diagnose
+
+3. Criar Usuários
+   https://centraldaspizzas.up.railway.app/api/health?action=create-users
+
+4. Criar Tabelas
+   https://centraldaspizzas.up.railway.app/api/health?action=create-tables
+
+═══════════════════════════════════════════════════════════
+📋 ORDEM DE USO
+═══════════════════════════════════════════════════════════
+
+1. Primeiro: Teste o diagnóstico
+   → https://centraldaspizzas.up.railway.app/api/health?action=diagnose
+   
+   Isso vai mostrar:
+   - Se DATABASE_URL está configurada
+   - Se NEXTAUTH_SECRET está configurado
+   - Se NEXTAUTH_URL está configurado
+   - Formato da DATABASE_URL
+
+2. Depois: Criar tabelas (se necessário)
+   → https://centraldaspizzas.up.railway.app/api/health?action=create-tables
+
+3. Por último: Criar usuários
+   → https://centraldaspizzas.up.railway.app/api/health?action=create-users
+
+4. Fazer login
+   → https://centraldaspizzas.up.railway.app/auth/signin
+   → Email: admin@centraldaspizzas.com
+   → Senha: 123456
+
+═══════════════════════════════════════════════════════════
+
