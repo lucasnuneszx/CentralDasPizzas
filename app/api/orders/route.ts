@@ -413,7 +413,8 @@ export async function POST(request: NextRequest) {
     // Registrar venda no caixa (não crítico se falhar)
     try {
       console.log('Registrando venda no caixa...')
-      const cashResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/cash/sale`, {
+      // Usar URL relativa para chamadas internas (mais confiável)
+      const cashResponse = await fetch('/api/cash/sale', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

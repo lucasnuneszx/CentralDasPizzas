@@ -34,22 +34,19 @@ async function diagnosticar() {
     console.log('❌ Erro ao verificar/criar usuários:', error.response?.data || error.message);
   }
 
-  // 3. Tentar fazer login
-  console.log('\n3️⃣ Testando login...');
+  // 3. Tentar fazer login (novo sistema)
+  console.log('\n3️⃣ Testando login (novo sistema)...');
   try {
     const loginResponse = await axios.post(
-      `${RAILWAY_URL}/api/auth/callback/credentials`,
+      `${RAILWAY_URL}/api/login`,
       {
         email: 'admin@centraldaspizzas.com',
-        password: '123456',
-        redirect: false,
-        json: true
+        password: '123456'
       },
       {
         headers: {
           'Content-Type': 'application/json',
         },
-        maxRedirects: 0,
         validateStatus: (status) => status < 500
       }
     );
@@ -57,7 +54,7 @@ async function diagnosticar() {
     console.log('📊 Status do login:', loginResponse.status);
     console.log('📋 Resposta:', JSON.stringify(loginResponse.data, null, 2));
     
-    if (loginResponse.status === 200) {
+    if (loginResponse.status === 200 && loginResponse.data.success) {
       console.log('✅ Login funcionou!');
     } else {
       console.log('❌ Login falhou com status:', loginResponse.status);

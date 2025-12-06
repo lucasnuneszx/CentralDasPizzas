@@ -177,8 +177,8 @@ export async function POST(request: NextRequest) {
           })
 
           if (orderForPrint) {
-            // Chamar API de impressão para cozinha
-            await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/print`, {
+            // Chamar API de impressão para cozinha (usar URL relativa)
+            await fetch('/api/print', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

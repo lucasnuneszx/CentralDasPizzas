@@ -173,9 +173,9 @@ export async function POST(request: NextRequest) {
       }))
     })
 
-    // Registrar venda no caixa
+    // Registrar venda no caixa (usar URL relativa)
     try {
-      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/cash/sale`, {
+      await fetch('/api/cash/sale', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
