@@ -34,9 +34,8 @@ async function railwaySetup() {
         if (stderr && !stderr.includes('Warning')) console.error(stderr)
         console.log('✅ Schema aplicado com sucesso')
         
-        // Verificar se as colunas foram criadas
-        console.log('🔍 Verificando colunas criadas...')
-        const testQuery = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'system_settings' AND column_name = 'printerName'`
+        // Verificar se as colunas foram criadas (após criar Prisma Client)
+        // Isso será feito depois, quando o Prisma Client for criado
         if (testQuery && Array.isArray(testQuery) && testQuery.length > 0) {
           console.log('✅ Coluna printerName criada com sucesso')
         } else {
@@ -88,13 +87,21 @@ async function railwaySetup() {
       // Testar conexão
       await prisma.$connect()
       console.log('✅ Conexão com banco estabelecida')
-    } catch (error) {
-      console.error('⚠️ Erro ao conectar ao banco:', error.message)
-      prisma = null
-    }
+      
+      // Verificar se as colunas foram criadas
+      console.log('🔍 Verificando colunas criadas...')
+      try {
+        const testQuery = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'system_settings' AND column_name = 'printerName'`
+        if (testQuery && Array.isArray(testQuery) && testQuery.length > 0) {
+          console.log('✅ Coluna printerName criada com sucesso')
+        } else {
+          console.log('⚠️ Coluna printerName não encontrada - pode precisar de migração manual')
+        }
+      } catch (error) {
+        console.log('⚠️ Não foi possível verificar colunas:', error.message)
+      }
 
-    // Verificar se já existem configurações
-    if (prisma) {
+      // Verificar se já existem configurações
       try {
         const existingSettings = await prisma.systemSettings.findFirst()
         
@@ -153,6 +160,9 @@ async function railwaySetup() {
       } catch (error) {
         console.error('⚠️ Erro ao verificar categorias:', error.message)
       }
+    } catch (error) {
+      console.error('⚠️ Erro ao conectar ao banco:', error.message)
+      prisma = null
     }
 
     console.log('🎉 Setup do Railway concluído!')

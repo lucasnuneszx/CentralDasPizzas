@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { execSync } from 'child_process'
 
 /**
@@ -53,7 +52,8 @@ export async function GET(request: NextRequest) {
 
     // Verificar se as tabelas foram criadas
     try {
-      const prisma = new PrismaClient()
+      // Usar o Prisma Client exportado que já tem a URL validada
+      const { prisma } = await import('@/lib/prisma')
       const result = await prisma.$queryRaw`
         SELECT table_name 
         FROM information_schema.tables 
