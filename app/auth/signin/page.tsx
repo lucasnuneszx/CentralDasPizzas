@@ -10,6 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
 
+// Forçar renderização dinâmica - desabilitar cache
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

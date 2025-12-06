@@ -20,7 +20,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Desabilitar cache para páginas de autenticação
+  // Desabilitar cache para páginas de autenticação e forçar renderização dinâmica
   async headers() {
     return [
       {
@@ -28,7 +28,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, max-age=0, private',
+            value: 'no-store, no-cache, must-revalidate, max-age=0, private, proxy-revalidate',
           },
           {
             key: 'Pragma',
@@ -37,6 +37,10 @@ const nextConfig = {
           {
             key: 'Expires',
             value: '0',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
