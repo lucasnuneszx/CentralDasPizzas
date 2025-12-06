@@ -1,0 +1,82 @@
+URL BASE: https://centraldaspizzas.up.railway.app
+
+═══════════════════════════════════════════════════════════
+🔧 ENDPOINTS DE SETUP E CONFIGURAÇÃO
+═══════════════════════════════════════════════════════════
+
+1. Health Check (Básico)
+   https://centraldaspizzas.up.railway.app/api/health
+
+2. Criar Tabelas
+   https://centraldaspizzas.up.railway.app/api/setup/create-tables
+
+3. Criar Usuários
+   https://centraldaspizzas.up.railway.app/api/setup/create-users
+
+4. Diagnóstico Completo
+   https://centraldaspizzas.up.railway.app/api/setup/diagnose
+
+5. Teste de Conexão
+   https://centraldaspizzas.up.railway.app/api/setup/test-connection
+
+6. Debug da URL (Análise Detalhada)
+   https://centraldaspizzas.up.railway.app/api/setup/debug-env
+
+7. Teste Simples
+   https://centraldaspizzas.up.railway.app/api/setup/test
+
+8. Ping (Novo - Teste)
+   https://centraldaspizzas.up.railway.app/api/setup/ping
+
+═══════════════════════════════════════════════════════════
+📦 ENDPOINTS PARA POPULAR DADOS (Opcional)
+═══════════════════════════════════════════════════════════
+
+9. Popular Cardápio
+   https://centraldaspizzas.up.railway.app/api/setup/populate-menu
+
+10. Popular Pizzas
+    https://centraldaspizzas.up.railway.app/api/setup/populate-pizzas
+
+11. Popular Combos
+    https://centraldaspizzas.up.railway.app/api/setup/populate-combos
+
+12. Popular Áreas de Entrega
+    https://centraldaspizzas.up.railway.app/api/setup/populate-delivery-areas
+
+═══════════════════════════════════════════════════════════
+🔐 AUTENTICAÇÃO
+═══════════════════════════════════════════════════════════
+
+13. Login
+    https://centraldaspizzas.up.railway.app/auth/signin
+
+14. Cadastro
+    https://centraldaspizzas.up.railway.app/auth/signup
+
+═══════════════════════════════════════════════════════════
+📋 ORDEM RECOMENDADA DE USO
+═══════════════════════════════════════════════════════════
+
+1. /api/health - Verificar se está online
+2. /api/setup/ping - Testar se /api/setup funciona (NOVO)
+3. /api/setup/diagnose - Verificar configurações
+4. /api/setup/create-tables - Criar tabelas
+5. /api/setup/create-users - Criar usuários
+6. /auth/signin - Fazer login
+
+═══════════════════════════════════════════════════════════
+🔑 DATABASE_URL CORRETA
+═══════════════════════════════════════════════════════════
+
+postgresql://postgres:ugxyXIugblBPQunDiEpEegPNTUlFyGMx@metro.proxy.rlwy.net:22809/railway
+
+═══════════════════════════════════════════════════════════
+👤 CREDENCIAIS PADRÃO
+═══════════════════════════════════════════════════════════
+
+Admin:    admin@centraldaspizzas.com / 123456
+Gerente:  gerente@centraldaspizzas.com / 123456
+Caixa:    caixa@centraldaspizzas.com / 123456
+Cozinha:  cozinha@centraldaspizzas.com / 123456
+
