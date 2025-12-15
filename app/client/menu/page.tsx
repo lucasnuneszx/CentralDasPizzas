@@ -235,17 +235,30 @@ export default function MenuPage() {
     }
   }
 
-  const handleItemCustomize = async (combo: Combo) => {
+  const handleItemCustomize = async (combo: Combo, category?: Category) => {
     const pizzaQuantity = (combo as any).pizzaQuantity || 0
+    
+    // Garantir que a categoria esteja incluída no combo
+    const comboWithCategory = {
+      ...combo,
+      category: category || (combo as any).category || { id: '', name: '' }
+    }
+    
+    console.log('🎯 Personalizando item:', {
+      comboName: combo.name,
+      categoryName: comboWithCategory.category?.name,
+      isPizza: combo.isPizza,
+      pizzaQuantity
+    })
     
     // Se for pizza ou tiver quantidade de pizzas, sempre usar o customizador completo para mostrar sabores
     if (combo.isPizza || pizzaQuantity > 0) {
-      setCustomizingItem(combo)
+      setCustomizingItem(comboWithCategory as Combo)
       return
     }
     
     // Para combos normais sem pizzas, usar personalizador básico
-    setCustomizingItem(combo)
+    setCustomizingItem(comboWithCategory as Combo)
   }
 
   const handleItemEdit = (item: CustomizedItem) => {
@@ -810,7 +823,7 @@ export default function MenuPage() {
                           R$ {combo.price.toFixed(2).replace('.', ',')}
                         </div>
                         <Button
-                          onClick={() => handleItemCustomize(combo)}
+                          onClick={() => handleItemCustomize(combo, category)}
                           className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 text-sm md:text-base"
                         >
                           <Plus className="h-4 w-4 mr-1" />
