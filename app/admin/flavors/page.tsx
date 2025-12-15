@@ -99,6 +99,34 @@ export default function FlavorsManagement() {
     }
   }
 
+  const handleCreateFlavorsNow = async () => {
+    setIsLoading(true)
+    try {
+      // Rota pública - não precisa de autenticação
+      const response = await fetch('/api/setup/create-flavors-now', {
+        method: 'GET'
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        if (data.existing) {
+          toast.success(`✅ ${data.existing} sabores já existem no banco!`)
+        } else {
+          toast.success(`✅ ${data.created.total} sabores criados! (${data.created.tradicionais} tradicionais, ${data.created.especiais} especiais, ${data.created.premiums} premiums)`)
+        }
+        fetchFlavors()
+      } else {
+        toast.error(data.message || 'Erro ao criar sabores')
+      }
+    } catch (error) {
+      console.error('Erro ao criar sabores:', error)
+      toast.error('Erro ao criar sabores')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleAddFlavor = async () => {
     if (!newFlavor.name.trim()) {
       toast.error('Nome do sabor é obrigatório')
@@ -241,6 +269,14 @@ export default function FlavorsManagement() {
               </div>
               
               <div className="flex gap-2">
+                <Button 
+                  variant="default"
+                  onClick={handleCreateFlavorsNow}
+                  disabled={isLoading}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  ⚡ Criar Sabores AGORA (Imediato)
+                </Button>
                 <Button 
                   variant="destructive"
                   onClick={handleReplaceAllFlavors}
