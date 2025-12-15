@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ Retornando ${flavors.length} sabores (tipo: ${type || 'todos'})`)
     if (flavors.length > 0) {
-      console.log('📋 Tipos encontrados:', [...new Set(flavors.map(f => f.type))])
+      const uniqueTypes = Array.from(new Set(flavors.map(f => f.type)))
+      console.log('📋 Tipos encontrados:', uniqueTypes)
     }
 
     return NextResponse.json(flavors)
