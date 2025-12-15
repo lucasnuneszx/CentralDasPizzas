@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Permitir acesso público (necessário para customização de pizzas)
+    const searchParams = request.nextUrl.searchParams
+    const type = searchParams.get('type') // TRADICIONAL, ESPECIAL, PREMIUM ou null para todos
+    
+    const whereClause: any = { isActive: true }
+    if (type) {
+      whereClause.type = type
+    }
+
     const flavors = await prisma.pizzaFlavor.findMany({
-      where: { 
-        isActive: true,
-        type: 'TRADICIONAL' // Apenas sabores tradicionais para combos
-      },
+      where: whereClause,
       orderBy: [
         { type: 'asc' },
         { name: 'asc' }

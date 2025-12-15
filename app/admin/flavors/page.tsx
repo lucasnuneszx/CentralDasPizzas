@@ -280,15 +280,392 @@ export default function FlavorsManagement() {
               </Card>
             )}
 
-            {/* Lista de Sabores */}
+            {/* Lista de Sabores Separados por Tipo */}
             {isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-gray-500">Carregando sabores...</p>
               </div>
             ) : flavors.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {flavors.map((flavor) => (
+              <div className="space-y-8">
+                {/* Sabores Tradicionais */}
+                {flavors.filter(f => f.type === 'TRADICIONAL').length > 0 && (
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Pizza className="h-6 w-6 text-green-500" />
+                      <h2 className="text-xl font-bold text-gray-900">Sabores Tradicionais</h2>
+                      <Badge className="bg-green-100 text-green-800">
+                        {flavors.filter(f => f.type === 'TRADICIONAL').length} sabor{flavors.filter(f => f.type === 'TRADICIONAL').length !== 1 ? 'es' : ''}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {flavors.filter(f => f.type === 'TRADICIONAL').map((flavor) => (
+                        <Card key={flavor.id} className="overflow-hidden border-l-4 border-l-green-500">
+                          <CardContent className="p-6">
+                            {isEditing === flavor.id ? (
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nome *
+                                  </label>
+                                  <Input
+                                    value={editingFlavor.name || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, name: e.target.value })}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Descrição
+                                  </label>
+                                  <Textarea
+                                    value={editingFlavor.description || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, description: e.target.value })}
+                                    rows={2}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tipo
+                                  </label>
+                                  <select
+                                    value={editingFlavor.type || flavor.type}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, type: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                  >
+                                    <option value="TRADICIONAL">Tradicional</option>
+                                    <option value="ESPECIAL">Especial</option>
+                                    <option value="PREMIUM">Premium</option>
+                                  </select>
+                                </div>
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(null)
+                                      setEditingFlavor({})
+                                    }}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleEditFlavor(flavor.id)}
+                                  >
+                                    <Save className="h-4 w-4 mr-1" />
+                                    Salvar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    {getTypeIcon(flavor.type)}
+                                    <h3 className="font-semibold text-lg">{flavor.name}</h3>
+                                  </div>
+                                  <Badge className={`${getTypeColor(flavor.type)} flex items-center space-x-1`}>
+                                    {getTypeIcon(flavor.type)}
+                                    <span>{getTypeLabel(flavor.type)}</span>
+                                  </Badge>
+                                </div>
+                                
+                                {flavor.description && (
+                                  <p className="text-gray-600 text-sm mb-4">
+                                    {flavor.description}
+                                  </p>
+                                )}
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(flavor.id)
+                                      setEditingFlavor(flavor)
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteFlavor(flavor.id)}
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sabores Especiais */}
+                {flavors.filter(f => f.type === 'ESPECIAL').length > 0 && (
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Crown className="h-6 w-6 text-purple-500" />
+                      <h2 className="text-xl font-bold text-gray-900">Sabores Especiais</h2>
+                      <Badge className="bg-purple-100 text-purple-800">
+                        {flavors.filter(f => f.type === 'ESPECIAL').length} sabor{flavors.filter(f => f.type === 'ESPECIAL').length !== 1 ? 'es' : ''}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {flavors.filter(f => f.type === 'ESPECIAL').map((flavor) => (
+                        <Card key={flavor.id} className="overflow-hidden border-l-4 border-l-purple-500">
+                          <CardContent className="p-6">
+                            {isEditing === flavor.id ? (
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nome *
+                                  </label>
+                                  <Input
+                                    value={editingFlavor.name || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, name: e.target.value })}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Descrição
+                                  </label>
+                                  <Textarea
+                                    value={editingFlavor.description || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, description: e.target.value })}
+                                    rows={2}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tipo
+                                  </label>
+                                  <select
+                                    value={editingFlavor.type || flavor.type}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, type: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                  >
+                                    <option value="TRADICIONAL">Tradicional</option>
+                                    <option value="ESPECIAL">Especial</option>
+                                    <option value="PREMIUM">Premium</option>
+                                  </select>
+                                </div>
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(null)
+                                      setEditingFlavor({})
+                                    }}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleEditFlavor(flavor.id)}
+                                  >
+                                    <Save className="h-4 w-4 mr-1" />
+                                    Salvar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    {getTypeIcon(flavor.type)}
+                                    <h3 className="font-semibold text-lg">{flavor.name}</h3>
+                                  </div>
+                                  <Badge className={`${getTypeColor(flavor.type)} flex items-center space-x-1`}>
+                                    {getTypeIcon(flavor.type)}
+                                    <span>{getTypeLabel(flavor.type)}</span>
+                                  </Badge>
+                                </div>
+                                
+                                {flavor.description && (
+                                  <p className="text-gray-600 text-sm mb-4">
+                                    {flavor.description}
+                                  </p>
+                                )}
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(flavor.id)
+                                      setEditingFlavor(flavor)
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteFlavor(flavor.id)}
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sabores Premiums */}
+                {flavors.filter(f => f.type === 'PREMIUM').length > 0 && (
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Star className="h-6 w-6 text-yellow-500" />
+                      <h2 className="text-xl font-bold text-gray-900">Sabores Premiums</h2>
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        {flavors.filter(f => f.type === 'PREMIUM').length} sabor{flavors.filter(f => f.type === 'PREMIUM').length !== 1 ? 'es' : ''}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {flavors.filter(f => f.type === 'PREMIUM').map((flavor) => (
+                        <Card key={flavor.id} className="overflow-hidden border-l-4 border-l-yellow-500">
+                          <CardContent className="p-6">
+                            {isEditing === flavor.id ? (
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nome *
+                                  </label>
+                                  <Input
+                                    value={editingFlavor.name || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, name: e.target.value })}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Descrição
+                                  </label>
+                                  <Textarea
+                                    value={editingFlavor.description || ''}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, description: e.target.value })}
+                                    rows={2}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tipo
+                                  </label>
+                                  <select
+                                    value={editingFlavor.type || flavor.type}
+                                    onChange={(e) => setEditingFlavor({ ...editingFlavor, type: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                  >
+                                    <option value="TRADICIONAL">Tradicional</option>
+                                    <option value="ESPECIAL">Especial</option>
+                                    <option value="PREMIUM">Premium</option>
+                                  </select>
+                                </div>
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(null)
+                                      setEditingFlavor({})
+                                    }}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleEditFlavor(flavor.id)}
+                                  >
+                                    <Save className="h-4 w-4 mr-1" />
+                                    Salvar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    {getTypeIcon(flavor.type)}
+                                    <h3 className="font-semibold text-lg">{flavor.name}</h3>
+                                  </div>
+                                  <Badge className={`${getTypeColor(flavor.type)} flex items-center space-x-1`}>
+                                    {getTypeIcon(flavor.type)}
+                                    <span>{getTypeLabel(flavor.type)}</span>
+                                  </Badge>
+                                </div>
+                                
+                                {flavor.description && (
+                                  <p className="text-gray-600 text-sm mb-4">
+                                    {flavor.description}
+                                  </p>
+                                )}
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsEditing(flavor.id)
+                                      setEditingFlavor(flavor)
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteFlavor(flavor.id)}
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Pizza className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhum sabor cadastrado</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Adicione sabores para personalizar as pizzas
+                </p>
+              </div>
+            )}
                   <Card key={flavor.id} className="overflow-hidden">
                     <CardContent className="p-6">
                       {isEditing === flavor.id ? (

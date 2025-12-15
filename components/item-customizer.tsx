@@ -79,19 +79,49 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     }
   }
 
+  // Função para detectar o tipo da categoria baseado no nome
+  const getCategoryType = (): string | null => {
+    const categoryName = (item as any).category?.name || ''
+    if (categoryName.includes('Tradicionais')) return 'TRADICIONAL'
+    if (categoryName.includes('Especiais')) return 'ESPECIAL'
+    if (categoryName.includes('Premiums')) return 'PREMIUM'
+    return null
+  }
+
   const fetchPizzaData = async () => {
     try {
+      const categoryType = getCategoryType()
+      const flavorsUrl = categoryType 
+        ? `/api/pizza-flavors?type=${categoryType}`
+        : '/api/pizza-flavors'
+      
       const [flavorsRes, sizesRes, customizationRes] = await Promise.all([
-        fetch('/api/pizza-flavors'),
+        fetch(flavorsUrl),
         fetch(`/api/pizza-sizes?comboId=${item.id}`),
         fetch(`/api/combos/${item.id}/customization`)
       ])
 
       if (flavorsRes.ok) {
         const flavorsData = await flavorsRes.json()
-        // Filtrar apenas sabores TRADICIONAIS para combos
-        const traditionalFlavors = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
-        setFlavors(traditionalFlavors)
+        // Se não houver tipo específico, filtrar por tipo da categoria
+        if (!categoryType) {
+          // Tentar detectar pelo nome do item
+          const itemName = item.name.toLowerCase()
+          if (itemName.includes('tradicional')) {
+            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
+            setFlavors(filtered)
+          } else if (itemName.includes('especial')) {
+            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'ESPECIAL')
+            setFlavors(filtered)
+          } else if (itemName.includes('premium')) {
+            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'PREMIUM')
+            setFlavors(filtered)
+          } else {
+            setFlavors(flavorsData)
+          }
+        } else {
+          setFlavors(flavorsData)
+        }
       }
       
       if (sizesRes.ok) {
@@ -346,7 +376,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
               {/* Seleção de Sabores - Pizza 1 ou Combo */}
               <div>
                 <Label className="text-base font-medium mb-3 block text-gray-900">
-                  {pizzaQuantity > 1 ? 'Sabor Pizza 1' : 'Escolha os Sabores Tradicionais'}
+                  {pizzaQuantity > 1 ? 'Sabor Pizza 1' : `Escolha os Sabores ${getCategoryType() === 'TRADICIONAL' ? 'Tradicionais' : getCategoryType() === 'ESPECIAL' ? 'Especiais' : getCategoryType() === 'PREMIUM' ? 'Premiums' : ''}`}
                   {selectedSize && (
                     <span className="text-sm text-gray-700 font-medium ml-2">
                       ({selectedFlavors.length}/{selectedSize.maxFlavors})
@@ -363,6 +393,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                     const isSelected = selectedFlavors.find(f => f.id === flavor.id)
                     const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
                     const canSelect = !isSelected && selectedFlavors.length < maxFlavors
+                    const flavorType = flavor.type || getCategoryType() || 'TRADICIONAL'
+                    const badgeColor = flavorType === 'TRADICIONAL' ? 'bg-green-600' : flavorType === 'ESPECIAL' ? 'bg-purple-600' : 'bg-yellow-600'
+                    const badgeLabel = flavorType === 'TRADICIONAL' ? 'TRADICIONAL' : flavorType === 'ESPECIAL' ? 'ESPECIAL' : 'PREMIUM'
 
                     return (
                       <div
@@ -380,8 +413,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="font-semibold text-sm text-gray-900">{flavor.name}</span>
-                              <Badge className="text-xs bg-green-600 text-white font-semibold px-2 py-0.5">
-                                TRADICIONAL
+                              <Badge className={`text-xs ${badgeColor} text-white font-semibold px-2 py-0.5`}>
+                                {badgeLabel}
                               </Badge>
                             </div>
                             <p className="text-xs text-gray-700">{flavor.description}</p>
