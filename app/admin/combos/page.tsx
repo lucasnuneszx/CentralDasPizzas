@@ -408,6 +408,7 @@ export default function AdminCombos() {
       isPizza: combo.isPizza,
       pizzaQuantity: (combo as any).pizzaQuantity || 1,
       showFlavors: (combo as any).showFlavors !== undefined ? (combo as any).showFlavors : true,
+      order: combo.order || 0,
       pizzaSizes
     })
     setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
