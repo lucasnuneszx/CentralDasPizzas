@@ -84,6 +84,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const [selectedExtraItems, setSelectedExtraItems] = useState<{ [itemId: string]: { optionId?: string; quantity: number } }>({})
   const [observations, setObservations] = useState('')
   const [stuffedCrust, setStuffedCrust] = useState(false)
+  const [burgerType, setBurgerType] = useState<'artesanal' | 'industrial' | null>(null) // Tipo de hambúrguer selecionado
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [debugInfo, setDebugInfo] = useState<any>({})
@@ -91,6 +92,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const pizzaQuantity = (item as any).pizzaQuantity || 0
   const showFlavors = (item as any).showFlavors !== undefined ? (item as any).showFlavors : true
   const allowCustomization = (item as any).allowCustomization !== undefined ? (item as any).allowCustomization : false
+  const isBurger = (item as any).isBurger === true || (item.name || '').toLowerCase().includes('hambúrguer') || (item.name || '').toLowerCase().includes('burger')
   const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true) || allowCustomization) && showFlavors
 
   useEffect(() => {
@@ -395,6 +397,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   }
 
   const handleAddToCart = () => {
+    // Validar se é hambúrguer e se tipo foi selecionado
+    if (isBurger && !burgerType) {
+      alert('Por favor, selecione o tipo de hambúrguer (Artesanal ou Industrial)')
+      return
+    }
+
     const customizedItem: CustomizedItem = {
       id: `${item.id}-${Date.now()}`,
       combo: item,
@@ -405,6 +413,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       observations,
       stuffedCrust,
       extraItems: Object.keys(selectedExtraItems).length > 0 ? selectedExtraItems : undefined,
+      burgerType: isBurger ? burgerType : undefined, // Adicionar tipo de hambúrguer
       totalPrice: calculatePrice()
     }
 
@@ -945,8 +954,59 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           )}
 
-          {/* Borda Recheada */}
-          {isCombo && (
+          {/* Seleção de Tipo de Hambúrguer - APENAS para hambúrgueres */}
+          {isBurger && (
+            <div>
+              <Label className="text-base font-semibold text-gray-900 mb-2 block">
+                Tipo de Hambúrguer *
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setBurgerType('artesanal')}
+                  className={`p-4 border-2 rounded-lg text-center transition-all ${
+                    burgerType === 'artesanal'
+                      ? 'border-orange-600 bg-orange-50 shadow-md'
+                      : 'border-gray-300 hover:border-orange-300 hover:bg-orange-50'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-900 mb-1">Artesanal</div>
+                  {(item as any).burgerArtisanalPrice ? (
+                    <div className="text-sm text-gray-600">
+                      R$ {(item as any).burgerArtisanalPrice.toFixed(2).replace('.', ',')}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600">
+                      R$ {item.price.toFixed(2).replace('.', ',')}
+                    </div>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBurgerType('industrial')}
+                  className={`p-4 border-2 rounded-lg text-center transition-all ${
+                    burgerType === 'industrial'
+                      ? 'border-blue-600 bg-blue-50 shadow-md'
+                      : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-900 mb-1">Industrial</div>
+                  {(item as any).burgerIndustrialPrice ? (
+                    <div className="text-sm text-gray-600">
+                      R$ {(item as any).burgerIndustrialPrice.toFixed(2).replace('.', ',')}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600">
+                      R$ {item.price.toFixed(2).replace('.', ',')}
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Borda Recheada - APENAS para pizzas */}
+          {isCombo && !isBurger && (
             <div className="flex items-center space-x-2">
               <Switch
                 checked={stuffedCrust}

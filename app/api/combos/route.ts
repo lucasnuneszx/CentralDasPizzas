@@ -77,7 +77,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors, order } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza, isBurger, burgerArtisanalPrice, burgerIndustrialPrice, pizzaQuantity, showFlavors, order } = await request.json()
 
     // Verificar se a categoria existe
     const category = await prisma.category.findUnique({
@@ -100,6 +100,9 @@ export async function POST(request: NextRequest) {
       image,
       isActive: isActive ?? true,
       isPizza: isPizza ?? false,
+      isBurger: isBurger ?? false,
+      burgerArtisanalPrice: burgerArtisanalPrice ? parseFloat(burgerArtisanalPrice) : null,
+      burgerIndustrialPrice: burgerIndustrialPrice ? parseFloat(burgerIndustrialPrice) : null,
       order: order ?? 0
     }
 

@@ -6,7 +6,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors, order } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza, isBurger, burgerArtisanalPrice, burgerIndustrialPrice, pizzaQuantity, showFlavors, order } = await request.json()
 
     // Verificar se a categoria existe
     if (categoryId) {
@@ -30,6 +30,18 @@ export async function PUT(
       image,
       isActive,
       isPizza
+    }
+
+    if (isBurger !== undefined) {
+      updateData.isBurger = isBurger
+    }
+
+    if (burgerArtisanalPrice !== undefined) {
+      updateData.burgerArtisanalPrice = burgerArtisanalPrice ? parseFloat(burgerArtisanalPrice) : null
+    }
+
+    if (burgerIndustrialPrice !== undefined) {
+      updateData.burgerIndustrialPrice = burgerIndustrialPrice ? parseFloat(burgerIndustrialPrice) : null
     }
 
     if (pizzaQuantity !== undefined) {

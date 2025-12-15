@@ -38,5 +38,6 @@ export interface CustomizedItem {
   extraItems?: { [key: string]: { optionId?: string; quantity: number } }
   observations: string
   stuffedCrust: boolean
+  burgerType?: 'artesanal' | 'industrial' // Tipo de hambúrguer selecionado
   totalPrice: number
 }

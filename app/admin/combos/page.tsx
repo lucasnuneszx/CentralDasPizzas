@@ -176,6 +176,8 @@ export default function AdminCombos() {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
+          burgerArtisanalPrice: formData.burgerArtisanalPrice ? parseFloat(formData.burgerArtisanalPrice) : null,
+          burgerIndustrialPrice: formData.burgerIndustrialPrice ? parseFloat(formData.burgerIndustrialPrice) : null,
           image: imageData
         }),
       })
@@ -454,6 +456,9 @@ export default function AdminCombos() {
       image: '',
       isActive: true,
       isPizza: false,
+      isBurger: false,
+      burgerArtisanalPrice: '',
+      burgerIndustrialPrice: '',
       pizzaQuantity: 1,
       showFlavors: true,
       order: 0,
