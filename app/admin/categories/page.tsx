@@ -11,6 +11,7 @@ import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
 import { Plus, Edit, Trash2, ArrowLeft, Filter, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { fetchWithAuth } from '@/lib/fetch-auth'
 
 interface Category {
   id: string
@@ -161,7 +162,7 @@ export default function AdminCategories() {
 
     setIsSettingUp(true)
     try {
-      const response = await fetch('/api/setup/pizza-categories', {
+      const response = await fetchWithAuth('/api/setup/pizza-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
