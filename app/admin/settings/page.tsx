@@ -613,7 +613,7 @@ export default function SettingsPage() {
                 <div className="md:col-span-2">
                   <Label htmlFor="printerName">Selecionar Impressora USB</Label>
                   <p className="text-sm text-gray-500 mb-2">
-                    Clique em "Descobrir Impressoras" para ver todas as impressoras USB conectadas ao dispositivo
+                    Clique em &quot;Descobrir Impressoras&quot; para ver todas as impressoras USB conectadas ao dispositivo
                   </p>
                   <div className="flex gap-2 mt-1">
                     <Input
@@ -680,7 +680,7 @@ export default function SettingsPage() {
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
                     {('serial' in navigator) 
-                      ? 'Clique em "Selecionar" para escolher a impressora USB conectada ou conecte-se a uma porta já autorizada acima'
+                      ? 'Clique em &quot;Selecionar&quot; para escolher a impressora USB conectada ou conecte-se a uma porta já autorizada acima'
                       : '⚠️ Use Chrome ou Edge para selecionar impressora USB'}
                   </p>
                 </div>
