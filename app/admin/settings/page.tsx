@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { ImageUpload } from '@/components/image-upload'
 import { Save, Upload, Eye, EyeOff, Usb } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { requestSerialPort, getAvailablePorts, getPortInfo } from '@/lib/printer-client'
+import { requestSerialPort, getAvailablePorts, getPortInfo, discoverPrinters } from '@/lib/printer-client'
 
 interface SystemSettings {
   id?: string
@@ -106,6 +106,9 @@ export default function SettingsPage() {
         return
       }
 
+      // Abrir diálogo para descobrir todas as impressoras disponíveis
+      toast.loading('Abrindo seletor de impressoras...', { id: 'printer-select' })
+      
       const port = await requestSerialPort()
       
       if (port) {
@@ -114,9 +117,10 @@ export default function SettingsPage() {
         
         // Obter informações da porta
         const portInfo = port.getInfo()
-        const printerName = portInfo.usbVendorId && portInfo.usbProductId 
-          ? `USB Printer (Vendor: 0x${portInfo.usbVendorId.toString(16).toUpperCase().padStart(4, '0')}, Product: 0x${portInfo.usbProductId.toString(16).toUpperCase().padStart(4, '0')})`
-          : 'Impressora USB Selecionada'
+        const portInfoDetails = getPortInfo(port)
+        const printerName = portInfoDetails.name || (portInfo.usbVendorId && portInfo.usbProductId 
+          ? `Impressora USB (Vendor: 0x${portInfo.usbVendorId.toString(16).toUpperCase().padStart(4, '0')}, Product: 0x${portInfo.usbProductId.toString(16).toUpperCase().padStart(4, '0')})`
+          : 'Impressora USB Selecionada')
         
         // Atualizar estado
         setSettings(prev => ({
@@ -125,9 +129,15 @@ export default function SettingsPage() {
         }))
 
         // Salvar nas configurações
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+        const headers: HeadersInit = { 'Content-Type': 'application/json' }
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+
         const response = await fetch('/api/settings', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             ...settings,
             printerName: printerName,
@@ -139,12 +149,16 @@ export default function SettingsPage() {
         })
 
         if (response.ok) {
-          toast.success('Impressora selecionada e salva com sucesso!')
+          toast.success('Impressora selecionada e salva com sucesso!', { id: 'printer-select' })
           // Atualizar lista de portas disponíveis
           await loadAvailablePorts()
+        } else {
+          const errorData = await response.json()
+          toast.error(errorData.message || 'Erro ao salvar impressora', { id: 'printer-select' })
         }
       }
     } catch (error: any) {
+      toast.dismiss('printer-select')
       if (error.name === 'NotFoundError') {
         toast.error('Nenhuma impressora selecionada')
       } else if (error.name === 'SecurityError') {
@@ -173,9 +187,15 @@ export default function SettingsPage() {
       }))
 
       // Salvar nas configurações
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/settings', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           ...settings,
           printerName: printerName,
@@ -198,11 +218,17 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/settings', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(settings),
       })
 
@@ -236,8 +262,15 @@ export default function SettingsPage() {
       formData.append('field', field)
 
       // Fazer upload para o servidor
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers,
         body: formData
       })
 
@@ -579,12 +612,15 @@ export default function SettingsPage() {
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="printerName">Selecionar Impressora USB</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Clique em "Descobrir Impressoras" para ver todas as impressoras USB conectadas ao dispositivo
+                  </p>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="printerName"
                       value={settings.printerName || ''}
                       onChange={(e) => setSettings(prev => ({ ...prev, printerName: e.target.value }))}
-                      placeholder="Clique no botão para selecionar a impressora"
+                      placeholder="Nenhuma impressora selecionada"
                       readOnly
                       className="flex-1"
                     />
@@ -592,17 +628,18 @@ export default function SettingsPage() {
                       type="button"
                       onClick={handleSelectPrinter}
                       disabled={!('serial' in navigator)}
-                      variant="outline"
+                      variant="default"
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
                       <Usb className="h-4 w-4 mr-2" />
-                      Selecionar
+                      Descobrir Impressoras
                     </Button>
                     <Button
                       type="button"
                       onClick={loadAvailablePorts}
                       disabled={!('serial' in navigator)}
                       variant="outline"
-                      title="Atualizar lista de portas"
+                      title="Atualizar lista de portas já autorizadas"
                     >
                       Atualizar
                     </Button>

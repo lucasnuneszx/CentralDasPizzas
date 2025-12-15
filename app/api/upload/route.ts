@@ -6,8 +6,13 @@ export async function POST(request: NextRequest) {
   try {
     // Verificar autenticação
     const user = await getAuthUser(request)
-    if (!user || !(await checkRole(request, 'ADMIN'))) {
-      return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
+    
+    if (!user) {
+      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    }
+
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
+      return NextResponse.json({ message: 'Sem permissão' }, { status: 403 })
     }
 
     const formData = await request.formData()

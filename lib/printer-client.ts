@@ -108,14 +108,20 @@ export async function printToSerialPort(content: string, port: SerialPort): Prom
 
 /**
  * Solicitar acesso à porta serial e retornar a porta
+ * Permite filtrar por dispositivos USB específicos
  */
-export async function requestSerialPort(): Promise<SerialPort | null> {
+export async function requestSerialPort(filters?: SerialPortFilter[]): Promise<SerialPort | null> {
   try {
     if (!('serial' in navigator)) {
       throw new Error('Web Serial API não está disponível neste navegador')
     }
 
-    const port = await (navigator as any).serial.requestPort()
+    const requestOptions: any = {}
+    if (filters && filters.length > 0) {
+      requestOptions.filters = filters
+    }
+
+    const port = await (navigator as any).serial.requestPort(requestOptions)
     return port
   } catch (error: any) {
     if (error.name === 'NotFoundError') {
@@ -123,6 +129,47 @@ export async function requestSerialPort(): Promise<SerialPort | null> {
     } else if (error.name === 'SecurityError') {
       throw new Error('Permissão negada para acessar a impressora')
     }
+    throw error
+  }
+}
+
+/**
+ * Interface para filtros de porta serial
+ */
+export interface SerialPortFilter {
+  usbVendorId?: number
+  usbProductId?: number
+}
+
+/**
+ * Descobrir todas as impressoras USB disponíveis no sistema
+ * Abre o diálogo de seleção do navegador para o usuário escolher
+ */
+export async function discoverPrinters(): Promise<SerialPort[]> {
+  try {
+    if (!('serial' in navigator)) {
+      throw new Error('Web Serial API não está disponível neste navegador')
+    }
+
+    const discoveredPorts: SerialPort[] = []
+    
+    // Tentar descobrir impressoras comuns (Elgin, Bematech, Epson, etc)
+    // Nota: A Web Serial API requer interação do usuário, então vamos
+    // abrir o diálogo de seleção sem filtros para mostrar todas as opções
+    try {
+      const port = await (navigator as any).serial.requestPort({
+        // Sem filtros para mostrar todas as portas disponíveis
+      })
+      discoveredPorts.push(port)
+    } catch (error: any) {
+      if (error.name !== 'NotFoundError') {
+        throw error
+      }
+    }
+
+    return discoveredPorts
+  } catch (error) {
+    console.error('Erro ao descobrir impressoras:', error)
     throw error
   }
 }
@@ -141,6 +188,34 @@ export async function getAvailablePorts(): Promise<SerialPort[]> {
   } catch (error) {
     console.error('Erro ao listar portas disponíveis:', error)
     return []
+  }
+}
+
+/**
+ * Solicitar acesso a uma impressora USB específica usando filtros
+ * Útil para descobrir impressoras Elgin i8 ou outras marcas conhecidas
+ */
+export async function requestPrinterWithFilter(vendorId?: number, productId?: number): Promise<SerialPort | null> {
+  try {
+    if (!('serial' in navigator)) {
+      throw new Error('Web Serial API não está disponível neste navegador')
+    }
+
+    const filters: SerialPortFilter[] = []
+    if (vendorId) {
+      filters.push({ usbVendorId: vendorId })
+      if (productId) {
+        filters[0].usbProductId = productId
+      }
+    }
+
+    const port = await requestSerialPort(filters.length > 0 ? filters : undefined)
+    return port
+  } catch (error: any) {
+    if (error.name === 'NotFoundError') {
+      throw new Error('Nenhuma impressora encontrada com os filtros especificados')
+    }
+    throw error
   }
 }
 
