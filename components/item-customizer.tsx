@@ -340,7 +340,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       id: `${item.id}-${Date.now()}`,
       combo: item,
       quantity,
-      size: selectedSize?.id,
+      size: selectedSize || undefined,
       flavors: selectedFlavors.length > 0 ? selectedFlavors : undefined,
       flavorsPizza2: pizzaQuantity > 1 && selectedFlavorsPizza2.length > 0 ? selectedFlavorsPizza2 : undefined,
       observations,
