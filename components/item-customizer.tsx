@@ -338,6 +338,19 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const calculatePrice = () => {
     let total = item.price
     
+    // Se for hambúrguer, usar preço baseado no tipo selecionado
+    if (isBurger && burgerType) {
+      const artisanalPrice = (item as any).burgerArtisanalPrice
+      const industrialPrice = (item as any).burgerIndustrialPrice
+      
+      if (burgerType === 'artesanal' && artisanalPrice) {
+        total = artisanalPrice
+      } else if (burgerType === 'industrial' && industrialPrice) {
+        total = industrialPrice
+      }
+      // Se não tiver preço específico, usar preço base (já definido acima)
+    }
+    
     if ((item.isPizza || pizzaQuantity > 0) && selectedSize) {
       total = selectedSize.basePrice
       if (pizzaQuantity > 1) {
