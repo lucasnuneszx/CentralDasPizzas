@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Minus, X, ShoppingCart, ChefHat } from 'lucide-react'
+import { Plus, Minus, X, ShoppingCart, ChefHat, Pizza, Crown, Star } from 'lucide-react'
 import Image from 'next/image'
 import { CustomizedItem, PizzaFlavor, PizzaSize, Combo } from '@/types/cart'
 
@@ -264,14 +264,47 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const getFlavorTypeColor = (type: string) => {
     switch (type) {
       case 'TRADICIONAL':
-        return 'bg-green-600 text-white font-semibold'
+        return 'bg-green-600 text-white'
       case 'PREMIUM':
-        return 'bg-blue-600 text-white font-semibold'
+        return 'bg-yellow-600 text-white'
       case 'ESPECIAL':
-        return 'bg-purple-600 text-white font-semibold'
+        return 'bg-purple-600 text-white'
       default:
-        return 'bg-gray-700 text-white font-semibold'
+        return 'bg-gray-700 text-white'
     }
+  }
+
+  const getFlavorTypeIcon = (type: string) => {
+    switch (type) {
+      case 'TRADICIONAL':
+        return <Pizza className="h-4 w-4" />
+      case 'PREMIUM':
+        return <Star className="h-4 w-4" />
+      case 'ESPECIAL':
+        return <Crown className="h-4 w-4" />
+      default:
+        return <Pizza className="h-4 w-4" />
+    }
+  }
+
+  const getFlavorTypeLabel = (type: string) => {
+    switch (type) {
+      case 'TRADICIONAL':
+        return 'Tradicional'
+      case 'PREMIUM':
+        return 'Premium'
+      case 'ESPECIAL':
+        return 'Especial'
+      default:
+        return type
+    }
+  }
+
+  // Agrupar sabores por tipo
+  const groupedFlavors = {
+    TRADICIONAL: flavors.filter(f => f.type === 'TRADICIONAL'),
+    ESPECIAL: flavors.filter(f => f.type === 'ESPECIAL'),
+    PREMIUM: flavors.filter(f => f.type === 'PREMIUM')
   }
 
   if (loading) {
@@ -373,142 +406,439 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 </div>
               )}
 
-              {/* Seleção de Sabores - Pizza 1 ou Combo */}
-              <div>
-                <Label className="text-base font-medium mb-3 block text-gray-900">
-                  {pizzaQuantity > 1 ? 'Sabor Pizza 1' : `Escolha os Sabores ${getCategoryType() === 'TRADICIONAL' ? 'Tradicionais' : getCategoryType() === 'ESPECIAL' ? 'Especiais' : getCategoryType() === 'PREMIUM' ? 'Premiums' : ''}`}
+              {/* Seleção de Sabores - Pizza 1 ou Combo - Agrupados por Tipo */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold text-gray-900">
+                    {pizzaQuantity > 1 ? 'Sabor Pizza 1' : 'Escolha os Sabores'}
+                  </Label>
                   {selectedSize && (
-                    <span className="text-sm text-gray-700 font-medium ml-2">
-                      ({selectedFlavors.length}/{selectedSize.maxFlavors})
+                    <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+                      {selectedFlavors.length}/{selectedSize.maxFlavors} sabores selecionados
                     </span>
                   )}
                   {!selectedSize && (
-                    <span className="text-sm text-gray-700 font-medium ml-2">
-                      ({selectedFlavors.length} selecionado{selectedFlavors.length !== 1 ? 's' : ''})
+                    <span className="text-sm font-medium text-gray-600">
+                      {selectedFlavors.length} selecionado{selectedFlavors.length !== 1 ? 's' : ''}
                     </span>
                   )}
-                </Label>
-                <div className="grid grid-cols-1 gap-2">
-                  {flavors.map((flavor) => {
-                    const isSelected = selectedFlavors.find(f => f.id === flavor.id)
-                    const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
-                    const canSelect = !isSelected && selectedFlavors.length < maxFlavors
-                    const flavorType = flavor.type || getCategoryType() || 'TRADICIONAL'
-                    const badgeColor = flavorType === 'TRADICIONAL' ? 'bg-green-600' : flavorType === 'ESPECIAL' ? 'bg-purple-600' : 'bg-yellow-600'
-                    const badgeLabel = flavorType === 'TRADICIONAL' ? 'TRADICIONAL' : flavorType === 'ESPECIAL' ? 'ESPECIAL' : 'PREMIUM'
-
-                    return (
-                      <div
-                        key={flavor.id}
-                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                          isSelected
-                            ? 'border-red-600 bg-red-100 shadow-md'
-                            : canSelect
-                            ? 'border-gray-300 hover:border-red-500 hover:bg-red-50'
-                            : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                        }`}
-                        onClick={() => canSelect && handleFlavorToggle(flavor)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-semibold text-sm text-gray-900">{flavor.name}</span>
-                              <Badge className={`text-xs ${badgeColor} text-white font-semibold px-2 py-0.5`}>
-                                {badgeLabel}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-700">{flavor.description}</p>
-                          </div>
-                          {isSelected && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleFlavorToggle(flavor)
-                              }}
-                              className="h-6 w-6 p-0"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
                 </div>
+
+                {/* Sabores Tradicionais */}
+                {groupedFlavors.TRADICIONAL.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 pb-2 border-b border-green-200">
+                      <Pizza className="h-5 w-5 text-green-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Sabores Tradicionais</h3>
+                      <Badge className="bg-green-100 text-green-800 font-semibold">
+                        {groupedFlavors.TRADICIONAL.length} opções
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {groupedFlavors.TRADICIONAL.map((flavor) => {
+                        const isSelected = selectedFlavors.find(f => f.id === flavor.id)
+                        const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                        const canSelect = !isSelected && selectedFlavors.length < maxFlavors
+
+                        return (
+                          <div
+                            key={flavor.id}
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-green-600 bg-green-50 shadow-md'
+                                : canSelect
+                                ? 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                                : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                            }`}
+                            onClick={() => canSelect && handleFlavorToggle(flavor)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                  <Badge className={`text-xs ${getFlavorTypeColor('TRADICIONAL')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                    {getFlavorTypeIcon('TRADICIONAL')}
+                                    {getFlavorTypeLabel('TRADICIONAL')}
+                                  </Badge>
+                                </div>
+                                {flavor.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                )}
+                              </div>
+                              {isSelected && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleFlavorToggle(flavor)
+                                  }}
+                                  className="h-8 w-8 p-0 border-green-600 text-green-600 hover:bg-green-100"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sabores Especiais */}
+                {groupedFlavors.ESPECIAL.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 pb-2 border-b border-purple-200">
+                      <Crown className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Sabores Especiais</h3>
+                      <Badge className="bg-purple-100 text-purple-800 font-semibold">
+                        {groupedFlavors.ESPECIAL.length} opções
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {groupedFlavors.ESPECIAL.map((flavor) => {
+                        const isSelected = selectedFlavors.find(f => f.id === flavor.id)
+                        const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                        const canSelect = !isSelected && selectedFlavors.length < maxFlavors
+
+                        return (
+                          <div
+                            key={flavor.id}
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-purple-600 bg-purple-50 shadow-md'
+                                : canSelect
+                                ? 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                            }`}
+                            onClick={() => canSelect && handleFlavorToggle(flavor)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                  <Badge className={`text-xs ${getFlavorTypeColor('ESPECIAL')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                    {getFlavorTypeIcon('ESPECIAL')}
+                                    {getFlavorTypeLabel('ESPECIAL')}
+                                  </Badge>
+                                </div>
+                                {flavor.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                )}
+                              </div>
+                              {isSelected && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleFlavorToggle(flavor)
+                                  }}
+                                  className="h-8 w-8 p-0 border-purple-600 text-purple-600 hover:bg-purple-100"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sabores Premiums */}
+                {groupedFlavors.PREMIUM.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                      <Star className="h-5 w-5 text-yellow-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Sabores Premiums</h3>
+                      <Badge className="bg-yellow-100 text-yellow-800 font-semibold">
+                        {groupedFlavors.PREMIUM.length} opções
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {groupedFlavors.PREMIUM.map((flavor) => {
+                        const isSelected = selectedFlavors.find(f => f.id === flavor.id)
+                        const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                        const canSelect = !isSelected && selectedFlavors.length < maxFlavors
+
+                        return (
+                          <div
+                            key={flavor.id}
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-yellow-600 bg-yellow-50 shadow-md'
+                                : canSelect
+                                ? 'border-gray-300 hover:border-yellow-500 hover:bg-yellow-50'
+                                : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                            }`}
+                            onClick={() => canSelect && handleFlavorToggle(flavor)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                  <Badge className={`text-xs ${getFlavorTypeColor('PREMIUM')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                    {getFlavorTypeIcon('PREMIUM')}
+                                    {getFlavorTypeLabel('PREMIUM')}
+                                  </Badge>
+                                </div>
+                                {flavor.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                )}
+                              </div>
+                              {isSelected && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleFlavorToggle(flavor)
+                                  }}
+                                  className="h-8 w-8 p-0 border-yellow-600 text-yellow-600 hover:bg-yellow-100"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Seleção de Sabores - Pizza 2 */}
+              {/* Seleção de Sabores - Pizza 2 - Agrupados por Tipo */}
               {pizzaQuantity > 1 && (
-                <div>
-                  <Label className="text-base font-medium mb-3 block text-gray-900">
-                    Sabor Pizza 2
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold text-gray-900">
+                      Sabor Pizza 2
+                    </Label>
                     {selectedSize && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        ({selectedFlavorsPizza2.length}/{selectedSize.maxFlavors})
+                      <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+                        {selectedFlavorsPizza2.length}/{selectedSize.maxFlavors} sabores selecionados
                       </span>
                     )}
                     {!selectedSize && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        ({selectedFlavorsPizza2.length} selecionado{selectedFlavorsPizza2.length !== 1 ? 's' : ''})
+                      <span className="text-sm font-medium text-gray-600">
+                        {selectedFlavorsPizza2.length} selecionado{selectedFlavorsPizza2.length !== 1 ? 's' : ''}
                       </span>
                     )}
-                  </Label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {flavors.map((flavor) => {
-                      const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
-                      const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
-
-                      return (
-                        <div
-                          key={flavor.id}
-                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-red-600 bg-red-100 shadow-md'
-                              : canSelect
-                              ? 'border-gray-300 hover:border-red-500 hover:bg-red-50'
-                              : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                          }`}
-                          onClick={() => {
-                            if (canSelect) {
-                              if (isSelected) {
-                                setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
-                              } else {
-                                setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
-                              }
-                            }
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                <span className="font-semibold text-sm text-gray-900">{flavor.name}</span>
-                                <Badge className="text-xs bg-green-600 text-white font-semibold px-2 py-0.5">
-                                  TRADICIONAL
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-gray-700">{flavor.description}</p>
-                            </div>
-                            {isSelected && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
-                                }}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
                   </div>
+
+                  {/* Sabores Tradicionais - Pizza 2 */}
+                  {groupedFlavors.TRADICIONAL.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 pb-2 border-b border-green-200">
+                        <Pizza className="h-5 w-5 text-green-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Sabores Tradicionais</h3>
+                        <Badge className="bg-green-100 text-green-800 font-semibold">
+                          {groupedFlavors.TRADICIONAL.length} opções
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2">
+                        {groupedFlavors.TRADICIONAL.map((flavor) => {
+                          const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
+                          const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                          const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
+
+                          return (
+                            <div
+                              key={flavor.id}
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                isSelected
+                                  ? 'border-green-600 bg-green-50 shadow-md'
+                                  : canSelect
+                                  ? 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                                  : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                              }`}
+                              onClick={() => {
+                                if (canSelect) {
+                                  if (isSelected) {
+                                    setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                  } else {
+                                    setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                    <Badge className={`text-xs ${getFlavorTypeColor('TRADICIONAL')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                      {getFlavorTypeIcon('TRADICIONAL')}
+                                      {getFlavorTypeLabel('TRADICIONAL')}
+                                    </Badge>
+                                  </div>
+                                  {flavor.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                  )}
+                                </div>
+                                {isSelected && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                    }}
+                                    className="h-8 w-8 p-0 border-green-600 text-green-600 hover:bg-green-100"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sabores Especiais - Pizza 2 */}
+                  {groupedFlavors.ESPECIAL.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 pb-2 border-b border-purple-200">
+                        <Crown className="h-5 w-5 text-purple-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Sabores Especiais</h3>
+                        <Badge className="bg-purple-100 text-purple-800 font-semibold">
+                          {groupedFlavors.ESPECIAL.length} opções
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2">
+                        {groupedFlavors.ESPECIAL.map((flavor) => {
+                          const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
+                          const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                          const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
+
+                          return (
+                            <div
+                              key={flavor.id}
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                isSelected
+                                  ? 'border-purple-600 bg-purple-50 shadow-md'
+                                  : canSelect
+                                  ? 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                  : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                              }`}
+                              onClick={() => {
+                                if (canSelect) {
+                                  if (isSelected) {
+                                    setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                  } else {
+                                    setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                    <Badge className={`text-xs ${getFlavorTypeColor('ESPECIAL')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                      {getFlavorTypeIcon('ESPECIAL')}
+                                      {getFlavorTypeLabel('ESPECIAL')}
+                                    </Badge>
+                                  </div>
+                                  {flavor.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                  )}
+                                </div>
+                                {isSelected && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                    }}
+                                    className="h-8 w-8 p-0 border-purple-600 text-purple-600 hover:bg-purple-100"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sabores Premiums - Pizza 2 */}
+                  {groupedFlavors.PREMIUM.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                        <Star className="h-5 w-5 text-yellow-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Sabores Premiums</h3>
+                        <Badge className="bg-yellow-100 text-yellow-800 font-semibold">
+                          {groupedFlavors.PREMIUM.length} opções
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2">
+                        {groupedFlavors.PREMIUM.map((flavor) => {
+                          const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
+                          const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                          const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
+
+                          return (
+                            <div
+                              key={flavor.id}
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                isSelected
+                                  ? 'border-yellow-600 bg-yellow-50 shadow-md'
+                                  : canSelect
+                                  ? 'border-gray-300 hover:border-yellow-500 hover:bg-yellow-50'
+                                  : 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
+                              }`}
+                              onClick={() => {
+                                if (canSelect) {
+                                  if (isSelected) {
+                                    setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                  } else {
+                                    setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="font-semibold text-base text-gray-900">{flavor.name}</span>
+                                    <Badge className={`text-xs ${getFlavorTypeColor('PREMIUM')} font-semibold px-2 py-0.5 flex items-center gap-1`}>
+                                      {getFlavorTypeIcon('PREMIUM')}
+                                      {getFlavorTypeLabel('PREMIUM')}
+                                    </Badge>
+                                  </div>
+                                  {flavor.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{flavor.description}</p>
+                                  )}
+                                </div>
+                                {isSelected && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
+                                    }}
+                                    className="h-8 w-8 p-0 border-yellow-600 text-yellow-600 hover:bg-yellow-100"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
