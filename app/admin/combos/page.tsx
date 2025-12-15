@@ -55,6 +55,9 @@ export default function AdminCombos() {
     image: '',
     isActive: true,
     isPizza: false,
+    isBurger: false,
+    burgerArtisanalPrice: '',
+    burgerIndustrialPrice: '',
     pizzaQuantity: 1,
     showFlavors: true, // Controla se sabores aparecem na personalização
     order: 0, // Ordem de exibição
@@ -1021,10 +1024,21 @@ export default function AdminCombos() {
                           type="checkbox"
                           id="isPizza"
                           checked={formData.isPizza}
-                          onChange={(e) => setFormData({ ...formData, isPizza: e.target.checked })}
+                          onChange={(e) => setFormData({ ...formData, isPizza: e.target.checked, isBurger: e.target.checked ? false : formData.isBurger })}
                           className="rounded border-gray-300 dark:border-gray-600"
                         />
                         <Label htmlFor="isPizza" className="text-gray-900 dark:text-gray-100">É uma pizza (permite personalização)</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 mt-3">
+                        <input
+                          type="checkbox"
+                          id="isBurger"
+                          checked={formData.isBurger}
+                          onChange={(e) => setFormData({ ...formData, isBurger: e.target.checked, isPizza: e.target.checked ? false : formData.isPizza })}
+                          className="rounded border-gray-300 dark:border-gray-600"
+                        />
+                        <Label htmlFor="isBurger" className="text-gray-900 dark:text-gray-100">É um hambúrguer (permite escolher tipo)</Label>
                       </div>
                       
                       <div className="flex items-center space-x-2 mt-3">
@@ -1038,6 +1052,45 @@ export default function AdminCombos() {
                         <Label htmlFor="showFlavors" className="text-gray-900 dark:text-gray-100">Exibir sabores na personalização</Label>
                       </div>
                     </div>
+
+                    {/* Campos de Preço para Hambúrgueres */}
+                    {formData.isBurger && (
+                      <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                        <Label className="text-sm font-medium mb-3 block text-gray-900 dark:text-gray-100">Preços dos Tipos de Hambúrguer</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="burgerArtisanalPrice" className="text-gray-900 dark:text-gray-100">Preço Artesanal (R$)</Label>
+                            <Input
+                              id="burgerArtisanalPrice"
+                              type="number"
+                              step="0.01"
+                              value={formData.burgerArtisanalPrice}
+                              onChange={(e) => setFormData({ ...formData, burgerArtisanalPrice: e.target.value })}
+                              placeholder={formData.price || "0.00"}
+                              className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mt-1"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Deixe vazio para usar o preço base
+                            </p>
+                          </div>
+                          <div>
+                            <Label htmlFor="burgerIndustrialPrice" className="text-gray-900 dark:text-gray-100">Preço Industrial (R$)</Label>
+                            <Input
+                              id="burgerIndustrialPrice"
+                              type="number"
+                              step="0.01"
+                              value={formData.burgerIndustrialPrice}
+                              onChange={(e) => setFormData({ ...formData, burgerIndustrialPrice: e.target.value })}
+                              placeholder={formData.price || "0.00"}
+                              className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mt-1"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Deixe vazio para usar o preço base
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Campo de Ordem */}
                     <div className="mt-4">
