@@ -60,7 +60,7 @@ function PrintSettingsPage() {
   const [previewContent, setPreviewContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const { port, isConnected, printerName, selectPrinter, disconnectPrinter } = usePrinter()
+  const { port, isConnected, printerName, availablePorts, selectPrinter, connectToPort, disconnectPrinter, refreshAvailablePorts } = usePrinter()
 
   useEffect(() => {
     setIsClient(true)
@@ -259,7 +259,7 @@ function PrintSettingsPage() {
                     Seleção de Impressora
                   </CardTitle>
                   <CardDescription>
-                    Selecione a impressora USB conectada ao computador
+                    Selecione a impressora Elgin i8 conectada via USB ao computador
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -294,34 +294,85 @@ function PrintSettingsPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Nenhuma impressora selecionada. Clique no botão abaixo para escolher uma impressora USB.
-                      </p>
-                      <Button
-                        onClick={selectPrinter}
-                        disabled={!isClient || (typeof window !== 'undefined' && !('serial' in navigator))}
-                        className="w-full"
-                        size="lg"
-                      >
-                        <Usb className="h-4 w-4 mr-2" />
-                        Selecionar Impressora USB
-                      </Button>
-                      {isClient && typeof window !== 'undefined' && !('serial' in navigator) && (
-                        <p className="text-xs text-red-500 mt-2">
-                          ⚠️ Seu navegador não suporta esta funcionalidade. Use Chrome ou Edge.
-                        </p>
+                    <div className="space-y-4">
+                      {/* Portas USB Disponíveis */}
+                      {availablePorts.length > 0 && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3">
+                            Portas USB Disponíveis:
+                          </p>
+                          <div className="space-y-2">
+                            {availablePorts.map((portItem, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border"
+                              >
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">
+                                    {portItem.info.name || `Porta USB ${index + 1}`}
+                                  </p>
+                                  {portItem.info.vendorId && portItem.info.productId && (
+                                    <p className="text-xs text-gray-500">
+                                      Vendor: 0x{portItem.info.vendorId?.toString(16).toUpperCase().padStart(4, '0')} | 
+                                      Product: 0x{portItem.info.productId?.toString(16).toUpperCase().padStart(4, '0')}
+                                    </p>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => connectToPort(portItem.port)}
+                                  size="sm"
+                                  variant="outline"
+                                >
+                                  Conectar
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
+
+                      <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {availablePorts.length === 0 
+                            ? 'Nenhuma impressora USB detectada. Clique no botão abaixo para selecionar uma nova impressora USB.'
+                            : 'Ou selecione uma nova impressora USB:'}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={selectPrinter}
+                            disabled={!isClient || (typeof window !== 'undefined' && !('serial' in navigator))}
+                            className="flex-1"
+                            size="lg"
+                          >
+                            <Usb className="h-4 w-4 mr-2" />
+                            Selecionar Nova Impressora USB
+                          </Button>
+                          <Button
+                            onClick={refreshAvailablePorts}
+                            variant="outline"
+                            size="lg"
+                            disabled={!isClient || (typeof window !== 'undefined' && !('serial' in navigator))}
+                          >
+                            Atualizar
+                          </Button>
+                        </div>
+                        {isClient && typeof window !== 'undefined' && !('serial' in navigator) && (
+                          <p className="text-xs text-red-500 mt-2">
+                            ⚠️ Seu navegador não suporta esta funcionalidade. Use Chrome ou Edge.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                   
                   <div className="text-xs text-muted-foreground space-y-1">
                     <p>💡 <strong>Como funciona:</strong></p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Clique em &quot;Selecionar Impressora USB&quot;</li>
+                      <li>Clique em &quot;Selecionar Nova Impressora USB&quot;</li>
                       <li>O navegador abrirá um diálogo para escolher o dispositivo</li>
-                      <li>Selecione sua impressora Elgin i8</li>
+                      <li>Selecione sua impressora <strong>Elgin i8</strong></li>
                       <li>A impressora será salva automaticamente</li>
+                      <li>Use Chrome ou Edge para melhor compatibilidade</li>
                     </ul>
                   </div>
                 </CardContent>

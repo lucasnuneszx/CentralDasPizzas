@@ -367,8 +367,11 @@ function CheckoutPublicContent() {
         console.log('Pedido criado com sucesso:', result)
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
-        // Redirecionar para área de meus pedidos
-        router.push('/client/orders')
+        // Garantir redirect para meus pedidos
+        setTimeout(() => {
+          router.push('/client/orders')
+          window.location.href = '/client/orders'
+        }, 500)
       } else {
         console.error('Erro na resposta:', result)
         const errorMsg = result.message || result.error || 'Erro ao realizar pedido'

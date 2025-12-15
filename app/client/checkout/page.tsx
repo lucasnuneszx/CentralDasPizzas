@@ -162,13 +162,19 @@ export default function Checkout() {
         body: JSON.stringify(orderData),
       })
 
-      if (response.ok) {
+      const result = await response.json()
+
+      if (response.ok && result.success !== false) {
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
-        router.push('/client/orders')
+        // Garantir redirect para meus pedidos
+        setTimeout(() => {
+          router.push('/client/orders')
+          window.location.href = '/client/orders'
+        }, 500)
       } else {
-        const error = await response.json()
-        toast.error(error.message || 'Erro ao realizar pedido')
+        const errorMsg = result.message || result.error || 'Erro ao realizar pedido'
+        toast.error(errorMsg)
       }
     } catch (error) {
       toast.error('Erro ao realizar pedido')
