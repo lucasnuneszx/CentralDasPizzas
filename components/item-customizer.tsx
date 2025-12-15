@@ -360,7 +360,6 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   }
 
   return (
-    <>
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
@@ -419,7 +418,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
           {/* Seleção de Sabores - APENAS para COMBOS com pizzas */}
           {isCombo && (
-            <>
+            <div>
               {flavors.length === 0 && (
                 <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                   <p className="text-gray-500 mb-2">Nenhum sabor disponível para esta categoria</p>
@@ -429,7 +428,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 </div>
               )}
               {flavors.length > 0 && (
-            <>
+            <div>
               {/* Seleção de Tamanho (apenas se for pizza) */}
               {(item.isPizza || pizzaQuantity > 0) && sizes.length > 0 && (
                 <div>
@@ -905,7 +904,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   />
                 </div>
               )}
-            </>
+            </div>
+            )}
+          </div>
           )}
 
           {/* Itens Extras (Refri, Batatas, etc) - Agrupados por tipo */}
@@ -1055,6 +1056,5 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         </div>
       </div>
     </div>
-    </>
   )
 }
