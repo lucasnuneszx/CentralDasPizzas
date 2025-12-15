@@ -426,7 +426,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       observations,
       stuffedCrust,
       extraItems: Object.keys(selectedExtraItems).length > 0 ? selectedExtraItems : undefined,
-      burgerType: isBurger ? burgerType : undefined, // Adicionar tipo de hambúrguer
+      burgerType: isBurger && burgerType ? burgerType : undefined, // Adicionar tipo de hambúrguer (converter null para undefined)
       totalPrice: calculatePrice()
     }
 
