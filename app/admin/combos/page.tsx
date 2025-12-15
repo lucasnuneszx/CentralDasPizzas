@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { ProtectedRoute } from '@/components/protected-route'
 import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft, ChefHat, Settings } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, ChefHat, Settings, Scan, Trash, Loader2 } from 'lucide-react'
 import ComboCustomizationModal from '@/components/combo-customization-modal'
 import toast from 'react-hot-toast'
 
@@ -85,6 +85,16 @@ export default function AdminCombos() {
     order: 0
   })
   const [selectedCategoryImage, setSelectedCategoryImage] = useState<File | null>(null)
+  const [showOcrModal, setShowOcrModal] = useState(false)
+  const [ocrImage, setOcrImage] = useState<File | null>(null)
+  const [ocrProcessing, setOcrProcessing] = useState(false)
+  const [ocrResults, setOcrResults] = useState<Array<{
+    name: string
+    description?: string
+    price?: number
+    confidence: number
+  }>>([])
+  const [deletingAll, setDeletingAll] = useState(false)
 
   useEffect(() => {
     fetchCombos()
@@ -650,6 +660,113 @@ export default function AdminCombos() {
     resetCategoryForm()
   }
 
+  const handleDeleteAllCombos = async () => {
+    if (!confirm('⚠️ ATENÇÃO: Esta ação irá excluir TODOS os combos do sistema. Esta operação é irreversível!\n\nDeseja continuar?')) {
+      return
+    }
+
+    if (!confirm('Tem CERTEZA ABSOLUTA? Todos os combos serão perdidos permanentemente!')) {
+      return
+    }
+
+    setDeletingAll(true)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/combos/delete-all', {
+        method: 'DELETE',
+        headers
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        toast.success(`Todos os combos foram excluídos! (${data.deleted} combos removidos)`)
+        fetchCombos()
+      } else {
+        toast.error(data.message || 'Erro ao excluir combos')
+      }
+    } catch (error) {
+      console.error('Erro ao excluir todos os combos:', error)
+      toast.error('Erro ao excluir combos')
+    } finally {
+      setDeletingAll(false)
+    }
+  }
+
+  const handleOcrProcess = async () => {
+    if (!ocrImage) {
+      toast.error('Selecione uma imagem primeiro')
+      return
+    }
+
+    setOcrProcessing(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', ocrImage)
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/ocr/extract-menu', {
+        method: 'POST',
+        headers,
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setOcrResults(data.menuItems || [])
+        toast.success(`Processado! ${data.count} itens encontrados`)
+      } else {
+        toast.error(data.message || 'Erro ao processar imagem')
+      }
+    } catch (error: any) {
+      console.error('Erro ao processar OCR:', error)
+      toast.error('Erro ao processar imagem: ' + (error.message || 'Erro desconhecido'))
+    } finally {
+      setOcrProcessing(false)
+    }
+  }
+
+  const handleCreateFromOcr = async (item: typeof ocrResults[0], categoryId: string) => {
+    try {
+      const response = await fetch('/api/combos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: item.name,
+          description: item.description || '',
+          price: item.price || 0,
+          categoryId: categoryId,
+          isActive: true
+        })
+      })
+
+      if (response.ok) {
+        toast.success(`Combo "${item.name}" criado com sucesso!`)
+        fetchCombos()
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Erro ao criar combo')
+      }
+    } catch (error) {
+      toast.error('Erro ao criar combo')
+    }
+  }
+
   return (
     <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER]}>
       <div className="min-h-screen bg-gray-50">
@@ -671,6 +788,32 @@ export default function AdminCombos() {
               </div>
               
               <div className="flex space-x-3">
+                <Button
+                  onClick={() => setShowOcrModal(true)}
+                  variant="outline"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  <Scan className="h-4 w-4 mr-2" />
+                  IA: Ler Cardápio
+                </Button>
+                <Button
+                  onClick={handleDeleteAllCombos}
+                  disabled={deletingAll}
+                  variant="outline"
+                  className="border-red-500 text-red-600 hover:bg-red-50"
+                >
+                  {deletingAll ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    <>
+                      <Trash className="h-4 w-4 mr-2" />
+                      Excluir Todos
+                    </>
+                  )}
+                </Button>
                 <Button
                   onClick={() => setShowCategoryForm(true)}
                   variant="outline"
@@ -1396,6 +1539,123 @@ export default function AdminCombos() {
             }}
             onAddToCart={handleAddToCart}
           />
+        )}
+
+        {/* Modal de OCR */}
+        {showOcrModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scan className="h-5 w-5" />
+                  IA: Extrair Cardápio da Foto
+                </CardTitle>
+                <CardDescription>
+                  Envie uma foto do cardápio e nossa IA irá extrair automaticamente os itens, descrições e preços
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Selecione a foto do cardápio</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setOcrImage(file)
+                        setOcrResults([])
+                      }
+                    }}
+                    className="mt-2"
+                  />
+                  {ocrImage && (
+                    <div className="mt-4">
+                      <img
+                        src={URL.createObjectURL(ocrImage)}
+                        alt="Preview"
+                        className="max-w-full h-auto rounded-lg border"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleOcrProcess}
+                    disabled={!ocrImage || ocrProcessing}
+                    className="flex-1"
+                  >
+                    {ocrProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Scan className="h-4 w-4 mr-2" />
+                        Processar com IA
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowOcrModal(false)
+                      setOcrImage(null)
+                      setOcrResults([])
+                    }}
+                  >
+                    Fechar
+                  </Button>
+                </div>
+
+                {ocrResults.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-semibold mb-3">Itens Extraídos ({ocrResults.length})</h3>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {ocrResults.map((item, index) => (
+                        <Card key={index} className="p-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium">{item.name}</p>
+                              {item.description && (
+                                <p className="text-sm text-gray-600">{item.description}</p>
+                              )}
+                              {item.price && (
+                                <p className="text-sm font-semibold text-green-600">
+                                  R$ {item.price.toFixed(2)}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-400 mt-1">
+                                Confiança: {(item.confidence * 100).toFixed(0)}%
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <select
+                                className="text-sm border rounded px-2 py-1"
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    handleCreateFromOcr(item, e.target.value)
+                                  }
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="">Criar em...</option>
+                                {categories.map(cat => (
+                                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </ProtectedRoute>
