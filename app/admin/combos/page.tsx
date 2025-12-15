@@ -411,6 +411,9 @@ export default function AdminCombos() {
       image: combo.image || '', // Preservar imagem existente
       isActive: combo.isActive,
       isPizza: combo.isPizza,
+      isBurger: (combo as any).isBurger || false,
+      burgerArtisanalPrice: (combo as any).burgerArtisanalPrice ? (combo as any).burgerArtisanalPrice.toString() : '',
+      burgerIndustrialPrice: (combo as any).burgerIndustrialPrice ? (combo as any).burgerIndustrialPrice.toString() : '',
       pizzaQuantity: (combo as any).pizzaQuantity || 1,
       showFlavors: (combo as any).showFlavors !== undefined ? (combo as any).showFlavors : true,
       order: combo.order || 0,
