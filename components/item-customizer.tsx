@@ -26,6 +26,54 @@ interface ExtraItem {
   options?: Array<{ id: string; name: string; description?: string; price: number; isActive: boolean }>
 }
 
+// SABORES FIXOS - Adicionados manualmente para garantir que apareçam na personalização
+const FIXED_FLAVORS: PizzaFlavor[] = [
+  // Tradicionais
+  { id: 'trad-1', name: 'Baiana', description: 'Mussarela, calabresa, pimenta calabresa e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-2', name: 'Banana com canela', description: 'Mussarela, banana e canela', type: 'TRADICIONAL' },
+  { id: 'trad-3', name: 'Brigadeiro de panela', description: 'Mussarela, Brigadeiro de panela e granulado', type: 'TRADICIONAL' },
+  { id: 'trad-4', name: 'Caipira', description: 'Mussarela, frango, milho e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-5', name: 'Calabresa', description: 'Mussarela, calabresa, cebola e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-6', name: 'Calabresa c/ cheddar', description: 'Mussarela, calabresa, cheddar e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-7', name: 'Churros', description: 'Mussarela, leite condensado, doce de leite, açúcar e canela', type: 'TRADICIONAL' },
+  { id: 'trad-8', name: 'Dois queijos', description: 'Mussarela, catupiry e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-9', name: 'Frango c/ catupiry', description: 'Mussarela, frango desfiado, catupiry e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-10', name: 'Frango c/ cheddar', description: 'Mussarela, frango desfiado, cheddar e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-11', name: 'Lombinho', description: 'Camada dupla de mussarela e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-12', name: 'Marguerita', description: 'Mussarela, tomate, manjericão e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-13', name: 'Milho verde', description: 'Mussarela, milho verde e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-14', name: 'Mista especial', description: 'Mussarela, presunto, azeitona, milho verde e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-15', name: 'Moda vegetariana', description: 'Mussarela, palmito, milho verde, azeitona, manjericão e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-16', name: 'Portuguesa', description: 'Mussarela, presunto, ovos, cebola, pimentão, azeitona e orégano', type: 'TRADICIONAL' },
+  { id: 'trad-17', name: 'Romeu e julieta', description: 'Mussarela e goiabada', type: 'TRADICIONAL' },
+  // Especiais
+  { id: 'esp-1', name: '4 queijos', description: 'Mussarela, queijo do reino, queijo coalho, gorgonzola e orégano', type: 'ESPECIAL' },
+  { id: 'esp-2', name: 'Atum', description: 'Mussarela, atum, azeitonas e orégano', type: 'ESPECIAL' },
+  { id: 'esp-3', name: 'Atum acebolado', description: 'Mussarela, atum, cebola, azeitonas e orégano', type: 'ESPECIAL' },
+  { id: 'esp-4', name: 'Atum a moda do chef', description: 'Mussarela, atum, cebola, queijo coalho, azeitonas e orégano', type: 'ESPECIAL' },
+  { id: 'esp-5', name: 'Atum especial', description: 'Mussarela, atum, cebola, azeitonas, catupiry e orégano', type: 'ESPECIAL' },
+  { id: 'esp-6', name: 'Bacon', description: 'Mussarela, bacon, cebola e orégano', type: 'ESPECIAL' },
+  { id: 'esp-7', name: 'Bacon crocante', description: 'Mussarela, bacon acebolado, batata palha e orégano', type: 'ESPECIAL' },
+  { id: 'esp-8', name: 'Bacon especial', description: 'Mussarela, bacon, cebola, catupiry e orégano', type: 'ESPECIAL' },
+  { id: 'esp-9', name: 'Frango a moda da casa', description: 'Mussarela, filé de frango desfiado, milho verde, catupiry e orégano', type: 'ESPECIAL' },
+  { id: 'esp-10', name: 'Frango a moda do chef', description: 'Mussarela, filé de frango desfiado, queijo do reino, catupiry e orégano', type: 'ESPECIAL' },
+  { id: 'esp-11', name: 'Frango especial', description: 'Mussarela, filé de frango desfiado, cebola, catupiry e orégano', type: 'ESPECIAL' },
+  { id: 'esp-12', name: 'Lombinho', description: 'Mussarela, lombinho fatiado, azeitona e orégano', type: 'ESPECIAL' },
+  { id: 'esp-13', name: 'Nordestina', description: 'Mussarela, carne do sol acebolada e orégano', type: 'ESPECIAL' },
+  { id: 'esp-14', name: 'Nordestina a moda do chef', description: 'Mussarela, carne do sol acebolada, queijo coalho e orégano', type: 'ESPECIAL' },
+  { id: 'esp-15', name: 'Nordestina especial', description: 'Mussarela, carne do sol acebolada, azeitonas, catupiry e orégano', type: 'ESPECIAL' },
+  // Premiums
+  { id: 'prem-1', name: 'Camarão aos três queijos', description: 'Mussarela, camarão, queijo do reino, gorgonzola, cebola e orégano', type: 'PREMIUM' },
+  { id: 'prem-2', name: 'Camarão com catupiry philadelphia', description: 'Mussarela, camarão ao molho de frutos do mar, catupiry philadelphia e orégano', type: 'PREMIUM' },
+  { id: 'prem-3', name: 'Camarão especial', description: 'Mussarela, camarão e orégano', type: 'PREMIUM' },
+  { id: 'prem-4', name: 'Carne do Sol aos três Queijos', description: 'Mussarela, carne do sol, queijo do reino, queijo gorgonzola, cebola e orégano', type: 'PREMIUM' },
+  { id: 'prem-5', name: 'Carne do sol apimentada', description: 'Mussarela, filé de carne do sol, pimenta calabresa e orégano', type: 'PREMIUM' },
+  { id: 'prem-6', name: 'Carne do sol com catupiry philadelphia', description: 'Mussarela, filé de carne do sol, catupiry philadelphia e orégano', type: 'PREMIUM' },
+  { id: 'prem-7', name: 'Mega nordestina', description: 'Mussarela, carne do sol, cebola, queijo coalho, banana da terra e orégano', type: 'PREMIUM' },
+  { id: 'prem-8', name: 'Sabor do chef', description: 'Mussarela, filé de carne do sol acebolado, queijo coalho, queijo do reino, catupiry philadelphia e orégano', type: 'PREMIUM' },
+  { id: 'prem-9', name: 'Strogonoff de Camarão', description: 'Mussarela, strogonoff de camarão, batata palha e orégano', type: 'PREMIUM' }
+]
+
 export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCustomizerProps) {
   const [flavors, setFlavors] = useState<PizzaFlavor[]>([])
   const [sizes, setSizes] = useState<PizzaSize[]>([])
@@ -163,47 +211,22 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         throw new Error('Resposta da API inválida')
       }
       
+      // Se a API não retornar sabores, usar os sabores fixos
+      let flavorsToUse = allFlavors
+      
       if (allFlavors.length === 0) {
-        console.error('❌ [FETCH] NENHUM sabor encontrado na API!')
-        console.log('🔄 [FETCH] Tentando buscar novamente sem cache...')
-        
-        // Tentar novamente sem cache
-        const retryRes = await fetch(`/api/pizza-flavors?t=${Date.now()}`)
-        if (retryRes.ok) {
-          const retryFlavors = await retryRes.json()
-          if (Array.isArray(retryFlavors) && retryFlavors.length > 0) {
-            console.log(`✅ [FETCH] Retry bem-sucedido: ${retryFlavors.length} sabores`)
-            // Continuar com retryFlavors
-            const finalFlavors = retryFlavors
-            setFlavors(finalFlavors)
-            setDebugInfo({
-              detectedType,
-              categoryName,
-              totalInDatabase: finalFlavors.length,
-              filteredCount: finalFlavors.length,
-              availableTypes: Array.from(new Set(finalFlavors.map(f => f.type))),
-              note: 'Usando retry sem filtro'
-            })
-            return
-          }
-        }
-        
-        setFlavors([])
-        setDebugInfo({
-          error: 'Nenhum sabor encontrado no banco de dados',
-          totalInDatabase: 0,
-          apiResponse: allFlavors
-        })
-        return
+        console.warn('⚠️ [FETCH] NENHUM sabor encontrado na API! Usando sabores fixos...')
+        flavorsToUse = FIXED_FLAVORS
+        console.log(`✅ [FETCH] Usando ${FIXED_FLAVORS.length} sabores fixos`)
       }
 
       // Log dos tipos disponíveis
-      const availableTypes = Array.from(new Set(allFlavors.map(f => f.type)))
-      console.log('📋 [FETCH] Tipos disponíveis no banco:', availableTypes)
+      const availableTypes = Array.from(new Set(flavorsToUse.map(f => f.type)))
+      console.log('📋 [FETCH] Tipos disponíveis:', availableTypes)
       console.log('📊 [FETCH] Distribuição:', {
-        TRADICIONAL: allFlavors.filter(f => f.type === 'TRADICIONAL').length,
-        ESPECIAL: allFlavors.filter(f => f.type === 'ESPECIAL').length,
-        PREMIUM: allFlavors.filter(f => f.type === 'PREMIUM').length
+        TRADICIONAL: flavorsToUse.filter(f => f.type === 'TRADICIONAL').length,
+        ESPECIAL: flavorsToUse.filter(f => f.type === 'ESPECIAL').length,
+        PREMIUM: flavorsToUse.filter(f => f.type === 'PREMIUM').length
       })
 
       // ESTRATÉGIA 2: Filtrar no cliente baseado no tipo detectado
@@ -211,7 +234,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       
       if (detectedType) {
         // Filtrar por tipo detectado
-        finalFlavors = allFlavors.filter(f => 
+        finalFlavors = flavorsToUse.filter(f => 
           (f.type || '').toUpperCase() === detectedType.toUpperCase()
         )
         console.log(`✅ [FETCH] Filtrados ${finalFlavors.length} sabores do tipo ${detectedType}`)
@@ -219,12 +242,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         // Se não encontrou nenhum do tipo, mostrar TODOS como fallback
         if (finalFlavors.length === 0) {
           console.warn(`⚠️ [FETCH] Nenhum sabor do tipo ${detectedType} encontrado. Mostrando TODOS os sabores como fallback.`)
-          finalFlavors = allFlavors
+          finalFlavors = flavorsToUse
         }
       } else {
         // Se não detectou tipo, mostrar TODOS
         console.log('ℹ️ [FETCH] Tipo não detectado. Mostrando TODOS os sabores.')
-        finalFlavors = allFlavors
+        finalFlavors = flavorsToUse
       }
 
       console.log(`🎯 [FETCH] Sabores finais que serão exibidos: ${finalFlavors.length}`)
@@ -233,9 +256,10 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       setDebugInfo({
         detectedType,
         categoryName,
-        totalInDatabase: allFlavors.length,
+        totalInDatabase: flavorsToUse.length,
         filteredCount: finalFlavors.length,
         availableTypes,
+        usingFixedFlavors: allFlavors.length === 0,
         distribution: {
           TRADICIONAL: finalFlavors.filter(f => f.type === 'TRADICIONAL').length,
           ESPECIAL: finalFlavors.filter(f => f.type === 'ESPECIAL').length,
