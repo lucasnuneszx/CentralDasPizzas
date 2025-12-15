@@ -82,9 +82,25 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   // Função para detectar o tipo da categoria baseado no nome
   const getCategoryType = (): string | null => {
     const categoryName = (item as any).category?.name || ''
-    if (categoryName.includes('Tradicionais')) return 'TRADICIONAL'
-    if (categoryName.includes('Especiais')) return 'ESPECIAL'
-    if (categoryName.includes('Premiums')) return 'PREMIUM'
+    console.log('🔍 Detectando tipo da categoria:', {
+      categoryName,
+      itemName: item.name,
+      fullItem: item
+    })
+    
+    if (categoryName.includes('Tradicionais')) {
+      console.log('✅ Tipo detectado: TRADICIONAL')
+      return 'TRADICIONAL'
+    }
+    if (categoryName.includes('Especiais')) {
+      console.log('✅ Tipo detectado: ESPECIAL')
+      return 'ESPECIAL'
+    }
+    if (categoryName.includes('Premiums')) {
+      console.log('✅ Tipo detectado: PREMIUM')
+      return 'PREMIUM'
+    }
+    console.warn('⚠️ Tipo não detectado para categoria:', categoryName)
     return null
   }
 
