@@ -54,6 +54,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       fetchExtraItemData()
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, isCombo, allowCustomization])
 
   const fetchExtraItemData = async () => {
@@ -359,6 +360,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   }
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
@@ -1053,5 +1055,6 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         </div>
       </div>
     </div>
+    </>
   )
 }
