@@ -239,16 +239,28 @@ export default function MenuPage() {
     const pizzaQuantity = (combo as any).pizzaQuantity || 0
     
     // Garantir que a categoria esteja incluída no combo
+    // Priorizar a categoria passada como parâmetro, depois a do combo, depois buscar nas categorias
+    let finalCategory = category
+    if (!finalCategory && (combo as any).category) {
+      finalCategory = (combo as any).category
+    }
+    if (!finalCategory) {
+      // Buscar categoria nas categorias carregadas
+      finalCategory = categories.find(c => c.id === (combo as any).categoryId)
+    }
+    
     const comboWithCategory = {
       ...combo,
-      category: category || (combo as any).category || { id: '', name: '' }
+      category: finalCategory || { id: '', name: '' }
     }
     
     console.log('🎯 Personalizando item:', {
       comboName: combo.name,
       categoryName: comboWithCategory.category?.name,
+      categoryId: comboWithCategory.category?.id,
       isPizza: combo.isPizza,
-      pizzaQuantity
+      pizzaQuantity,
+      fullCombo: comboWithCategory
     })
     
     // Se for pizza ou tiver quantidade de pizzas, sempre usar o customizador completo para mostrar sabores

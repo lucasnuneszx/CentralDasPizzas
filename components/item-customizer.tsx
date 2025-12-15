@@ -150,6 +150,24 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         console.log('🔍 Sabores recebidos da API:', flavorsData.length, 'Tipo solicitado:', finalType)
         console.log('📋 Primeiros sabores:', flavorsData.slice(0, 3).map((f: PizzaFlavor) => ({ name: f.name, type: f.type })))
         
+        // Se não houver sabores e tivermos um tipo, tentar buscar todos os sabores como fallback
+        if (flavorsData.length === 0 && finalType) {
+          console.warn('⚠️ Nenhum sabor encontrado para o tipo. Tentando buscar todos os sabores...')
+          const allFlavorsRes = await fetch('/api/pizza-flavors')
+          if (allFlavorsRes.ok) {
+            const allFlavors = await allFlavorsRes.json()
+            console.log('📦 Todos os sabores disponíveis:', allFlavors.length)
+            
+            // Filtrar por tipo no cliente
+            const filtered = allFlavors.filter((f: PizzaFlavor) => 
+              (f.type || '').toUpperCase() === finalType.toUpperCase()
+            )
+            console.log(`✅ Filtrados ${filtered.length} sabores do tipo ${finalType} (de ${allFlavors.length} total)`)
+            setFlavors(filtered)
+            return
+          }
+        }
+        
         // Filtrar novamente no cliente para garantir (case-insensitive)
         let filtered = flavorsData
         if (finalType) {
@@ -171,6 +189,26 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       } else {
         const errorText = await flavorsRes.text()
         console.error('❌ Erro ao carregar sabores:', flavorsRes.status, errorText)
+        
+        // Tentar buscar todos os sabores como fallback
+        if (finalType) {
+          console.log('🔄 Tentando buscar todos os sabores como fallback...')
+          try {
+            const fallbackRes = await fetch('/api/pizza-flavors')
+            if (fallbackRes.ok) {
+              const allFlavors = await fallbackRes.json()
+              const filtered = allFlavors.filter((f: PizzaFlavor) => 
+                (f.type || '').toUpperCase() === finalType.toUpperCase()
+              )
+              console.log(`✅ Fallback: ${filtered.length} sabores encontrados`)
+              setFlavors(filtered)
+              return
+            }
+          } catch (fallbackError) {
+            console.error('❌ Erro no fallback:', fallbackError)
+          }
+        }
+        
         setFlavors([])
       }
       

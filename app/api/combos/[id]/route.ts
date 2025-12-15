@@ -161,7 +161,8 @@ export async function PUT(
           return NextResponse.json({
             ...combo,
             pizzaQuantity: pizzaQuantity ?? 1,
-            showFlavors: showFlavors !== undefined ? showFlavors : true
+            showFlavors: showFlavors !== undefined ? showFlavors : true,
+            order: order ?? 0
           })
         }
       }

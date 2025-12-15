@@ -57,7 +57,7 @@ export async function GET() {
           orderBy: {
             createdAt: 'desc'
           }
-        }).then(combos => combos.map(c => ({ ...c, pizzaQuantity: 1, showFlavors: true })))
+        }).then(combos => combos.map(c => ({ ...c, pizzaQuantity: 1, showFlavors: true, order: 0 })))
       }
       throw error
     })

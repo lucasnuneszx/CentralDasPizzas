@@ -676,14 +676,29 @@ export default function AdminCombos() {
       const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
       if (newIndex < 0 || newIndex >= categoryCombos.length) return
 
-      // Trocar as ordens
-      const currentCombo = categoryCombos[currentIndex]
-      const targetCombo = categoryCombos[newIndex]
-      
-      const updates = [
-        { id: currentCombo.id, order: targetCombo.order || 0 },
-        { id: targetCombo.id, order: currentCombo.order || 0 }
-      ]
+      // Recalcular todas as ordens sequencialmente para evitar conflitos
+      const updates = categoryCombos.map((combo, index) => {
+        let newOrder = index
+        
+        // Se estamos movendo para cima, o item atual vai para o índice anterior
+        if (direction === 'up' && index === currentIndex) {
+          newOrder = newIndex
+        }
+        // Se estamos movendo para baixo, o item atual vai para o próximo índice
+        else if (direction === 'down' && index === currentIndex) {
+          newOrder = newIndex
+        }
+        // Se estamos movendo para cima, o item anterior avança
+        else if (direction === 'up' && index === newIndex) {
+          newOrder = currentIndex
+        }
+        // Se estamos movendo para baixo, o próximo item retrocede
+        else if (direction === 'down' && index === newIndex) {
+          newOrder = currentIndex
+        }
+        
+        return { id: combo.id, order: newOrder }
+      })
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
       const headers: HeadersInit = {
@@ -703,7 +718,9 @@ export default function AdminCombos() {
         toast.success('Ordem atualizada!')
         fetchCombos()
       } else {
-        toast.error('Erro ao atualizar ordem')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Erro ao atualizar ordem:', errorData)
+        toast.error(errorData.message || 'Erro ao atualizar ordem')
       }
     } catch (error) {
       console.error('Erro ao mover combo:', error)
