@@ -143,21 +143,56 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
       // ESTRATÉGIA 1: Buscar TODOS os sabores primeiro (sem filtro)
       console.log('📡 [FETCH] Buscando TODOS os sabores (sem filtro)...')
-      const allFlavorsRes = await fetch('/api/pizza-flavors')
+      
+      // Adicionar timestamp para evitar cache
+      const cacheBuster = `?t=${Date.now()}`
+      const allFlavorsRes = await fetch(`/api/pizza-flavors${cacheBuster}`)
       
       if (!allFlavorsRes.ok) {
-        throw new Error(`Erro HTTP ${allFlavorsRes.status}`)
+        const errorText = await allFlavorsRes.text()
+        console.error(`❌ [FETCH] Erro HTTP ${allFlavorsRes.status}:`, errorText)
+        throw new Error(`Erro HTTP ${allFlavorsRes.status}: ${errorText}`)
       }
 
       const allFlavors: PizzaFlavor[] = await allFlavorsRes.json()
-      console.log(`✅ [FETCH] Total de sabores no banco: ${allFlavors.length}`)
+      console.log(`✅ [FETCH] Total de sabores recebidos da API: ${allFlavors.length}`)
+      
+      // Verificar se é um array válido
+      if (!Array.isArray(allFlavors)) {
+        console.error('❌ [FETCH] Resposta da API não é um array:', typeof allFlavors, allFlavors)
+        throw new Error('Resposta da API inválida')
+      }
       
       if (allFlavors.length === 0) {
-        console.error('❌ [FETCH] NENHUM sabor encontrado no banco!')
+        console.error('❌ [FETCH] NENHUM sabor encontrado na API!')
+        console.log('🔄 [FETCH] Tentando buscar novamente sem cache...')
+        
+        // Tentar novamente sem cache
+        const retryRes = await fetch(`/api/pizza-flavors?t=${Date.now()}`)
+        if (retryRes.ok) {
+          const retryFlavors = await retryRes.json()
+          if (Array.isArray(retryFlavors) && retryFlavors.length > 0) {
+            console.log(`✅ [FETCH] Retry bem-sucedido: ${retryFlavors.length} sabores`)
+            // Continuar com retryFlavors
+            const finalFlavors = retryFlavors
+            setFlavors(finalFlavors)
+            setDebugInfo({
+              detectedType,
+              categoryName,
+              totalInDatabase: finalFlavors.length,
+              filteredCount: finalFlavors.length,
+              availableTypes: Array.from(new Set(finalFlavors.map(f => f.type))),
+              note: 'Usando retry sem filtro'
+            })
+            return
+          }
+        }
+        
         setFlavors([])
         setDebugInfo({
           error: 'Nenhum sabor encontrado no banco de dados',
-          totalInDatabase: 0
+          totalInDatabase: 0,
+          apiResponse: allFlavors
         })
         return
       }
