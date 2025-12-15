@@ -165,14 +165,16 @@ function parseMenuText(text: string): Array<{
     const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '.')) : null
 
     // Se a linha contém um preço, provavelmente é um item
-    if (price && price > 0 && price < 1000) {
+    if (price && price > 0 && price < 1000 && priceMatch) {
       // Se já temos um item em construção, finalizar ele
       if (currentItem) {
         items.push(currentItem)
       }
 
       // Extrair nome (tudo antes do preço)
-      const namePart = trimmedLine.substring(0, priceMatch.index).trim()
+      const namePart = priceMatch.index !== undefined 
+        ? trimmedLine.substring(0, priceMatch.index).trim()
+        : trimmedLine.trim()
       
       currentItem = {
         name: namePart || 'Item sem nome',
