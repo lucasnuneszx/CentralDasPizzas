@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthUser, checkAnyRole } from '@/lib/auth-helper'
 
 export async function GET() {
   try {
@@ -116,23 +117,72 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const user = await getAuthUser(request)
+    
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    if (!(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
+      return NextResponse.json(
+        { message: 'Sem permissão' },
+        { status: 403 }
+      )
+    }
+
     const { name, description, image, isActive, order } = await request.json()
+
+    // Validações
+    if (!name || name.trim() === '') {
+      return NextResponse.json(
+        { message: 'Nome da categoria é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar se já existe categoria com o mesmo nome
+    const existingCategory = await prisma.category.findFirst({
+      where: { name: name.trim() }
+    })
+
+    if (existingCategory) {
+      return NextResponse.json(
+        { message: 'Já existe uma categoria com este nome' },
+        { status: 400 }
+      )
+    }
 
     const category = await prisma.category.create({
       data: {
-        name,
-        description,
-        image,
+        name: name.trim(),
+        description: description?.trim() || null,
+        image: image || null,
         isActive: isActive ?? true,
         order: order || 0
       }
     })
 
     return NextResponse.json(category, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar categoria:', error)
+    
+    // Tratamento específico de erros
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { message: 'Já existe uma categoria com este nome' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { 
+        message: 'Erro ao criar categoria',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

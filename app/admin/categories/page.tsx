@@ -78,7 +78,7 @@ export default function AdminCategories() {
         })
       }
 
-      const response = await fetch(url, {
+      const response = await fetchWithAuth(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -89,6 +89,8 @@ export default function AdminCategories() {
         }),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         toast.success(editingCategory ? 'Categoria atualizada!' : 'Categoria criada!')
         setShowForm(false)
@@ -96,8 +98,9 @@ export default function AdminCategories() {
         resetForm()
         fetchCategories()
       } else {
-        const error = await response.json()
-        toast.error(error.message || 'Erro ao salvar categoria')
+        const errorMessage = data.message || 'Erro ao salvar categoria'
+        toast.error(errorMessage)
+        console.error('Erro ao salvar categoria:', data)
       }
     } catch (error) {
       toast.error('Erro ao salvar categoria')
@@ -120,21 +123,39 @@ export default function AdminCategories() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta categoria? Todos os combos desta categoria serão movidos para "Combos".')) return
+    const category = categories.find(c => c.id === id)
+    const comboCount = category?.combos?.length || 0
+    
+    const confirmMessage = comboCount > 0
+      ? `Tem certeza que deseja excluir a categoria "${category?.name}"? Os ${comboCount} produto(s) desta categoria serão movidos para a categoria "Combos".`
+      : `Tem certeza que deseja excluir a categoria "${category?.name}"?`
+    
+    if (!confirm(confirmMessage)) return
 
     try {
-      const response = await fetch(`/api/categories/${id}`, {
-        method: 'DELETE'
+      const response = await fetchWithAuth(`/api/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       })
 
+      const data = await response.json()
+
       if (response.ok) {
-        toast.success('Categoria excluída!')
+        const message = comboCount > 0
+          ? `Categoria excluída! ${comboCount} produto(s) movido(s) para "Combos".`
+          : 'Categoria excluída com sucesso!'
+        toast.success(message)
         fetchCategories()
       } else {
-        toast.error('Erro ao excluir categoria')
+        const errorMessage = data.message || 'Erro ao excluir categoria'
+        toast.error(errorMessage)
+        console.error('Erro ao excluir categoria:', data)
       }
-    } catch (error) {
-      toast.error('Erro ao excluir categoria')
+    } catch (error: any) {
+      console.error('Erro ao excluir categoria:', error)
+      toast.error('Erro ao excluir categoria. Tente novamente.')
     }
   }
 
