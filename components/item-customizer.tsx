@@ -160,9 +160,10 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         }
         
         if (filtered.length === 0 && flavorsData.length > 0) {
+          const uniqueTypes = Array.from(new Set(flavorsData.map((f: PizzaFlavor) => f.type)))
           console.warn('⚠️ Nenhum sabor encontrado após filtro, mas há sabores na resposta:', {
             tipoSolicitado: finalType,
-            tiposEncontrados: [...new Set(flavorsData.map((f: PizzaFlavor) => f.type))]
+            tiposEncontrados: uniqueTypes
           })
         }
         
