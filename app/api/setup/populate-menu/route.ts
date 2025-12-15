@@ -1,13 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthUser, checkAnyRole } from '@/lib/auth-helper'
 
 /**
  * Endpoint para popular dados do cardápio
  * 
- * IMPORTANTE: Este endpoint deve ser protegido em produção!
+ * ⚠️ ATENÇÃO: Esta rota DELETA TODOS os combos e categorias existentes!
+ * Apenas ADMIN pode executar esta operação.
  */
 export async function GET(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const user = await getAuthUser(request)
+    
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    if (!(await checkAnyRole(request, ['ADMIN']))) {
+      return NextResponse.json(
+        { message: 'Apenas administradores podem executar esta operação perigosa' },
+        { status: 403 }
+      )
+    }
+
+    // Confirmação adicional via query parameter
+    const { searchParams } = new URL(request.url)
+    const confirm = searchParams.get('confirm')
+    
+    if (confirm !== 'true') {
+      return NextResponse.json(
+        { 
+          message: 'Esta operação irá DELETAR todos os combos e categorias. Adicione ?confirm=true na URL para confirmar.',
+          warning: 'Esta é uma operação destrutiva e irreversível!'
+        },
+        { status: 400 }
+      )
+    }
+
     console.log('🍕 Populando dados do cardápio...')
 
     // Criar configurações iniciais da loja

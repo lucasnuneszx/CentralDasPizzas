@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -103,25 +103,38 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
       if (flavorsRes.ok) {
         const flavorsData = await flavorsRes.json()
-        // Se não houver tipo específico, filtrar por tipo da categoria
-        if (!categoryType) {
-          // Tentar detectar pelo nome do item
+        console.log('🔍 Sabores carregados:', flavorsData.length, 'Tipo da categoria:', categoryType)
+        
+        // Sempre filtrar por tipo da categoria se disponível
+        if (categoryType) {
+          const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === categoryType)
+          console.log(`✅ Filtrados ${filtered.length} sabores do tipo ${categoryType}`)
+          setFlavors(filtered)
+        } else {
+          // Tentar detectar pelo nome da categoria ou item
+          const categoryName = (item as any).category?.name || ''
           const itemName = item.name.toLowerCase()
-          if (itemName.includes('tradicional')) {
+          
+          if (categoryName.includes('Tradicionais') || itemName.includes('tradicional')) {
             const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
+            console.log(`✅ Detectado TRADICIONAL: ${filtered.length} sabores`)
             setFlavors(filtered)
-          } else if (itemName.includes('especial')) {
+          } else if (categoryName.includes('Especiais') || itemName.includes('especial')) {
             const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'ESPECIAL')
+            console.log(`✅ Detectado ESPECIAL: ${filtered.length} sabores`)
             setFlavors(filtered)
-          } else if (itemName.includes('premium')) {
+          } else if (categoryName.includes('Premiums') || itemName.includes('premium')) {
             const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'PREMIUM')
+            console.log(`✅ Detectado PREMIUM: ${filtered.length} sabores`)
             setFlavors(filtered)
           } else {
+            console.warn('⚠️ Tipo não detectado, mostrando todos os sabores')
             setFlavors(flavorsData)
           }
-        } else {
-          setFlavors(flavorsData)
         }
+      } else {
+        console.error('❌ Erro ao carregar sabores:', flavorsRes.status)
+        setFlavors([])
       }
       
       if (sizesRes.ok) {
@@ -300,12 +313,21 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     }
   }
 
-  // Agrupar sabores por tipo
-  const groupedFlavors = {
-    TRADICIONAL: flavors.filter(f => f.type === 'TRADICIONAL'),
-    ESPECIAL: flavors.filter(f => f.type === 'ESPECIAL'),
-    PREMIUM: flavors.filter(f => f.type === 'PREMIUM')
-  }
+  // Agrupar sabores por tipo (usar useMemo para evitar recálculos)
+  const groupedFlavors = useMemo(() => {
+    const grouped = {
+      TRADICIONAL: flavors.filter(f => (f.type || '').toUpperCase() === 'TRADICIONAL'),
+      ESPECIAL: flavors.filter(f => (f.type || '').toUpperCase() === 'ESPECIAL'),
+      PREMIUM: flavors.filter(f => (f.type || '').toUpperCase() === 'PREMIUM')
+    }
+    console.log('📊 Sabores agrupados:', {
+      TRADICIONAL: grouped.TRADICIONAL.length,
+      ESPECIAL: grouped.ESPECIAL.length,
+      PREMIUM: grouped.PREMIUM.length,
+      total: flavors.length
+    })
+    return grouped
+  }, [flavors])
 
   if (loading) {
     return (
@@ -377,8 +399,18 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           </div>
 
-          {/* Seleção de Sabores Tradicionais - APENAS para COMBOS com pizzas */}
-          {isCombo && flavors.length > 0 && (
+          {/* Seleção de Sabores - APENAS para COMBOS com pizzas */}
+          {isCombo && (
+            <>
+              {flavors.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                  <p className="text-gray-500 mb-2">Nenhum sabor disponível para esta categoria</p>
+                  <p className="text-sm text-gray-400">
+                    Categoria: {(item as any).category?.name || 'N/A'}
+                  </p>
+                </div>
+              )}
+              {flavors.length > 0 && (
             <>
               {/* Seleção de Tamanho (apenas se for pizza) */}
               {(item.isPizza || pizzaQuantity > 0) && sizes.length > 0 && (
