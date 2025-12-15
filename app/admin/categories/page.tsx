@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ProtectedRoute } from '@/components/protected-route'
 import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft, Filter } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, Filter, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Category {
@@ -40,6 +40,7 @@ export default function AdminCategories() {
     order: 0
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [isSettingUp, setIsSettingUp] = useState(false)
 
   useEffect(() => {
     fetchCategories()
@@ -153,6 +154,39 @@ export default function AdminCategories() {
     resetForm()
   }
 
+  const handleSetupPizzaCategories = async () => {
+    if (!confirm('Deseja criar as categorias de pizza (Tradicionais, Especiais e Premiums) com seus produtos? Isso criará 3 categorias e 6 produtos.')) {
+      return
+    }
+
+    setIsSettingUp(true)
+    try {
+      const response = await fetch('/api/setup/pizza-categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        toast.success('Categorias de pizza criadas com sucesso!')
+        if (data.results && data.results.length > 0) {
+          console.log('Resultados:', data.results)
+        }
+        fetchCategories()
+      } else {
+        toast.error(data.message || 'Erro ao criar categorias')
+      }
+    } catch (error) {
+      console.error('Erro ao configurar categorias:', error)
+      toast.error('Erro ao configurar categorias de pizza')
+    } finally {
+      setIsSettingUp(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -185,6 +219,15 @@ export default function AdminCategories() {
                 </div>
               </div>
               <div className="flex space-x-3">
+                <Button
+                  onClick={handleSetupPizzaCategories}
+                  disabled={isSettingUp}
+                  variant="outline"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {isSettingUp ? 'Configurando...' : 'Setup Categorias Pizza'}
+                </Button>
                 <Button
                   onClick={() => setShowForm(true)}
                   className="bg-red-500 hover:bg-red-600 text-white"
