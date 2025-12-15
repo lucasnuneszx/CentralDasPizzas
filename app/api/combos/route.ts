@@ -16,6 +16,7 @@ export async function GET() {
         allowCustomization: true,
         pizzaQuantity: true,
         showFlavors: true,
+        order: true,
         createdAt: true,
         updatedAt: true,
         category: {
@@ -25,9 +26,10 @@ export async function GET() {
           }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     }).catch((error: any) => {
       // Se houver erro por coluna faltante (pizzaQuantity ou showFlavors), buscar sem elas
       if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('does not exist')) {
@@ -75,7 +77,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors } = await request.json()
+    const { name, description, price, categoryId, image, isActive, isPizza, pizzaQuantity, showFlavors, order } = await request.json()
 
     // Verificar se a categoria existe
     const category = await prisma.category.findUnique({
@@ -97,7 +99,8 @@ export async function POST(request: NextRequest) {
       categoryId,
       image,
       isActive: isActive ?? true,
-      isPizza: isPizza ?? false
+      isPizza: isPizza ?? false,
+      order: order ?? 0
     }
 
     // Tentar criar com todos os campos primeiro

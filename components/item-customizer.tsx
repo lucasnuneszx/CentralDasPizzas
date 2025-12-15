@@ -244,6 +244,39 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       total = (item.price / pizzaQuantity) * pizzaQuantity
     }
 
+    // Adicionar valores extras por tipo de sabor (APENAS em combos, não em pizzas individuais)
+    // Em combos: Tradicionais = grátis, Especiais = +R$15,00, Premiums = +R$25,00
+    if (selectedFlavors.length > 0 && (pizzaQuantity > 0 || item.isPizza)) {
+      // Verificar se é um combo (não pizza individual)
+      const isCombo = pizzaQuantity > 0 || (item as any).category?.name?.includes('Combo')
+      
+      if (isCombo) {
+        selectedFlavors.forEach((flavor) => {
+          if (flavor.type === 'ESPECIAL') {
+            total += 15.00
+          } else if (flavor.type === 'PREMIUM') {
+            total += 25.00
+          }
+          // TRADICIONAL não adiciona valor extra
+        })
+      }
+    }
+
+    // Adicionar valores extras para Pizza 2 (se houver)
+    if (pizzaQuantity > 1 && selectedFlavorsPizza2.length > 0) {
+      const isCombo = pizzaQuantity > 0 || (item as any).category?.name?.includes('Combo')
+      
+      if (isCombo) {
+        selectedFlavorsPizza2.forEach((flavor) => {
+          if (flavor.type === 'ESPECIAL') {
+            total += 15.00
+          } else if (flavor.type === 'PREMIUM') {
+            total += 25.00
+          }
+        })
+      }
+    }
+
     // Adicionar preços dos itens extras selecionados
     Object.entries(selectedExtraItems).forEach(([key, selection]) => {
       // key pode ser "itemId" ou "itemId-optionId"

@@ -119,6 +119,7 @@ model Combo {
   allowCustomization Boolean @default(false)
   pizzaQuantity Int    @default(1) // Quantidade de pizzas no combo (1 ou 2)
   showFlavors Boolean  @default(true) // Controla se sabores aparecem na personalização
+  order       Int      @default(0) // Ordem de exibição (menor número aparece primeiro)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

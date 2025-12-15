@@ -59,6 +59,46 @@ export default function FlavorsManagement() {
     }
   }
 
+  const handleReplaceAllFlavors = async () => {
+    if (!confirm('⚠️ ATENÇÃO: Esta ação irá REMOVER TODOS os sabores existentes e substituir pelos sabores dos cardápios.\n\nEsta operação é irreversível!\n\nDeseja continuar?')) {
+      return
+    }
+
+    if (!confirm('Tem CERTEZA ABSOLUTA? Todos os sabores atuais serão perdidos permanentemente!')) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/setup/replace-flavors', {
+        method: 'POST',
+        headers
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        toast.success(`Sabores substituídos! ${data.created.total} novos sabores criados (${data.created.tradicionais} tradicionais, ${data.created.especiais} especiais, ${data.created.premiums} premiums)`)
+        fetchFlavors()
+      } else {
+        toast.error(data.message || 'Erro ao substituir sabores')
+      }
+    } catch (error) {
+      console.error('Erro ao substituir sabores:', error)
+      toast.error('Erro ao substituir sabores')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleAddFlavor = async () => {
     if (!newFlavor.name.trim()) {
       toast.error('Nome do sabor é obrigatório')
@@ -200,10 +240,19 @@ export default function FlavorsManagement() {
                 </div>
               </div>
               
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Sabor
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="destructive"
+                  onClick={handleReplaceAllFlavors}
+                  disabled={isLoading}
+                >
+                  🔄 Substituir Todos os Sabores
+                </Button>
+                <Button onClick={() => setShowAddForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Sabor
+                </Button>
+              </div>
             </div>
           </div>
         </header>

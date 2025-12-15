@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { ProtectedRoute } from '@/components/protected-route'
 import { ImageUpload } from '@/components/image-upload'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft, ChefHat, Settings, Scan, Trash, Loader2 } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, ChefHat, Settings, Scan, Trash, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
 import ComboCustomizationModal from '@/components/combo-customization-modal'
 import toast from 'react-hot-toast'
 
@@ -22,6 +22,7 @@ interface Combo {
   image?: string
   isActive: boolean
   isPizza: boolean
+  order?: number
   category: {
     id: string
     name: string
@@ -56,6 +57,7 @@ export default function AdminCombos() {
     isPizza: false,
     pizzaQuantity: 1,
     showFlavors: true, // Controla se sabores aparecem na personalização
+    order: 0, // Ordem de exibição
     pizzaSizes: [] as Array<{ name: string; slices: number; maxFlavors: number; basePrice: string }>
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -453,6 +455,7 @@ export default function AdminCombos() {
       isPizza: false,
       pizzaQuantity: 1,
       showFlavors: true,
+      order: 0,
       pizzaSizes: []
     })
     setSelectedImage(null)
@@ -658,6 +661,53 @@ export default function AdminCombos() {
   const handleCancelCategory = () => {
     setShowCategoryForm(false)
     resetCategoryForm()
+  }
+
+  const handleMoveCombo = async (comboId: string, categoryId: string, direction: 'up' | 'down') => {
+    try {
+      const categoryCombos = combos
+        .filter(c => c.category.id === categoryId)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      
+      const currentIndex = categoryCombos.findIndex(c => c.id === comboId)
+      if (currentIndex === -1) return
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+      if (newIndex < 0 || newIndex >= categoryCombos.length) return
+
+      // Trocar as ordens
+      const currentCombo = categoryCombos[currentIndex]
+      const targetCombo = categoryCombos[newIndex]
+      
+      const updates = [
+        { id: currentCombo.id, order: targetCombo.order || 0 },
+        { id: targetCombo.id, order: currentCombo.order || 0 }
+      ]
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/combos/reorder', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ combos: updates })
+      })
+
+      if (response.ok) {
+        toast.success('Ordem atualizada!')
+        fetchCombos()
+      } else {
+        toast.error('Erro ao atualizar ordem')
+      }
+    } catch (error) {
+      console.error('Erro ao mover combo:', error)
+      toast.error('Erro ao mover combo')
+    }
   }
 
   const handleDeleteAllCombos = async () => {
@@ -964,6 +1014,22 @@ export default function AdminCombos() {
                         />
                         <Label htmlFor="showFlavors" className="text-gray-900 dark:text-gray-100">Exibir sabores na personalização</Label>
                       </div>
+                    </div>
+
+                    {/* Campo de Ordem */}
+                    <div className="mt-4">
+                      <Label htmlFor="order" className="text-gray-900 dark:text-gray-100">Ordem de Exibição</Label>
+                      <Input
+                        id="order"
+                        type="number"
+                        value={formData.order}
+                        onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                        placeholder="0"
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mt-1"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Número menor = aparece primeiro (0 = primeiro, 1 = segundo, etc.)
+                      </p>
                     </div>
 
                     {/* Seção de Quantidade de Pizzas */}
@@ -1391,7 +1457,9 @@ export default function AdminCombos() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categoryCombos.map((combo) => (
+                    {categoryCombos
+                      .sort((a, b) => (a.order || 0) - (b.order || 0))
+                      .map((combo, index) => (
                       <Card key={combo.id} className="overflow-hidden">
                         {combo.image && (
                           <div className="aspect-video bg-gray-200">
@@ -1409,6 +1477,24 @@ export default function AdminCombos() {
                               <CardDescription>{combo.category.name}</CardDescription>
                             </div>
                             <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMoveCombo(combo.id, category.id, 'up')}
+                                disabled={index === 0}
+                                title="Mover para cima"
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMoveCombo(combo.id, category.id, 'down')}
+                                disabled={index === categoryCombos.length - 1}
+                                title="Mover para baixo"
+                              >
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
