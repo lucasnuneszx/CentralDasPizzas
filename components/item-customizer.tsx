@@ -108,9 +108,36 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const fetchPizzaData = async () => {
     try {
       const categoryType = getCategoryType()
-      const flavorsUrl = categoryType 
-        ? `/api/pizza-flavors?type=${categoryType}`
+      const categoryName = (item as any).category?.name || ''
+      const itemName = item.name.toLowerCase()
+      
+      console.log('🔍 Debug fetchPizzaData:', {
+        categoryType,
+        categoryName,
+        itemName,
+        fullItem: item
+      })
+      
+      // Determinar o tipo final (prioridade: categoryType > detecção por nome)
+      let finalType: string | null = categoryType
+      
+      if (!finalType) {
+        if (categoryName.includes('Tradicionais') || itemName.includes('tradicional')) {
+          finalType = 'TRADICIONAL'
+        } else if (categoryName.includes('Especiais') || itemName.includes('especial')) {
+          finalType = 'ESPECIAL'
+        } else if (categoryName.includes('Premiums') || itemName.includes('premium')) {
+          finalType = 'PREMIUM'
+        }
+      }
+      
+      console.log('🎯 Tipo final determinado:', finalType)
+      
+      const flavorsUrl = finalType 
+        ? `/api/pizza-flavors?type=${finalType}`
         : '/api/pizza-flavors'
+      
+      console.log('📡 Fazendo requisição para:', flavorsUrl)
       
       const [flavorsRes, sizesRes, customizationRes] = await Promise.all([
         fetch(flavorsUrl),
@@ -120,37 +147,29 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
       if (flavorsRes.ok) {
         const flavorsData = await flavorsRes.json()
-        console.log('🔍 Sabores carregados:', flavorsData.length, 'Tipo da categoria:', categoryType)
+        console.log('🔍 Sabores recebidos da API:', flavorsData.length, 'Tipo solicitado:', finalType)
+        console.log('📋 Primeiros sabores:', flavorsData.slice(0, 3).map((f: PizzaFlavor) => ({ name: f.name, type: f.type })))
         
-        // Sempre filtrar por tipo da categoria se disponível
-        if (categoryType) {
-          const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === categoryType)
-          console.log(`✅ Filtrados ${filtered.length} sabores do tipo ${categoryType}`)
-          setFlavors(filtered)
-        } else {
-          // Tentar detectar pelo nome da categoria ou item
-          const categoryName = (item as any).category?.name || ''
-          const itemName = item.name.toLowerCase()
-          
-          if (categoryName.includes('Tradicionais') || itemName.includes('tradicional')) {
-            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'TRADICIONAL')
-            console.log(`✅ Detectado TRADICIONAL: ${filtered.length} sabores`)
-            setFlavors(filtered)
-          } else if (categoryName.includes('Especiais') || itemName.includes('especial')) {
-            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'ESPECIAL')
-            console.log(`✅ Detectado ESPECIAL: ${filtered.length} sabores`)
-            setFlavors(filtered)
-          } else if (categoryName.includes('Premiums') || itemName.includes('premium')) {
-            const filtered = flavorsData.filter((f: PizzaFlavor) => f.type === 'PREMIUM')
-            console.log(`✅ Detectado PREMIUM: ${filtered.length} sabores`)
-            setFlavors(filtered)
-          } else {
-            console.warn('⚠️ Tipo não detectado, mostrando todos os sabores')
-            setFlavors(flavorsData)
-          }
+        // Filtrar novamente no cliente para garantir (case-insensitive)
+        let filtered = flavorsData
+        if (finalType) {
+          filtered = flavorsData.filter((f: PizzaFlavor) => 
+            (f.type || '').toUpperCase() === finalType.toUpperCase()
+          )
+          console.log(`✅ Filtrados ${filtered.length} sabores do tipo ${finalType} (de ${flavorsData.length} total)`)
         }
+        
+        if (filtered.length === 0 && flavorsData.length > 0) {
+          console.warn('⚠️ Nenhum sabor encontrado após filtro, mas há sabores na resposta:', {
+            tipoSolicitado: finalType,
+            tiposEncontrados: [...new Set(flavorsData.map((f: PizzaFlavor) => f.type))]
+          })
+        }
+        
+        setFlavors(filtered)
       } else {
-        console.error('❌ Erro ao carregar sabores:', flavorsRes.status)
+        const errorText = await flavorsRes.text()
+        console.error('❌ Erro ao carregar sabores:', flavorsRes.status, errorText)
         setFlavors([])
       }
       
@@ -1058,3 +1077,4 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     </div>
   )
 }
+
