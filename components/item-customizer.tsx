@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Plus, Minus, X, ShoppingCart, ChefHat, Pizza, Crown, Star } from 'lucide-react'
 import Image from 'next/image'
+import toast from 'react-hot-toast'
 import { CustomizedItem, PizzaFlavor, PizzaSize, Combo } from '@/types/cart'
 
 interface ItemCustomizerProps {
