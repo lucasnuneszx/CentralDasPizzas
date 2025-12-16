@@ -29,12 +29,14 @@ export async function GET() {
               allowCustomization: true,
               pizzaQuantity: true,
               showFlavors: true,
+              order: true,
               createdAt: true,
               updatedAt: true,
             },
-            orderBy: {
-              name: 'asc'
-            }
+            orderBy: [
+              { order: 'asc' },
+              { name: 'asc' }
+            ]
           }
         }
       })
@@ -61,20 +63,40 @@ export async function GET() {
                 categoryId: true,
                 isPizza: true,
                 allowCustomization: true,
+                order: true,
                 createdAt: true,
                 updatedAt: true,
               },
-              orderBy: {
-                name: 'asc'
-              }
+              orderBy: [
+                { order: 'asc' },
+                { name: 'asc' }
+              ]
             }
           }
         })
         
-        // Adicionar pizzaQuantity e showFlavors padrão
+        // Adicionar pizzaQuantity, showFlavors e order padrão
         categories = categories.map(cat => ({
           ...cat,
-          combos: cat.combos.map(combo => ({ ...combo, pizzaQuantity: 1, showFlavors: true }))
+          combos: cat.combos.map(combo => ({ 
+            ...combo, 
+            pizzaQuantity: 1, 
+            showFlavors: true,
+            order: combo.order || 0
+          }))
+        }))
+        
+        // Ordenar combos por order e depois por nome (já que o orderBy do Prisma pode não funcionar sem o campo)
+        categories = categories.map(cat => ({
+          ...cat,
+          combos: cat.combos.sort((a: any, b: any) => {
+            const orderA = a.order || 0
+            const orderB = b.order || 0
+            if (orderA !== orderB) {
+              return orderA - orderB
+            }
+            return a.name.localeCompare(b.name)
+          })
         }))
       } else {
         throw error

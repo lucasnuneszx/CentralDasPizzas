@@ -775,6 +775,7 @@ export default function MenuPage() {
             // Renderizar categorias
             return finalCategories.map((category) => {
               // Filtrar combos dentro da categoria baseado na busca
+              // IMPORTANTE: Manter a ordem original dos combos (ordenados por campo 'order')
               const filteredCombos = (category.combos || []).filter(combo => {
                 if (!combo) return false
                 if (combo.isActive === false) return false
@@ -786,6 +787,15 @@ export default function MenuPage() {
                   return nameMatch || descMatch
                 }
                 return true
+              })
+              // Garantir que a ordem seja mantida (já vem ordenada da API, mas garantir aqui também)
+              .sort((a, b) => {
+                const orderA = (a as any).order || 0
+                const orderB = (b as any).order || 0
+                if (orderA !== orderB) {
+                  return orderA - orderB
+                }
+                return (a.name || '').localeCompare(b.name || '')
               })
 
               // IMPORTANTE: Mostrar categoria mesmo se não tiver combos após filtro
