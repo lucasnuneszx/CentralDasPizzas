@@ -118,6 +118,13 @@ export async function POST(request: NextRequest) {
           category: true
         }
       })
+      console.log('✅ Combo criado com sucesso:', {
+        id: combo.id,
+        name: combo.name,
+        isBurger: (combo as any).isBurger,
+        burgerArtisanalPrice: (combo as any).burgerArtisanalPrice,
+        burgerIndustrialPrice: (combo as any).burgerIndustrialPrice
+      })
       return NextResponse.json(combo, { status: 201 })
     } catch (createError: any) {
       // Se o erro for por coluna não existir, tentar sem elas
