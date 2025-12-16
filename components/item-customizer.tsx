@@ -85,7 +85,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const [selectedExtraItems, setSelectedExtraItems] = useState<{ [itemId: string]: { optionId?: string; quantity: number } }>({})
   const [observations, setObservations] = useState('')
   const [stuffedCrust, setStuffedCrust] = useState(false)
-  const [burgerType, setBurgerType] = useState<'artesanal' | 'industrial' | null>(null) // Tipo de hambúrguer selecionado
+  const [burgerType, setBurgerType] = useState<'artesanal' | 'industrial'>('artesanal') // Tipo de hambúrguer selecionado (sempre inicia com artesanal)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [debugInfo, setDebugInfo] = useState<any>({})
@@ -364,17 +364,14 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const calculatePrice = () => {
     let total = item.price
     
-    // Se for hambúrguer, usar preço baseado no tipo selecionado
-    if (isBurger && burgerType) {
-      const artisanalPrice = (item as any).burgerArtisanalPrice
-      const industrialPrice = (item as any).burgerIndustrialPrice
-      
-      if (burgerType === 'artesanal' && artisanalPrice !== null && artisanalPrice !== undefined) {
-        total = artisanalPrice
-      } else if (burgerType === 'industrial' && industrialPrice !== null && industrialPrice !== undefined) {
-        total = industrialPrice
+    // Se for hambúrguer, o preço base sempre é artesanal
+    // Ao selecionar industrializado, reduzir 10 reais (hardcoded)
+    if (isBurger) {
+      if (burgerType === 'industrial') {
+        // Reduzir 10 reais do preço base (artesanal)
+        total = item.price - 10
       }
-      // Se não tiver preço específico, usar preço base (já definido acima)
+      // Se for artesanal, usar preço base (já definido acima)
     }
     
     if ((item.isPizza || pizzaQuantity > 0) && selectedSize) {
@@ -436,11 +433,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   }
 
   const handleAddToCart = () => {
-    // Validar se é hambúrguer e se tipo foi selecionado
-    if (isBurger && (hasBurgerPrices || (item as any).isBurger === true) && !burgerType) {
-      toast.error('Por favor, selecione o tipo de carne (Artesanal ou Industrial)')
-      return
-    }
+    // Para hambúrgueres, o tipo sempre está definido (padrão é artesanal)
 
     const customizedItem: CustomizedItem = {
       id: `${item.id}-${Date.now()}`,
@@ -994,61 +987,39 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
           )}
 
           {/* Seleção de Tipo de Carne - APENAS para hambúrgueres */}
-          {isBurger && (hasBurgerPrices || (item as any).isBurger === true) && (
+          {isBurger && (
             <div className="space-y-3 border-t pt-6 mt-6">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-base font-semibold text-gray-900">
-                  Escolha o tipo de carne *
+                  Tipo de carne
                 </Label>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  Obrigatório
-                </span>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Selecione entre carne artesanal ou industrializada. Cada opção tem um valor diferente.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-4">
                 <button
                   type="button"
-                  onClick={() => setBurgerType('artesanal')}
-                  className={`p-5 border-2 rounded-lg text-center transition-all ${
-                    burgerType === 'artesanal'
-                      ? 'border-orange-600 bg-orange-50 shadow-md ring-2 ring-orange-200'
-                      : 'border-gray-300 hover:border-orange-300 hover:bg-orange-50'
-                  }`}
+                  disabled
+                  className="p-4 border-2 border-orange-600 bg-orange-50 rounded-lg text-center cursor-default flex-1"
                 >
-                  <div className="font-bold text-lg text-gray-900 mb-2">Carne Artesanal</div>
-                  <div className="text-xs text-gray-500 mb-2">Preparada artesanalmente</div>
-                  {(item as any).burgerArtisanalPrice !== null && (item as any).burgerArtisanalPrice !== undefined ? (
-                    <div className="text-lg font-bold text-orange-600">
-                      R$ {(item as any).burgerArtisanalPrice.toFixed(2).replace('.', ',')}
-                    </div>
-                  ) : (
-                    <div className="text-lg font-bold text-gray-600">
-                      R$ {item.price.toFixed(2).replace('.', ',')}
-                    </div>
-                  )}
+                  <div className="font-bold text-base text-gray-900 mb-1">ARTESANAL</div>
+                  <div className="text-xs text-orange-600 font-semibold">(Já selecionado)</div>
+                  <div className="text-base font-bold text-orange-600 mt-2">
+                    R$ {item.price.toFixed(2).replace('.', ',')}
+                  </div>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setBurgerType('industrial')}
-                  className={`p-5 border-2 rounded-lg text-center transition-all ${
+                  onClick={() => setBurgerType(burgerType === 'industrial' ? 'artesanal' : 'industrial')}
+                  className={`p-4 border-2 rounded-lg text-center transition-all flex-1 ${
                     burgerType === 'industrial'
                       ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
                       : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50'
                   }`}
                 >
-                  <div className="font-bold text-lg text-gray-900 mb-2">Carne Industrializada</div>
-                  <div className="text-xs text-gray-500 mb-2">Carne processada industrialmente</div>
-                  {(item as any).burgerIndustrialPrice !== null && (item as any).burgerIndustrialPrice !== undefined ? (
-                    <div className="text-lg font-bold text-blue-600">
-                      R$ {(item as any).burgerIndustrialPrice.toFixed(2).replace('.', ',')}
-                    </div>
-                  ) : (
-                    <div className="text-lg font-bold text-gray-600">
-                      R$ {item.price.toFixed(2).replace('.', ',')}
-                    </div>
-                  )}
+                  <div className="font-bold text-base text-gray-900 mb-1">Industrializado</div>
+                  <div className="text-xs text-gray-500 mb-1">(- R$ 10,00)</div>
+                  <div className={`text-base font-bold ${burgerType === 'industrial' ? 'text-blue-600' : 'text-gray-600'} mt-2`}>
+                    R$ {(item.price - 10).toFixed(2).replace('.', ',')}
+                  </div>
                 </button>
               </div>
             </div>

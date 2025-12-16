@@ -45,6 +45,7 @@ export default function MenuPage() {
   const [editingItem, setEditingItem] = useState<CustomizedItem | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [minPrices, setMinPrices] = useState<{ [comboId: string]: number }>({})
 
   const loadCartFromStorage = useCallback(() => {
     try {
@@ -115,6 +116,34 @@ export default function MenuPage() {
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
     }
+  }
+
+  // Função para buscar preços mínimos dos tamanhos de pizza
+  const fetchMinPrices = async (combos: Combo[]) => {
+    const prices: { [comboId: string]: number } = {}
+    
+    // Buscar apenas para combos que são pizzas
+    const pizzaCombos = combos.filter(combo => combo.isPizza)
+    
+    await Promise.all(
+      pizzaCombos.map(async (combo) => {
+        try {
+          const response = await fetch(`/api/pizza-sizes?comboId=${combo.id}`)
+          if (response.ok) {
+            const sizes = await response.json()
+            if (sizes && sizes.length > 0) {
+              // Encontrar o menor preço
+              const minPrice = Math.min(...sizes.map((s: any) => s.basePrice))
+              prices[combo.id] = minPrice
+            }
+          }
+        } catch (error) {
+          console.error(`Erro ao buscar tamanhos do combo ${combo.id}:`, error)
+        }
+      })
+    )
+    
+    setMinPrices(prices)
   }
 
   const fetchCategories = async () => {
@@ -197,6 +226,10 @@ export default function MenuPage() {
           
           // FORÇAR atualização do estado
           setCategories(validCategories)
+          
+          // Buscar preços mínimos para combos de pizza
+          const allCombos = validCategories.flatMap(cat => cat.combos || [])
+          await fetchMinPrices(allCombos)
           
           // Forçar re-render
           setTimeout(() => {
@@ -834,7 +867,13 @@ export default function MenuPage() {
                     <CardContent className="pt-0 px-4 md:px-6 pb-4 md:pb-6">
                       <div className="flex flex-col space-y-3">
                         <div className="text-xl md:text-2xl font-bold text-red-600">
-                          R$ {combo.price.toFixed(2).replace('.', ',')}
+                          {combo.isPizza && minPrices[combo.id] ? (
+                            <>
+                              A partir de R$ {minPrices[combo.id].toFixed(2).replace('.', ',')}
+                            </>
+                          ) : (
+                            <>R$ {combo.price.toFixed(2).replace('.', ',')}</>
+                          )}
                         </div>
                         <Button
                           onClick={() => handleItemCustomize(combo, category)}

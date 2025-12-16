@@ -61,7 +61,9 @@ export default function AdminCombos() {
     pizzaQuantity: 1,
     showFlavors: true, // Controla se sabores aparecem na personalização
     order: 0, // Ordem de exibição
-    pizzaSizes: [] as Array<{ name: string; slices: number; maxFlavors: number; basePrice: string }>
+    pizzaSizes: [] as Array<{ name: string; slices: number; maxFlavors: number; basePrice: string }>,
+    precoFamilia: '', // Preço para tamanho Família
+    precoGrande: '' // Preço para tamanho Grande
   })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [extraItems, setExtraItems] = useState<Array<{
@@ -197,26 +199,63 @@ export default function AdminCombos() {
       console.log('✅ Combo salvo:', savedCombo)
       
       // Se for uma pizza, criar/atualizar os tamanhos
-        if (formData.isPizza && formData.pizzaSizes.length > 0) {
+        if (formData.isPizza) {
           try {
-            // A API já remove tamanhos existentes antes de criar novos
-            await fetch(`/api/pizza-sizes`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                comboId: savedCombo.id,
-                sizes: formData.pizzaSizes
-                  .filter(size => size.basePrice && parseFloat(size.basePrice) > 0)
-                  .map(size => ({
-                    name: size.name,
-                    slices: size.slices,
-                    maxFlavors: size.maxFlavors,
-                    basePrice: parseFloat(size.basePrice)
-                  }))
-              }),
-            })
+            // Combinar tamanhos configurados manualmente com os preços de Família e Grande
+            let sizesToSave = [...formData.pizzaSizes]
+            
+            // Se preço Família foi configurado, adicionar ou atualizar tamanho Família
+            if (formData.precoFamilia && parseFloat(formData.precoFamilia) > 0) {
+              const familiaConfig = getSizeConfig('Família')
+              const familiaIndex = sizesToSave.findIndex(s => s.name === 'Família')
+              if (familiaIndex >= 0) {
+                sizesToSave[familiaIndex].basePrice = formData.precoFamilia
+              } else {
+                sizesToSave.push({
+                  name: 'Família',
+                  slices: familiaConfig.slices,
+                  maxFlavors: familiaConfig.maxFlavors,
+                  basePrice: formData.precoFamilia
+                })
+              }
+            }
+            
+            // Se preço Grande foi configurado, adicionar ou atualizar tamanho Grande
+            if (formData.precoGrande && parseFloat(formData.precoGrande) > 0) {
+              const grandeConfig = getSizeConfig('Grande')
+              const grandeIndex = sizesToSave.findIndex(s => s.name === 'Grande')
+              if (grandeIndex >= 0) {
+                sizesToSave[grandeIndex].basePrice = formData.precoGrande
+              } else {
+                sizesToSave.push({
+                  name: 'Grande',
+                  slices: grandeConfig.slices,
+                  maxFlavors: grandeConfig.maxFlavors,
+                  basePrice: formData.precoGrande
+                })
+              }
+            }
+            
+            // Salvar tamanhos apenas se houver pelo menos um configurado
+            if (sizesToSave.length > 0) {
+              await fetch(`/api/pizza-sizes`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  comboId: savedCombo.id,
+                  sizes: sizesToSave
+                    .filter(size => size.basePrice && parseFloat(size.basePrice) > 0)
+                    .map(size => ({
+                      name: size.name,
+                      slices: size.slices,
+                      maxFlavors: size.maxFlavors,
+                      basePrice: parseFloat(size.basePrice)
+                    }))
+                }),
+              })
+            }
           } catch (error) {
             console.error('Erro ao salvar tamanhos:', error)
             toast.error('Combo salvo, mas houve erro ao salvar tamanhos')
@@ -364,6 +403,9 @@ export default function AdminCombos() {
     // Buscar tamanhos da pizza se for uma pizza
     let pizzaSizes: Array<{ name: string; slices: number; maxFlavors: number; basePrice: string }> = []
     
+    let precoFamilia = ''
+    let precoGrande = ''
+    
     if (combo.isPizza) {
       try {
         const response = await fetch(`/api/pizza-sizes?comboId=${combo.id}`)
@@ -375,6 +417,16 @@ export default function AdminCombos() {
             maxFlavors: s.maxFlavors,
             basePrice: s.basePrice.toString()
           }))
+          
+          // Extrair preços de Família e Grande se existirem
+          const familiaSize = sizes.find((s: any) => s.name === 'Família')
+          const grandeSize = sizes.find((s: any) => s.name === 'Grande')
+          if (familiaSize) {
+            precoFamilia = familiaSize.basePrice.toString()
+          }
+          if (grandeSize) {
+            precoGrande = grandeSize.basePrice.toString()
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar tamanhos:', error)
@@ -421,7 +473,9 @@ export default function AdminCombos() {
       pizzaQuantity: (combo as any).pizzaQuantity || 1,
       showFlavors: (combo as any).showFlavors !== undefined ? (combo as any).showFlavors : true,
       order: combo.order || 0,
-      pizzaSizes
+      pizzaSizes,
+      precoFamilia,
+      precoGrande
     })
     setSelectedImage(null) // Limpar nova seleção para preservar imagem existente
     setShowForm(true)
@@ -472,7 +526,9 @@ export default function AdminCombos() {
       pizzaQuantity: 1,
       showFlavors: true,
       order: 0,
-      pizzaSizes: []
+      pizzaSizes: [],
+      precoFamilia: '',
+      precoGrande: ''
     })
     setSelectedImage(null)
     setEditingCombo(null) // Limpar referência de edição
@@ -1182,6 +1238,48 @@ export default function AdminCombos() {
                         <p className="text-xs text-gray-700 dark:text-gray-300 mt-2">
                           💡 Selecione quantas pizzas este combo contém. O cliente poderá escolher sabores diferentes para cada pizza.
                         </p>
+                      </div>
+                    )}
+
+                    {/* Campos de Preço para Tamanhos Adicionais (Família e Grande) */}
+                    {formData.isPizza && (
+                      <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <Label className="text-sm font-medium mb-3 block text-gray-900 dark:text-gray-100">Preços dos Tamanhos (opcional)</Label>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                          Configure os preços dos tamanhos Família e Grande. Estes valores serão exibidos na área de personalização quando o cliente escolher esses tamanhos.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="precoFamilia" className="text-gray-900 dark:text-gray-100">Preço Família (R$)</Label>
+                            <Input
+                              id="precoFamilia"
+                              type="number"
+                              step="0.01"
+                              value={formData.precoFamilia}
+                              onChange={(e) => setFormData({ ...formData, precoFamilia: e.target.value })}
+                              placeholder="Ex: 85.00"
+                              className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mt-1"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Preço quando o cliente escolher tamanho Família
+                            </p>
+                          </div>
+                          <div>
+                            <Label htmlFor="precoGrande" className="text-gray-900 dark:text-gray-100">Preço Grande (R$)</Label>
+                            <Input
+                              id="precoGrande"
+                              type="number"
+                              step="0.01"
+                              value={formData.precoGrande}
+                              onChange={(e) => setFormData({ ...formData, precoGrande: e.target.value })}
+                              placeholder="Ex: 65.00"
+                              className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 mt-1"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Preço quando o cliente escolher tamanho Grande
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
 
