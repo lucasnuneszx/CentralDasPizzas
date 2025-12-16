@@ -58,13 +58,31 @@ export default function PizzaCustomizer({ onAddToCart }: PizzaCustomizerProps) {
       if (flavorsRes.ok && sizesRes.ok) {
         const flavorsData = await flavorsRes.json()
         const sizesData = await sizesRes.json()
+
+        // Normalizar limites de sabores por tamanho
+        // Grande: 2 sabores | Família: 3 sabores
+        const normalizedSizes: PizzaSize[] = (sizesData || []).map((size: PizzaSize) => {
+          const name = (size.name || '').toLowerCase()
+          let maxFlavors = size.maxFlavors
+
+          if (name.includes('grande')) {
+            maxFlavors = 2
+          } else if (name.includes('família') || name.includes('familia')) {
+            maxFlavors = 3
+          }
+
+          return {
+            ...size,
+            maxFlavors
+          }
+        })
         
         setFlavors(flavorsData)
-        setSizes(sizesData)
+        setSizes(normalizedSizes)
         
         // Selecionar o primeiro tamanho por padrão
-        if (sizesData.length > 0) {
-          setSelectedSize(sizesData[0])
+        if (normalizedSizes.length > 0) {
+          setSelectedSize(normalizedSizes[0])
         }
       }
     } catch (error) {

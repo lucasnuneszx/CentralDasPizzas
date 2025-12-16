@@ -295,9 +295,28 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       const sizesRes = await fetch(`/api/pizza-sizes?comboId=${item.id}`)
       if (sizesRes.ok) {
         const sizesData = await sizesRes.json()
-        setSizes(sizesData)
-        if (sizesData.length > 0) {
-          setSelectedSize(sizesData[0])
+
+        // Normalizar limites de sabores por tamanho
+        // Grande: 2 sabores | Família: 3 sabores
+        const normalizedSizes: PizzaSize[] = (sizesData || []).map((size: PizzaSize) => {
+          const name = (size.name || '').toLowerCase()
+          let maxFlavors = size.maxFlavors
+
+          if (name.includes('grande')) {
+            maxFlavors = 2
+          } else if (name.includes('família') || name.includes('familia')) {
+            maxFlavors = 3
+          }
+
+          return {
+            ...size,
+            maxFlavors
+          }
+        })
+
+        setSizes(normalizedSizes)
+        if (normalizedSizes.length > 0) {
+          setSelectedSize(normalizedSizes[0])
         }
       }
 
@@ -333,9 +352,16 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   }
 
   const handleSizeSelect = (size: PizzaSize) => {
+    const maxFlavors = size.maxFlavors
+
     setSelectedSize(size)
-    if (selectedFlavors.length > size.maxFlavors) {
-      setSelectedFlavors(selectedFlavors.slice(0, size.maxFlavors))
+
+    // Garantir que os sabores selecionados respeitem o limite do tamanho
+    if (selectedFlavors.length > maxFlavors) {
+      setSelectedFlavors(selectedFlavors.slice(0, maxFlavors))
+    }
+    if (selectedFlavorsPizza2.length > maxFlavors) {
+      setSelectedFlavorsPizza2(selectedFlavorsPizza2.slice(0, maxFlavors))
     }
   }
 

@@ -574,8 +574,10 @@ export default function AdminCombos() {
     const configs: { [key: string]: { slices: number; maxFlavors: number } } = {
       'Pequena': { slices: 4, maxFlavors: 1 },
       'Média': { slices: 6, maxFlavors: 2 },
-      'Grande': { slices: 8, maxFlavors: 3 },
-      'Família': { slices: 13, maxFlavors: 4 }
+      // Regras globais de sabores:
+      // Grande: 2 sabores | Família: 3 sabores
+      'Grande': { slices: 8, maxFlavors: 2 },
+      'Família': { slices: 13, maxFlavors: 3 }
     }
     return configs[sizeName] || { slices: 6, maxFlavors: 2 }
   }
