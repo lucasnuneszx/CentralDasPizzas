@@ -185,10 +185,18 @@ export default function AdminCombos() {
         }),
       })
 
-      if (response.ok) {
-        const savedCombo = await response.json()
-        
-        // Se for uma pizza, criar/atualizar os tamanhos
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }))
+        console.error('❌ Erro ao salvar combo:', errorData)
+        toast.error(`Erro ao salvar: ${errorData.message || 'Erro desconhecido'}`)
+        setIsLoading(false)
+        return
+      }
+
+      const savedCombo = await response.json()
+      console.log('✅ Combo salvo:', savedCombo)
+      
+      // Se for uma pizza, criar/atualizar os tamanhos
         if (formData.isPizza && formData.pizzaSizes.length > 0) {
           try {
             // A API já remove tamanhos existentes antes de criar novos

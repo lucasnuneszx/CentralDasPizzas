@@ -31,9 +31,9 @@ export async function GET() {
         { createdAt: 'desc' }
       ]
     }).catch((error: any) => {
-      // Se houver erro por coluna faltante (pizzaQuantity ou showFlavors), buscar sem elas
-      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('does not exist')) {
-        console.warn('⚠️ Coluna pizzaQuantity ou showFlavors não existe. Buscando sem elas...')
+      // Se houver erro por coluna faltante, buscar sem elas
+      if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('isBurger') || error.message?.includes('burgerArtisanalPrice') || error.message?.includes('burgerIndustrialPrice') || error.message?.includes('does not exist')) {
+        console.warn('⚠️ Alguma coluna não existe. Buscando sem campos opcionais...')
         return prisma.combo.findMany({
           select: {
             id: true,
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
       isActive: isActive ?? true,
       isPizza: isPizza ?? false,
       isBurger: isBurger ?? false,
-      burgerArtisanalPrice: burgerArtisanalPrice ? parseFloat(burgerArtisanalPrice) : null,
-      burgerIndustrialPrice: burgerIndustrialPrice ? parseFloat(burgerIndustrialPrice) : null,
+      burgerArtisanalPrice: burgerArtisanalPrice !== null && burgerArtisanalPrice !== undefined && burgerArtisanalPrice !== '' ? parseFloat(String(burgerArtisanalPrice)) : null,
+      burgerIndustrialPrice: burgerIndustrialPrice !== null && burgerIndustrialPrice !== undefined && burgerIndustrialPrice !== '' ? parseFloat(String(burgerIndustrialPrice)) : null,
       order: order ?? 0
     }
 
