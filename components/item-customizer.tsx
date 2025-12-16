@@ -410,30 +410,28 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     }
 
     // Adicionar valores extras por tipo de sabor (APENAS em combos)
-    if (selectedFlavors.length > 0 && (pizzaQuantity > 0 || item.isPizza)) {
-      const isCombo = pizzaQuantity > 0 || (item as any).category?.name?.includes('Combo')
-      if (isCombo) {
-        selectedFlavors.forEach((flavor) => {
-          if (flavor.type === 'ESPECIAL') {
-            total += 15.00
-          } else if (flavor.type === 'PREMIUM') {
-            total += 25.00
-          }
-        })
-      }
+    // Regra: só cobrar adicional se o combo estiver em uma categoria de "Combos"
+    const categoryName = ((item as any).category?.name || '').toLowerCase()
+    const isComboCategory = categoryName.includes('combo')
+
+    if (isComboCategory && selectedFlavors.length > 0) {
+      selectedFlavors.forEach((flavor) => {
+        if (flavor.type === 'ESPECIAL') {
+          total += 15.00
+        } else if (flavor.type === 'PREMIUM') {
+          total += 25.00
+        }
+      })
     }
 
-    if (pizzaQuantity > 1 && selectedFlavorsPizza2.length > 0) {
-      const isCombo = pizzaQuantity > 0 || (item as any).category?.name?.includes('Combo')
-      if (isCombo) {
-        selectedFlavorsPizza2.forEach((flavor) => {
-          if (flavor.type === 'ESPECIAL') {
-            total += 15.00
-          } else if (flavor.type === 'PREMIUM') {
-            total += 25.00
-          }
-        })
-      }
+    if (isComboCategory && pizzaQuantity > 1 && selectedFlavorsPizza2.length > 0) {
+      selectedFlavorsPizza2.forEach((flavor) => {
+        if (flavor.type === 'ESPECIAL') {
+          total += 15.00
+        } else if (flavor.type === 'PREMIUM') {
+          total += 25.00
+        }
+      })
     }
 
     Object.entries(selectedExtraItems).forEach(([key, selection]) => {

@@ -115,19 +115,9 @@ export default function PizzaCustomizer({ onAddToCart }: PizzaCustomizerProps) {
   const calculatePrice = () => {
     if (!selectedSize) return 0
 
+    // Para pizzas avulsas, o valor dos sabores (Tradicional, Especial, Premium)
+    // NÃO altera o preço final. Apenas o tamanho e a borda recheada impactam.
     let total = selectedSize.basePrice
-
-    // Adicionar preços extras para sabores premium e especiais
-    const premiumCount = selectedFlavors.filter(f => f.type === 'PREMIUM').length
-    const especialCount = selectedFlavors.filter(f => f.type === 'ESPECIAL').length
-
-    // R$ 15,00 por sabor premium quando misturado
-    if (premiumCount > 0 && selectedFlavors.length > 1) {
-      total += premiumCount * 15.00
-    }
-
-    // R$ 20,00 por sabor especial
-    total += especialCount * 20.00
 
     // Borda recheada
     if (stuffedCrust) {
