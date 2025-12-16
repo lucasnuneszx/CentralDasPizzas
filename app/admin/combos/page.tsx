@@ -743,6 +743,42 @@ export default function AdminCombos() {
     }
   }
 
+  const handleAddBurgerColumns = async () => {
+    if (!confirm('Deseja adicionar as colunas de hambúrguer no banco de dados? Esta ação é segura e não afeta dados existentes.')) {
+      return
+    }
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/setup/add-burger-columns', {
+        method: 'GET',
+        headers
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Colunas adicionadas com sucesso!')
+        console.log('Resultados:', data.results)
+        // Recarregar combos para verificar se funcionou
+        fetchCombos()
+      } else {
+        toast.error(data.message || 'Erro ao adicionar colunas')
+        console.error('Erro:', data)
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar colunas:', error)
+      toast.error('Erro ao adicionar colunas')
+    }
+  }
+
   const handleDeleteAllCombos = async () => {
     if (!confirm('⚠️ ATENÇÃO: Esta ação irá excluir TODOS os combos do sistema. Esta operação é irreversível!\n\nDeseja continuar?')) {
       return
