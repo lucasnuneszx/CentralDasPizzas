@@ -874,7 +874,21 @@ export default function AdminCombos() {
                 </h1>
               </div>
               
-              <div className="flex space-x-3">
+              <div className="flex space-x-3 flex-wrap gap-2">
+                <Button
+                  onClick={() => setShowForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  + Adicionar Combo
+                </Button>
+                <Button
+                  onClick={handleAddBurgerColumns}
+                  variant="outline"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                  title="Adicionar colunas de hambúrguer no banco de dados"
+                >
+                  🔧 Criar Colunas Hambúrguer
+                </Button>
                 <Button
                   onClick={() => setShowOcrModal(true)}
                   variant="outline"
