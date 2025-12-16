@@ -351,7 +351,6 @@ export default function AdminCombos() {
         setEditingCombo(null)
         resetForm()
         fetchCombos()
-      }
     } catch (error) {
       toast.error('Erro ao salvar combo')
     } finally {
