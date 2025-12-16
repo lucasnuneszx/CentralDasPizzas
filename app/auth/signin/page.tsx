@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeft, ChefHat, Pizza } from 'lucide-react'
+import Image from 'next/image'
 
 // Forçar renderização dinâmica - desabilitar cache completamente
 export const dynamic = 'force-dynamic'
@@ -24,8 +25,25 @@ export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [settings, setSettings] = useState<any>(null)
   const router = useRouter()
   const { login } = useAuth()
+
+  // Buscar configurações para obter o logo
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setSettings(data)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   // Forçar atualização do cache do navegador
   useEffect(() => {
@@ -93,11 +111,30 @@ export default function SignIn() {
             </div>
             
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-48 h-48 bg-yellow-400/20 rounded-full flex items-center justify-center">
+              <div className="w-64 h-64 bg-yellow-400/20 rounded-full flex items-center justify-center">
                 <div className="text-center">
-                  <Pizza className="w-24 h-24 text-red-500 mx-auto mb-2" />
-                  <h2 className="text-3xl font-bold text-gray-800">Central Das Pizzas</h2>
-                  <p className="text-gray-600 mt-2">Sistema PDV</p>
+                  {settings?.profileLogo ? (
+                    <div className="w-32 h-32 mx-auto mb-4 relative">
+                      {settings.profileLogo.startsWith('data:') ? (
+                        <img
+                          src={settings.profileLogo}
+                          alt="Logo"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <Image
+                          src={settings.profileLogo}
+                          alt="Logo"
+                          fill
+                          className="object-contain"
+                          sizes="128px"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <Pizza className="w-24 h-24 text-red-500 mx-auto mb-4" />
+                  )}
+                  <h2 className="text-5xl font-bold text-gray-800">Central Das Pizzas</h2>
                 </div>
               </div>
             </div>
