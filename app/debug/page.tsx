@@ -5,11 +5,14 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@/lib/constants'
+import { maskEmail, maskName, maskId } from '@/lib/utils'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function DebugPage() {
   const { user, loading, authenticated } = useAuth()
   const [userData, setUserData] = useState<any>(null)
   const [checking, setChecking] = useState(false)
+  const [showSensitiveData, setShowSensitiveData] = useState(false)
 
   const checkUser = async () => {
     setChecking(true)
@@ -35,8 +38,20 @@ export default function DebugPage() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Status da Sessão</CardTitle>
-            <CardDescription>Informações sobre a autenticação</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Status da Sessão</CardTitle>
+                <CardDescription>Informações sobre a autenticação</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSensitiveData(!showSensitiveData)}
+              >
+                {showSensitiveData ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                {showSensitiveData ? 'Ocultar' : 'Mostrar'} Dados
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -49,10 +64,10 @@ export default function DebugPage() {
               {user && (
                 <>
                   <div>
-                    <strong>Email:</strong> {user.email}
+                    <strong>Email:</strong> {showSensitiveData ? user.email : maskEmail(user.email || '')}
                   </div>
                   <div>
-                    <strong>Nome:</strong> {user.name}
+                    <strong>Nome:</strong> {showSensitiveData ? user.name : maskName(user.name || '')}
                   </div>
                   <div>
                     <strong>Role:</strong> {user.role}
@@ -80,13 +95,13 @@ export default function DebugPage() {
                   {userData.user && (
                     <>
                       <div>
-                        <strong>ID:</strong> {userData.user.id}
+                        <strong>ID:</strong> {showSensitiveData ? userData.user.id : maskId(userData.user.id || '')}
                       </div>
                       <div>
-                        <strong>Nome:</strong> {userData.user.name}
+                        <strong>Nome:</strong> {showSensitiveData ? userData.user.name : maskName(userData.user.name || '')}
                       </div>
                       <div>
-                        <strong>Email:</strong> {userData.user.email}
+                        <strong>Email:</strong> {showSensitiveData ? userData.user.email : maskEmail(userData.user.email || '')}
                       </div>
                       <div>
                         <strong>Role:</strong> {userData.user.role}

@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Copy, CheckCircle, User, Shield, CreditCard, ChefHat } from 'lucide-react'
+import { ArrowLeft, Copy, CheckCircle, User, Shield, CreditCard, ChefHat, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import { maskEmail, maskPassword } from '@/lib/utils'
 
 export default function CredentialsPage() {
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null)
+  const [showCredentials, setShowCredentials] = useState<{ [key: number]: boolean }>({})
 
   const credentials = [
     {
@@ -102,7 +104,17 @@ export default function CredentialsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">Email:</span>
                       <div className="flex items-center space-x-2">
-                        <code className="text-sm bg-white px-2 py-1 rounded border">{cred.email}</code>
+                        <code className="text-sm bg-white px-2 py-1 rounded border">
+                          {showCredentials[index] ? cred.email : maskEmail(cred.email)}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowCredentials({ ...showCredentials, [index]: !showCredentials[index] })}
+                          title={showCredentials[index] ? 'Ocultar email' : 'Mostrar email'}
+                        >
+                          {showCredentials[index] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -115,7 +127,17 @@ export default function CredentialsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">Senha:</span>
                       <div className="flex items-center space-x-2">
-                        <code className="text-sm bg-white px-2 py-1 rounded border">{cred.password}</code>
+                        <code className="text-sm bg-white px-2 py-1 rounded border">
+                          {showCredentials[index] ? cred.password : maskPassword(cred.password)}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowCredentials({ ...showCredentials, [index]: !showCredentials[index] })}
+                          title={showCredentials[index] ? 'Ocultar senha' : 'Mostrar senha'}
+                        >
+                          {showCredentials[index] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

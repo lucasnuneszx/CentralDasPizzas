@@ -21,10 +21,12 @@ import {
   CheckCircle,
   XCircle,
   Eye,
+  EyeOff,
   RefreshCw,
   Download
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { maskName, maskPhone, maskEmail } from '@/lib/utils'
 
 interface Order {
   id: string
@@ -72,6 +74,7 @@ export default function OrdersHistory() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
   const [dateFilter, setDateFilter] = useState<string>('ALL')
   const router = useRouter()
 
@@ -362,13 +365,27 @@ export default function OrdersHistory() {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                             <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <User className="h-4 w-4 text-gray-500" />
-                                <span className="text-sm font-medium">{order.user.name}</span>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <User className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm font-medium">
+                                    {showSensitiveData[order.id] ? order.user.name : maskName(order.user.name)}
+                                  </span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setShowSensitiveData({ ...showSensitiveData, [order.id]: !showSensitiveData[order.id] })}
+                                  className="h-6 text-xs"
+                                >
+                                  {showSensitiveData[order.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                </Button>
                               </div>
                               {order.user.phone && (
                                 <div className="flex items-center space-x-2">
-                                  <span className="text-sm text-gray-600">{order.user.phone}</span>
+                                  <span className="text-sm text-gray-600">
+                                    {showSensitiveData[order.id] ? order.user.phone : maskPhone(order.user.phone)}
+                                  </span>
                                 </div>
                               )}
                               <div className="flex items-center space-x-2">
@@ -423,9 +440,19 @@ export default function OrdersHistory() {
                               <div className="flex items-start space-x-2">
                                 <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
                                 <div className="text-sm text-gray-600">
-                                  <p>{order.address.street}, {order.address.number}</p>
-                                  <p>{order.address.neighborhood} - {order.address.city}/{order.address.state}</p>
-                                  <p>CEP: {order.address.zipCode}</p>
+                                  {showSensitiveData[order.id] ? (
+                                    <>
+                                      <p>{order.address.street}, {order.address.number}</p>
+                                      <p>{order.address.neighborhood} - {order.address.city}/{order.address.state}</p>
+                                      <p>CEP: {order.address.zipCode}</p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p>***, ***</p>
+                                      <p>*** - ***/***</p>
+                                      <p>CEP: ***-**-{order.address.zipCode.substring(order.address.zipCode.length - 2)}</p>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>

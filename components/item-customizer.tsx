@@ -96,6 +96,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true) || allowCustomization) && showFlavors
 
   useEffect(() => {
+    // Para hambúrgueres, não buscar dados de pizza ou extras
+    if (isBurger) {
+      setLoading(false)
+      return
+    }
+    
     if (allowCustomization || isCombo) {
       fetchPizzaData()
     } else {
@@ -103,9 +109,15 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item, isCombo, allowCustomization])
+  }, [item, isCombo, allowCustomization, isBurger])
 
   const fetchExtraItemData = async () => {
+    // Não buscar extras para hambúrgueres
+    if (isBurger) {
+      setExtraItems([])
+      return
+    }
+    
     try {
       const response = await fetch(`/api/combos/${item.id}/customization`)
       if (response.ok) {
@@ -279,21 +291,25 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         }
       }
 
-      // Buscar itens extras
-      const customizationRes = await fetch(`/api/combos/${item.id}/customization`)
-      if (customizationRes.ok) {
-        const customizationData = await customizationRes.json()
-        const extras = customizationData
-          .filter((item: any) => !item.isRequired && item.type !== 'PIZZA')
-          .map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            type: item.type,
-            price: 0,
-            options: item.options || []
-          }))
-        setExtraItems(extras)
+      // Buscar itens extras (apenas se não for hambúrguer)
+      if (!isBurger) {
+        const customizationRes = await fetch(`/api/combos/${item.id}/customization`)
+        if (customizationRes.ok) {
+          const customizationData = await customizationRes.json()
+          const extras = customizationData
+            .filter((item: any) => !item.isRequired && item.type !== 'PIZZA')
+            .map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              type: item.type,
+              price: 0,
+              options: item.options || []
+            }))
+          setExtraItems(extras)
+        }
+      } else {
+        setExtraItems([])
       }
     } catch (error: any) {
       console.error('❌ [FETCH] Erro ao carregar dados:', error)
@@ -343,9 +359,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       const artisanalPrice = (item as any).burgerArtisanalPrice
       const industrialPrice = (item as any).burgerIndustrialPrice
       
-      if (burgerType === 'artesanal' && artisanalPrice) {
+      if (burgerType === 'artesanal' && artisanalPrice !== null && artisanalPrice !== undefined) {
         total = artisanalPrice
-      } else if (burgerType === 'industrial' && industrialPrice) {
+      } else if (burgerType === 'industrial' && industrialPrice !== null && industrialPrice !== undefined) {
         total = industrialPrice
       }
       // Se não tiver preço específico, usar preço base (já definido acima)
@@ -550,8 +566,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           </div>
 
-          {/* Tamanhos */}
-          {sizes.length > 0 && (
+          {/* Tamanhos - APENAS para pizzas, não para hambúrgueres */}
+          {sizes.length > 0 && !isBurger && (
             <div>
               <Label className="text-base font-semibold text-gray-900 mb-2 block">Tamanho</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -574,8 +590,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           )}
 
-          {/* Seleção de Sabores */}
-          {isCombo && (
+          {/* Seleção de Sabores - APENAS para pizzas, não para hambúrgueres */}
+          {isCombo && !isBurger && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold text-gray-900">
@@ -795,8 +811,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           )}
 
-          {/* Pizza 2 (se houver) */}
-          {pizzaQuantity > 1 && (
+          {/* Pizza 2 (se houver) - APENAS para pizzas, não para hambúrgueres */}
+          {pizzaQuantity > 1 && !isBurger && (
             <div className="space-y-6 border-t pt-6">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold text-gray-900">
@@ -967,29 +983,33 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
             </div>
           )}
 
-          {/* Seleção de Tipo de Hambúrguer - APENAS para hambúrgueres */}
+          {/* Seleção de Tipo de Carne - APENAS para hambúrgueres */}
           {isBurger && (
-            <div>
+            <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-900 mb-2 block">
-                Tipo de Hambúrguer *
+                Escolha o tipo de carne *
               </Label>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-sm text-gray-600 mb-4">
+                Selecione entre carne artesanal ou industrializada. Cada opção tem um valor diferente.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setBurgerType('artesanal')}
-                  className={`p-4 border-2 rounded-lg text-center transition-all ${
+                  className={`p-5 border-2 rounded-lg text-center transition-all ${
                     burgerType === 'artesanal'
-                      ? 'border-orange-600 bg-orange-50 shadow-md'
+                      ? 'border-orange-600 bg-orange-50 shadow-md ring-2 ring-orange-200'
                       : 'border-gray-300 hover:border-orange-300 hover:bg-orange-50'
                   }`}
                 >
-                  <div className="font-semibold text-gray-900 mb-1">Artesanal</div>
-                  {(item as any).burgerArtisanalPrice ? (
-                    <div className="text-sm text-gray-600">
+                  <div className="font-bold text-lg text-gray-900 mb-2">Carne Artesanal</div>
+                  <div className="text-xs text-gray-500 mb-2">Preparada artesanalmente</div>
+                  {(item as any).burgerArtisanalPrice !== null && (item as any).burgerArtisanalPrice !== undefined ? (
+                    <div className="text-lg font-bold text-orange-600">
                       R$ {(item as any).burgerArtisanalPrice.toFixed(2).replace('.', ',')}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-lg font-bold text-gray-600">
                       R$ {item.price.toFixed(2).replace('.', ',')}
                     </div>
                   )}
@@ -997,19 +1017,20 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 <button
                   type="button"
                   onClick={() => setBurgerType('industrial')}
-                  className={`p-4 border-2 rounded-lg text-center transition-all ${
+                  className={`p-5 border-2 rounded-lg text-center transition-all ${
                     burgerType === 'industrial'
-                      ? 'border-blue-600 bg-blue-50 shadow-md'
+                      ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
                       : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50'
                   }`}
                 >
-                  <div className="font-semibold text-gray-900 mb-1">Industrial</div>
-                  {(item as any).burgerIndustrialPrice ? (
-                    <div className="text-sm text-gray-600">
+                  <div className="font-bold text-lg text-gray-900 mb-2">Carne Industrializada</div>
+                  <div className="text-xs text-gray-500 mb-2">Carne processada industrialmente</div>
+                  {(item as any).burgerIndustrialPrice !== null && (item as any).burgerIndustrialPrice !== undefined ? (
+                    <div className="text-lg font-bold text-blue-600">
                       R$ {(item as any).burgerIndustrialPrice.toFixed(2).replace('.', ',')}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-lg font-bold text-gray-600">
                       R$ {item.price.toFixed(2).replace('.', ',')}
                     </div>
                   )}

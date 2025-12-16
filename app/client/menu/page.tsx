@@ -448,19 +448,21 @@ export default function MenuPage() {
       {/* Header com banner e informações da loja */}
       <header className="relative">
         {settings?.restaurantBanner && (
-          <div className="h-32 md:h-48 w-full relative overflow-hidden">
+          <div className="h-40 sm:h-48 md:h-56 w-full relative overflow-hidden">
             {settings.restaurantBanner.startsWith('data:') ? (
               <img
                 src={settings.restaurantBanner}
                 alt="Banner da loja"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
               />
             ) : (
               <Image
                 src={settings.restaurantBanner}
                 alt="Banner da loja"
                 fill
-                className="object-cover"
+                className="object-cover object-center"
+                sizes="100vw"
+                priority
               />
             )}
             <div className="absolute inset-0 bg-black/30"></div>
@@ -792,16 +794,16 @@ export default function MenuPage() {
                   {filteredCombos.map((combo) => (
                   <Card key={combo.id} className="product-card bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200">
                     {combo.image && (
-                      <div className="h-48 md:h-64 relative bg-gray-50 flex items-center justify-center p-0 overflow-hidden">
+                      <div className="w-full aspect-square sm:aspect-[4/3] md:aspect-[3/2] relative bg-gray-50 flex items-center justify-center p-0 overflow-hidden">
                         {combo.image.startsWith('data:') ? (
                           <img
                             src={combo.image}
                             alt={combo.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain sm:object-cover"
                             style={{ 
                               width: '100%', 
                               height: '100%',
-                              objectFit: 'cover',
+                              objectFit: 'contain',
                               objectPosition: 'center',
                               display: 'block'
                             }}
@@ -811,8 +813,8 @@ export default function MenuPage() {
                             src={combo.image}
                             alt={combo.name}
                             fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-contain sm:object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           />
                         )}
                       </div>

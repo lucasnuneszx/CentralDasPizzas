@@ -291,13 +291,13 @@ export default function ClientOrders() {
                                   <img
                                     src={item.combo.image}
                                     alt={item.combo.name}
-                                    className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
+                                    className="w-14 h-14 sm:w-16 sm:h-16 object-contain sm:object-cover rounded-lg bg-gray-50"
                                   />
                                 ) : item.combo.image ? (
                                   <img
                                     src={item.combo.image}
                                     alt={item.combo.name}
-                                    className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
+                                    className="w-14 h-14 sm:w-16 sm:h-16 object-contain sm:object-cover rounded-lg bg-gray-50"
                                   />
                                 ) : (
                                   <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center">

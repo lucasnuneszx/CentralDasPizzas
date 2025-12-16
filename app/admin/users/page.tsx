@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProtectedRoute } from '@/components/protected-route'
 import { UserRole } from '@/lib/constants'
-import { Plus, Edit, Trash2, ArrowLeft, Users, Shield, UserCheck } from 'lucide-react'
+import { Plus, Edit, Trash2, ArrowLeft, Users, Shield, UserCheck, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { maskEmail } from '@/lib/utils'
 
 interface User {
   id: string
@@ -25,6 +26,7 @@ export default function AdminUsers() {
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [showEmails, setShowEmails] = useState<{ [key: string]: boolean }>({})
   const router = useRouter()
 
   const [formData, setFormData] = useState<{
@@ -299,9 +301,22 @@ export default function AdminUsers() {
                         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                           {getRoleIcon(user.role)}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <CardTitle className="text-lg">{user.name}</CardTitle>
-                          <CardDescription>{user.email}</CardDescription>
+                          <div className="flex items-center gap-2">
+                            <CardDescription>
+                              {showEmails[user.id] ? user.email : maskEmail(user.email)}
+                            </CardDescription>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={() => setShowEmails({ ...showEmails, [user.id]: !showEmails[user.id] })}
+                              title={showEmails[user.id] ? 'Ocultar email' : 'Mostrar email'}
+                            >
+                              {showEmails[user.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                       <div className="flex space-x-1">

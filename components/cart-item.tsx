@@ -45,12 +45,13 @@ export default function CartItem({ item, onUpdateQuantity, onRemove, onEdit }: C
         <div className="flex items-start space-x-4">
           {/* Imagem do item */}
           {item.combo.image && (
-            <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
+            <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
               <Image
                 src={item.combo.image}
                 alt={item.combo.name}
                 fill
-                className="object-cover"
+                className="object-contain sm:object-cover"
+                sizes="64px"
               />
             </div>
           )}

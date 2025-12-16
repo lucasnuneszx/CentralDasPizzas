@@ -144,6 +144,21 @@
     display: block !important;
   }
   
+  /* Ajustes responsivos para imagens em mobile */
+  @media (max-width: 640px) {
+    .product-card img,
+    .product-card [data-next-image] {
+      object-fit: contain !important;
+    }
+  }
+  
+  @media (min-width: 641px) {
+    .product-card img,
+    .product-card [data-next-image] {
+      object-fit: cover !important;
+    }
+  }
+  
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -156,6 +171,29 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* Estilos para páginas de autenticação */
+  .auth-container {
+    min-height: 100vh;
+  }
+
+  .auth-illustration {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .auth-illustration-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 }
 

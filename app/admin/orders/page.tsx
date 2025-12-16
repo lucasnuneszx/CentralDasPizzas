@@ -16,6 +16,7 @@ import {
   Smartphone,
   Store,
   Eye,
+  EyeOff,
   RefreshCw,
   Filter,
   Truck,
@@ -23,6 +24,7 @@ import {
   Send
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { maskName, maskPhone, maskId } from '@/lib/utils'
 
 interface Order {
   id: string
@@ -74,6 +76,7 @@ export default function OrdersManagement() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [sourceFilter, setSourceFilter] = useState<string>('ALL')
   const [deliveryPerson, setDeliveryPerson] = useState<{ [key: string]: string }>({})
+  const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -397,14 +400,35 @@ export default function OrdersManagement() {
                             </Badge>
                           </div>
 
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">Informações do Pedido</h4>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowSensitiveData({ ...showSensitiveData, [order.id]: !showSensitiveData[order.id] })}
+                              className="h-7 text-xs"
+                            >
+                              {showSensitiveData[order.id] ? (
+                                <>
+                                  <EyeOff className="h-3 w-3 mr-1" />
+                                  Ocultar
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Mostrar
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                               <p className="text-sm text-gray-600">
-                                <strong>Cliente:</strong> {order.customerName}
+                                <strong>Cliente:</strong> {showSensitiveData[order.id] ? order.customerName : maskName(order.customerName)}
                               </p>
                               {order.customerPhone && (
                                 <p className="text-sm text-gray-600">
-                                  <strong>Telefone:</strong> {order.customerPhone}
+                                  <strong>Telefone:</strong> {showSensitiveData[order.id] ? order.customerPhone : maskPhone(order.customerPhone)}
                                 </p>
                               )}
                               <p className="text-sm text-gray-600">
@@ -430,9 +454,19 @@ export default function OrdersManagement() {
                               {order.address && (
                                 <div className="text-sm text-gray-600">
                                   <strong>Endereço:</strong>
-                                  <p>{order.address.street}, {order.address.number}</p>
-                                  <p>{order.address.neighborhood} - {order.address.city}/{order.address.state}</p>
-                                  <p>CEP: {order.address.zipCode}</p>
+                                  {showSensitiveData[order.id] ? (
+                                    <>
+                                      <p>{order.address.street}, {order.address.number}</p>
+                                      <p>{order.address.neighborhood} - {order.address.city}/{order.address.state}</p>
+                                      <p>CEP: {order.address.zipCode}</p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p>***, ***</p>
+                                      <p>*** - ***/***</p>
+                                      <p>CEP: ***-**-{order.address.zipCode.substring(order.address.zipCode.length - 2)}</p>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </div>
