@@ -92,7 +92,16 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const pizzaQuantity = (item as any).pizzaQuantity || 0
   const showFlavors = (item as any).showFlavors !== undefined ? (item as any).showFlavors : true
   const allowCustomization = (item as any).allowCustomization !== undefined ? (item as any).allowCustomization : false
-  const isBurger = (item as any).isBurger === true || (item.name || '').toLowerCase().includes('hambúrguer') || (item.name || '').toLowerCase().includes('burger')
+  
+  // Detectar se é hambúrguer: campo isBurger, nome contém hambúrguer/burger, ou tem preços de carne configurados
+  const hasBurgerPrices = ((item as any).burgerArtisanalPrice !== null && (item as any).burgerArtisanalPrice !== undefined) || 
+                          ((item as any).burgerIndustrialPrice !== null && (item as any).burgerIndustrialPrice !== undefined)
+  const isBurger = (item as any).isBurger === true || 
+                   (item.name || '').toLowerCase().includes('hambúrguer') || 
+                   (item.name || '').toLowerCase().includes('burger') ||
+                   (item.name || '').toLowerCase().includes('x-') ||
+                   hasBurgerPrices
+  
   const isCombo = ((pizzaQuantity > 0) || (item.isPizza === true) || allowCustomization) && showFlavors
 
   useEffect(() => {
@@ -427,8 +436,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
   const handleAddToCart = () => {
     // Validar se é hambúrguer e se tipo foi selecionado
-    if (isBurger && !burgerType) {
-      alert('Por favor, selecione o tipo de hambúrguer (Artesanal ou Industrial)')
+    if (isBurger && (hasBurgerPrices || (item as any).isBurger === true) && !burgerType) {
+      toast.error('Por favor, selecione o tipo de carne (Artesanal ou Industrial)')
       return
     }
 
@@ -984,11 +993,16 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
           )}
 
           {/* Seleção de Tipo de Carne - APENAS para hambúrgueres */}
-          {isBurger && (
-            <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-900 mb-2 block">
-                Escolha o tipo de carne *
-              </Label>
+          {isBurger && (hasBurgerPrices || (item as any).isBurger === true) && (
+            <div className="space-y-3 border-t pt-6 mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-base font-semibold text-gray-900">
+                  Escolha o tipo de carne *
+                </Label>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  Obrigatório
+                </span>
+              </div>
               <p className="text-sm text-gray-600 mb-4">
                 Selecione entre carne artesanal ou industrializada. Cada opção tem um valor diferente.
               </p>
