@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthUser, checkRole } from '@/lib/auth'
-import { UserRole } from '@/types/user'
+import { getAuthUser, checkAnyRole } from '@/lib/auth-helper'
 
 /**
  * Endpoint para adicionar colunas de hambúrguer diretamente no banco de dados
@@ -20,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar se é admin
-    if (!checkRole(user, UserRole.ADMIN)) {
+    if (!(await checkAnyRole(request, ['ADMIN']))) {
       return NextResponse.json(
         { message: 'Acesso negado. Apenas administradores podem executar esta ação.' },
         { status: 403 }
