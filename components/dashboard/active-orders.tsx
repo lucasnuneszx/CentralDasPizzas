@@ -22,6 +22,7 @@ import {
   ChevronDown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { printNative } from '@/lib/print-native'
 
 interface Order {
   id: string
@@ -241,24 +242,47 @@ export function ActiveOrders() {
 
   const handlePrintOrder = async (order: Order) => {
     try {
+      // Usar a API de impressão simplificada
       const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-      const response = await fetch(`/api/orders/${order.id}/print`, {
+      const response = await fetch('/api/print', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        }
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          printType: 'kitchen'
+        })
       })
 
       if (response.ok) {
-        toast.success('Pedido enviado para impressão!')
+        const data = await response.json()
+        
+        // Usar impressão nativa do navegador
+        printNative({
+          orderId: data.order.id,
+          orderNumber: order.id.slice(-8),
+          dateTime: data.order.dateTime,
+          customerName: data.order.customerName,
+          customerPhone: data.order.customerPhone,
+          items: data.order.items,
+          total: data.order.total,
+          deliveryType: data.order.deliveryType,
+          paymentMethod: data.order.paymentMethod,
+          address: data.order.address,
+          notes: data.order.notes,
+          printType: 'kitchen'
+        })
+        
+        toast.success('Abrindo impressão...')
       } else {
         const error = await response.json()
         toast.error(error.message || 'Erro ao imprimir pedido')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao imprimir pedido:', error)
-      toast.error('Erro ao imprimir pedido')
+      toast.error(error.message || 'Erro ao imprimir pedido')
     }
   }
 

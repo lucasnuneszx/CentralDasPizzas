@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Printer, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { printNative } from '@/lib/print-native'
 
 interface PrintOrderProps {
   orderId: string
@@ -18,6 +19,7 @@ export function PrintOrder({ orderId, orderNumber }: PrintOrderProps) {
     setIsPrinting(true)
     
     try {
+      // Buscar dados do pedido
       const response = await fetch('/api/print', {
         method: 'POST',
         headers: {
@@ -29,19 +31,36 @@ export function PrintOrder({ orderId, orderNumber }: PrintOrderProps) {
         }),
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        toast.success(`${printType === 'kitchen' ? 'Impressão para cozinha' : 'Cupom fiscal'} enviada!`)
-        
-        // Opcional: mostrar preview do conteúdo
-        if (data.content) {
-          console.log('Conteúdo para impressão:', data.content)
-        }
-      } else {
-        toast.error('Erro ao imprimir')
+      if (!response.ok) {
+        throw new Error('Erro ao buscar dados do pedido')
       }
-    } catch (error) {
-      toast.error('Erro ao imprimir')
+
+      const data = await response.json()
+      
+      if (!data.order) {
+        throw new Error('Dados do pedido não encontrados')
+      }
+      
+      // Usar impressão nativa do navegador (reconhece TODAS as impressoras)
+      printNative({
+        orderId: data.order.id,
+        orderNumber: orderNumber,
+        dateTime: data.order.dateTime || new Date().toLocaleString('pt-BR'),
+        customerName: data.order.customerName || '',
+        customerPhone: data.order.customerPhone,
+        items: data.order.items || [],
+        total: data.order.total || 0,
+        deliveryType: data.order.deliveryType || 'PICKUP',
+        paymentMethod: data.order.paymentMethod || 'CASH',
+        address: data.order.address,
+        notes: data.order.notes,
+        printType
+      })
+      
+      toast.success(`${printType === 'kitchen' ? 'Abrindo impressão para cozinha' : 'Abrindo cupom fiscal'}...`)
+    } catch (error: any) {
+      console.error('Erro ao imprimir:', error)
+      toast.error(error.message || 'Erro ao imprimir')
     } finally {
       setIsPrinting(false)
     }

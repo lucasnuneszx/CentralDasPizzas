@@ -299,27 +299,37 @@ async function printOrder(order: any, userId: string) {
       }
     })
 
-    // Aqui você pode integrar com o sistema de impressão
-    // Por exemplo, enviar para uma fila de impressão ou chamar uma API de impressão
-    
+    // Retornar dados formatados para impressão nativa do navegador
     return NextResponse.json({
-      message: 'Pedido enviado para impressão',
+      message: 'Dados do pedido preparados para impressão',
       orderId: order.id,
-      printData: {
-        orderNumber: order.id.slice(-8),
-        customerName: order.user?.name,
+      order: {
+        id: order.id,
+        dateTime: new Date(order.createdAt).toLocaleString('pt-BR'),
+        customerName: order.user?.name || '',
+        customerPhone: order.user?.phone || undefined,
         items: order.items.map((item: any) => ({
           name: item.combo.name,
           quantity: item.quantity,
-          price: item.price
+          price: parseFloat(item.price.toString())
         })),
-        total: order.total,
-        address: order.address,
-        notes: order.notes
+        total: parseFloat(order.total.toString()),
+        deliveryType: order.deliveryType,
+        paymentMethod: order.paymentMethod,
+        address: order.address ? {
+          street: order.address.street,
+          number: order.address.number,
+          complement: order.address.complement || undefined,
+          neighborhood: order.address.neighborhood,
+          city: order.address.city,
+          state: order.address.state,
+          zipCode: order.address.zipCode
+        } : undefined,
+        notes: order.notes || undefined
       }
     })
   } catch (error) {
-    console.error('Erro ao imprimir pedido:', error)
+    console.error('Erro ao preparar dados do pedido:', error)
     throw error
   }
 }
