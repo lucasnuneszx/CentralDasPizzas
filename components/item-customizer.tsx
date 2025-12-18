@@ -94,6 +94,35 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
   const showFlavors = (item as any).showFlavors !== undefined ? (item as any).showFlavors : true
   const allowCustomization = (item as any).allowCustomization !== undefined ? (item as any).allowCustomization : false
   
+  // Detectar tamanho da pizza pelo nome do combo para aplicar limite de sabores
+  const detectPizzaSizeFromName = (): number => {
+    const name = (item.name || '').toLowerCase()
+    const description = (item.description || '').toLowerCase()
+    const combined = name + ' ' + description
+    
+    // Verificar pelo nome/descrição qual tamanho de pizza está no combo
+    if (combined.includes('pequena')) {
+      return 1 // Pequena: 1 sabor
+    } else if (combined.includes('média') || combined.includes('media')) {
+      return 2 // Média: 2 sabores
+    } else if (combined.includes('família') || combined.includes('familia')) {
+      return 3 // Família: 3 sabores
+    } else if (combined.includes('grande')) {
+      return 2 // Grande: 2 sabores
+    }
+    
+    // Se não detectou pelo nome, tentar pelo pizzaQuantity
+    // Se tem 2 pizzas, provavelmente são médias (2 sabores cada)
+    if (pizzaQuantity >= 2) {
+      return 2
+    }
+    
+    // Padrão: 2 sabores (média)
+    return 2
+  }
+  
+  const defaultMaxFlavors = detectPizzaSizeFromName()
+  
   // Detectar se é hambúrguer: campo isBurger, nome contém hambúrguer/burger, ou tem preços de carne configurados
   const hasBurgerPrices = ((item as any).burgerArtisanalPrice !== null && (item as any).burgerArtisanalPrice !== undefined) || 
                           ((item as any).burgerIndustrialPrice !== null && (item as any).burgerIndustrialPrice !== undefined)
@@ -373,7 +402,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     if (selectedFlavors.find(f => f.id === flavor.id)) {
       setSelectedFlavors(selectedFlavors.filter(f => f.id !== flavor.id))
     } else {
-      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+      // Usar limite do tamanho selecionado ou o limite detectado pelo nome do combo
+      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
       if (selectedFlavors.length < maxFlavors) {
         setSelectedFlavors([...selectedFlavors, flavor])
       }
@@ -384,7 +414,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     if (selectedFlavorsPizza2.find(f => f.id === flavor.id)) {
       setSelectedFlavorsPizza2(selectedFlavorsPizza2.filter(f => f.id !== flavor.id))
     } else {
-      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+      // Usar limite do tamanho selecionado ou o limite detectado pelo nome do combo
+      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
       if (selectedFlavorsPizza2.length < maxFlavors) {
         setSelectedFlavorsPizza2([...selectedFlavorsPizza2, flavor])
       }
@@ -628,16 +659,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 <Label className="text-base font-semibold text-gray-900">
                   Escolha os Sabores
                 </Label>
-                {selectedSize && (
-                  <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
-                    {selectedFlavors.length}/{selectedSize.maxFlavors} sabores selecionados
-                  </span>
-                )}
-                {!selectedSize && (
-                  <span className="text-sm font-medium text-gray-600">
-                    {selectedFlavors.length} selecionado{selectedFlavors.length !== 1 ? 's' : ''}
-                  </span>
-                )}
+                <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+                  {selectedFlavors.length}/{selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors} sabores selecionados
+                </span>
               </div>
 
               {/* MENSAGEM: Nenhum sabor disponível */}
@@ -667,7 +691,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.TRADICIONAL.map((flavor) => {
                       const isSelected = selectedFlavors.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavors.length < maxFlavors
 
                       return (
@@ -729,7 +753,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.ESPECIAL.map((flavor) => {
                       const isSelected = selectedFlavors.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavors.length < maxFlavors
 
                       return (
@@ -791,7 +815,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.PREMIUM.map((flavor) => {
                       const isSelected = selectedFlavors.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavors.length < maxFlavors
 
                       return (
@@ -849,11 +873,9 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                 <Label className="text-base font-semibold text-gray-900">
                   Sabor Pizza 2
                 </Label>
-                {selectedSize && (
-                  <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
-                    {selectedFlavorsPizza2.length}/{selectedSize.maxFlavors} sabores selecionados
-                  </span>
-                )}
+                <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+                  {selectedFlavorsPizza2.length}/{selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors} sabores selecionados
+                </span>
               </div>
 
               {groupedFlavors.TRADICIONAL.length > 0 && (
@@ -865,7 +887,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.TRADICIONAL.map((flavor) => {
                       const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
 
                       return (
@@ -917,7 +939,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.ESPECIAL.map((flavor) => {
                       const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
 
                       return (
@@ -969,7 +991,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
                   <div className="grid grid-cols-1 gap-2">
                     {groupedFlavors.PREMIUM.map((flavor) => {
                       const isSelected = selectedFlavorsPizza2.find(f => f.id === flavor.id)
-                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : 999
+                      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
                       const canSelect = !isSelected && selectedFlavorsPizza2.length < maxFlavors
 
                       return (
