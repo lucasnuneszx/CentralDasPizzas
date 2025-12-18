@@ -60,12 +60,16 @@ export default function PizzaCustomizer({ onAddToCart }: PizzaCustomizerProps) {
         const sizesData = await sizesRes.json()
 
         // Normalizar limites de sabores por tamanho
-        // Grande: 2 sabores | Família: 3 sabores
+        // Pequena: 1 sabor | Média: 2 sabores | Grande: 2 sabores | Família: 3 sabores
         const normalizedSizes: PizzaSize[] = (sizesData || []).map((size: PizzaSize) => {
           const name = (size.name || '').toLowerCase()
           let maxFlavors = size.maxFlavors
 
-          if (name.includes('grande')) {
+          if (name.includes('pequena')) {
+            maxFlavors = 1
+          } else if (name.includes('média') || name.includes('media')) {
+            maxFlavors = 2
+          } else if (name.includes('grande')) {
             maxFlavors = 2
           } else if (name.includes('família') || name.includes('familia')) {
             maxFlavors = 3
