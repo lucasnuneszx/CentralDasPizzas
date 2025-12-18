@@ -88,89 +88,128 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
-      {/* Seção Esquerda - Ilustração/Visual (oculta em mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-red-100 via-orange-100 to-yellow-100">
-        <div className="absolute inset-0 flex items-center justify-center p-12">
-          {/* Ilustração decorativa */}
-          <div className="relative w-full h-full max-w-lg">
-            {/* Nuvem decorativa no topo */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/30 rounded-full blur-3xl"></div>
-            
-            {/* Elementos decorativos de pizza */}
-            <div className="absolute top-20 left-10 transform rotate-12 auth-illustration">
-              <div className="w-32 h-32 bg-red-400/20 rounded-full flex items-center justify-center">
-                <Pizza className="w-16 h-16 text-red-500" />
-              </div>
-            </div>
-            
-            <div className="absolute bottom-32 right-20 transform -rotate-12 auth-illustration-delayed">
-              <div className="w-40 h-40 bg-orange-400/20 rounded-full flex items-center justify-center">
-                <ChefHat className="w-20 h-20 text-orange-500" />
-              </div>
-            </div>
-            
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-64 h-64 bg-yellow-400/20 rounded-full flex items-center justify-center">
-                <div className="text-center">
-                  {settings?.profileLogo ? (
-                    <div className="w-32 h-32 mx-auto mb-4 relative">
-                      {settings.profileLogo.startsWith('data:') ? (
-                        <img
-                          src={settings.profileLogo}
-                          alt="Logo"
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <Image
-                          src={settings.profileLogo}
-                          alt="Logo"
-                          fill
-                          className="object-contain"
-                          sizes="128px"
-                        />
-                      )}
-                    </div>
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-red-900 to-orange-900">
+      {/* Seção Esquerda - Visual Premium (oculta em mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background com imagem de pizza */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1200&q=80')`,
+          }}
+        >
+          {/* Overlay escuro com gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-red-900/70 to-orange-900/60"></div>
+        </div>
+        
+        {/* Conteúdo sobre a imagem */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
+          {/* Partículas decorativas animadas */}
+          <div className="absolute top-20 left-20 w-4 h-4 bg-yellow-400 rounded-full animate-pulse opacity-60"></div>
+          <div className="absolute top-40 right-32 w-3 h-3 bg-orange-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: '0.5s' }}></div>
+          <div className="absolute bottom-40 left-32 w-5 h-5 bg-red-400 rounded-full animate-pulse opacity-40" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-20 right-20 w-3 h-3 bg-yellow-300 rounded-full animate-bounce opacity-50" style={{ animationDelay: '1.5s' }}></div>
+          
+          {/* Logo central com efeito glow */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-red-500/30 blur-3xl rounded-full scale-150"></div>
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 shadow-2xl">
+              {settings?.profileLogo ? (
+                <div className="w-40 h-40 mx-auto relative">
+                  {settings.profileLogo.startsWith('data:') ? (
+                    <img
+                      src={settings.profileLogo}
+                      alt="Logo"
+                      className="w-full h-full object-contain drop-shadow-2xl"
+                    />
                   ) : (
-                    <Pizza className="w-24 h-24 text-red-500 mx-auto mb-4" />
+                    <Image
+                      src={settings.profileLogo}
+                      alt="Logo"
+                      fill
+                      className="object-contain drop-shadow-2xl"
+                      sizes="160px"
+                    />
                   )}
-                  <h2 className="text-5xl font-bold text-gray-800">Central Das Pizzas</h2>
                 </div>
-              </div>
+              ) : (
+                <div className="w-40 h-40 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                  <Pizza className="w-24 h-24 text-white drop-shadow-lg" />
+                </div>
+              )}
             </div>
+          </div>
+          
+          {/* Título com efeito */}
+          <h1 className="text-5xl font-black text-white text-center mb-4 drop-shadow-lg">
+            Central
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400">
+              Das Pizzas
+            </span>
+          </h1>
+          
+          {/* Subtítulo */}
+          <p className="text-white/70 text-lg text-center max-w-sm mb-8">
+            A melhor pizza da cidade, feita com amor e ingredientes selecionados
+          </p>
+          
+          {/* Badges de qualidade */}
+          <div className="flex gap-4 flex-wrap justify-center">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <ChefHat className="w-5 h-5 text-yellow-400" />
+              <span className="text-white/90 text-sm font-medium">Chef Especializado</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Pizza className="w-5 h-5 text-orange-400" />
+              <span className="text-white/90 text-sm font-medium">Massa Artesanal</span>
+            </div>
+          </div>
+          
+          {/* Decoração inferior */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-3 text-white/40 text-sm">
+            <div className="w-12 h-px bg-gradient-to-r from-transparent to-white/30"></div>
+            <span>Desde 2020</span>
+            <div className="w-12 h-px bg-gradient-to-l from-transparent to-white/30"></div>
           </div>
         </div>
       </div>
 
       {/* Seção Direita - Formulário */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white">
         <div className="w-full max-w-md">
           {/* Logo e botão voltar (mobile) */}
           <div className="mb-8 lg:mb-12">
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="lg:hidden">
-                <Button variant="ghost" size="sm" className="text-gray-600">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-red-600">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Voltar
                 </Button>
               </Link>
               <div className="lg:hidden text-center flex-1">
-                <h1 className="text-2xl font-bold text-red-600">Central Das Pizzas</h1>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <Pizza className="w-6 h-6 text-white" />
+                  </div>
+                  <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600">Central Das Pizzas</h1>
+                </div>
               </div>
               <div className="w-16"></div>
             </div>
           </div>
 
           {/* Card do Formulário */}
-          <Card className="bg-white shadow-xl border-0 rounded-2xl">
+          <Card className="bg-white shadow-2xl border-0 rounded-3xl overflow-hidden">
+            {/* Header decorativo */}
+            <div className="h-2 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500"></div>
             <CardContent className="p-8 sm:p-10">
               {/* Título */}
               <div className="mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
-                  Entrar no sistema
+                  Bem-vindo de volta! 👋
                 </h2>
                 <p className="text-sm text-gray-500 text-center">
-                  Digite suas credenciais para acessar
+                  Entre com suas credenciais para acessar o sistema
                 </p>
               </div>
 
