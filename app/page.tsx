@@ -32,9 +32,12 @@ export default function Home() {
   useEffect(() => {
     if (loading) return
 
+    // Apenas redirecionar para dashboard se estiver autenticado
+    // A landing page é sempre exibida para visitantes não autenticados
     if (authenticated && user) {
       router.push('/dashboard')
     }
+    // NÃO redirecionar para /client/menu - a landing page é a página principal
   }, [user, loading, authenticated, router])
 
   if (loading) {
