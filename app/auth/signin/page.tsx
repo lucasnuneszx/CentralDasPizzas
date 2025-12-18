@@ -168,7 +168,7 @@ export default function SignIn() {
           {/* Decoração inferior */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-3 text-white/40 text-sm">
             <div className="w-12 h-px bg-gradient-to-r from-transparent to-white/30"></div>
-            <span>Desde 2020</span>
+            <span>Desde 2021</span>
             <div className="w-12 h-px bg-gradient-to-l from-transparent to-white/30"></div>
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function SignIn() {
                   Bem-vindo de volta! 👋
                 </h2>
                 <p className="text-sm text-gray-500 text-center">
-                  Entre com suas credenciais para acessar o sistema
+                  Entre com suas credenciais para acessar sua conta
                 </p>
               </div>
 

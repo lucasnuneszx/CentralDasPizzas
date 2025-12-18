@@ -186,7 +186,7 @@ export default function SignUp() {
           {/* Decoração inferior */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-3 text-white/40 text-sm">
             <div className="w-12 h-px bg-gradient-to-r from-transparent to-white/30"></div>
-            <span>+1000 clientes felizes</span>
+            <span>Desde 2021</span>
             <div className="w-12 h-px bg-gradient-to-l from-transparent to-white/30"></div>
           </div>
         </div>
