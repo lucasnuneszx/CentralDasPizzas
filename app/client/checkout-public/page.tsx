@@ -365,13 +365,24 @@ function CheckoutPublicContent() {
       
       if (response.ok && result.success !== false) {
         console.log('Pedido criado com sucesso:', result)
+        
+        // Salvar dados do pedido no localStorage para a página de sucesso
+        if (result.order) {
+          localStorage.setItem('lastOrder', JSON.stringify({
+            id: result.order.id,
+            total: result.order.total
+          }))
+        }
+        
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
-        // Garantir redirect para meus pedidos
+        
+        // Redirecionar para página de sucesso
+        const orderId = result.order?.id || ''
+        const total = result.order?.total || finalTotal
         setTimeout(() => {
-          router.push('/client/orders')
-          window.location.href = '/client/orders'
-        }, 500)
+          router.push(`/client/order-success?orderId=${orderId}&total=${total}`)
+        }, 1000)
       } else {
         console.error('Erro na resposta:', result)
         const errorMsg = result.message || result.error || 'Erro ao realizar pedido'
