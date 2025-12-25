@@ -122,9 +122,16 @@ async function generatePrintContent(order: any, printType: string) {
       // Sabores
       if (item.selectedFlavors) {
         try {
-          const flavorIds = JSON.parse(item.selectedFlavors)
-          if (Array.isArray(flavorIds) && flavorIds.length > 0) {
-            const flavorNames = flavorIds.map((id: string) => flavorsMap.get(id) || id)
+          const parsed = JSON.parse(item.selectedFlavors)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const flavorNames = parsed.map((f: any) => {
+              // Se for objeto com id, buscar nome no mapa
+              if (typeof f === 'object' && f.id) {
+                return flavorsMap.get(f.id) || f.name || f.id
+              }
+              // Se for string (ID), buscar nome no mapa
+              return flavorsMap.get(f) || f
+            })
             content += `   Sabores: ${flavorNames.join(', ')}\n`
           }
         } catch (e) {
@@ -137,7 +144,14 @@ async function generatePrintContent(order: any, printType: string) {
         try {
           const extras = JSON.parse(item.extras)
           if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames = extras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
+            const flavorNames = extras.flavorsPizza2.map((f: any) => {
+              // Se for objeto com id, buscar nome no mapa
+              if (typeof f === 'object' && f.id) {
+                return flavorsMap.get(f.id) || f.name || f.id
+              }
+              // Se for string (ID), buscar nome no mapa
+              return flavorsMap.get(f) || f
+            })
             content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
           }
         } catch (e) {
@@ -231,6 +245,27 @@ async function generatePrintContent(order: any, printType: string) {
     content += '-'.repeat(40) + '\n'
     content += `FORMA DE PAGAMENTO: ${getPaymentMethodText(order.paymentMethod)}\n`
     content += `TIPO: ${order.deliveryType === 'DELIVERY' ? 'ENTREGA' : 'RETIRADA'}\n`
+    
+    // Endereço completo se for entrega
+    if (order.deliveryType === 'DELIVERY' && order.address) {
+      content += '\nENDEREÇO DE ENTREGA:\n'
+      content += `${order.address.street}, ${order.address.number}\n`
+      if (order.address.complement) {
+        content += `${order.address.complement}\n`
+      }
+      content += `${order.address.neighborhood}\n`
+      content += `${order.address.city} - ${order.address.state}\n`
+      if (order.address.zipCode) {
+        content += `CEP: ${order.address.zipCode}\n`
+      }
+    }
+    
+    // Informações do cliente
+    content += '\nCLIENTE:\n'
+    content += `Nome: ${order.user.name}\n`
+    if (order.user.phone) {
+      content += `Telefone: ${order.user.phone}\n`
+    }
     
     if (order.notes) {
       content += `\nOBSERVAÇÕES:\n${order.notes}\n`

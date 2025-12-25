@@ -65,13 +65,13 @@ export function ActiveOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [settings, setSettings] = useState<any>(null)
-  const [lastPendingCount, setLastPendingCount] = useState(0)
+  const [lastPendingIds, setLastPendingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchSettings()
     fetchActiveOrders()
-    // Atualizar a cada 5 segundos
-    const interval = setInterval(fetchActiveOrders, 5000)
+    // Atualizar a cada 3 segundos para detecção mais rápida
+    const interval = setInterval(fetchActiveOrders, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -115,9 +115,14 @@ export function ActiveOrders() {
         (order: Order) => order.status !== 'DELIVERED' && order.status !== 'CANCELLED'
       )
       
-      // Detectar novos pedidos pendentes para reproduzir som
-      const pendingCount = activeOrders.filter((order: Order) => order.status === 'PENDING').length
-      if (pendingCount > lastPendingCount && settings?.notificationSound) {
+      // Detectar novos pedidos pendentes para reproduzir som - comparação por ID para detecção instantânea
+      const pendingOrders = activeOrders.filter((order: Order) => order.status === 'PENDING')
+      const currentPendingIds = new Set(pendingOrders.map((o: Order) => o.id))
+      
+      // Verificar se há novos pedidos (IDs que não estavam na lista anterior)
+      const newPendingIds = Array.from(currentPendingIds).filter(id => !lastPendingIds.has(id))
+      
+      if (newPendingIds.length > 0 && settings?.notificationSound) {
         try {
           const audio = new Audio(settings.notificationSound)
           audio.volume = 0.7
@@ -126,8 +131,8 @@ export function ActiveOrders() {
           console.error('Erro ao criar elemento de áudio:', error)
         }
       }
-      setLastPendingCount(pendingCount)
       
+      setLastPendingIds(currentPendingIds)
       setOrders(activeOrders)
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error)

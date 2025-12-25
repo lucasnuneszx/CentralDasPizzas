@@ -90,17 +90,33 @@ export async function GET(request: NextRequest) {
         
         try {
           if (item.selectedFlavors) {
-            const flavorIds = JSON.parse(item.selectedFlavors)
-            // Converter IDs para nomes
-            selectedFlavors = Array.isArray(flavorIds) 
-              ? flavorIds.map(id => flavorsMap.get(id) || id)
-              : flavorIds
+            const parsed = JSON.parse(item.selectedFlavors)
+            // Se for array de objetos, extrair IDs ou nomes
+            if (Array.isArray(parsed)) {
+              selectedFlavors = parsed.map((f: any) => {
+                // Se for objeto com id, buscar nome no mapa
+                if (typeof f === 'object' && f.id) {
+                  return flavorsMap.get(f.id) || f.name || f.id
+                }
+                // Se for string (ID), buscar nome no mapa
+                return flavorsMap.get(f) || f
+              })
+            } else {
+              selectedFlavors = parsed
+            }
           }
           if (item.extras) {
             const parsedExtras = JSON.parse(item.extras)
             // Se houver flavorsPizza2, converter IDs para nomes
             if (parsedExtras.flavorsPizza2 && Array.isArray(parsedExtras.flavorsPizza2)) {
-              parsedExtras.flavorsPizza2 = parsedExtras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
+              parsedExtras.flavorsPizza2 = parsedExtras.flavorsPizza2.map((f: any) => {
+                // Se for objeto com id, buscar nome no mapa
+                if (typeof f === 'object' && f.id) {
+                  return flavorsMap.get(f.id) || f.name || f.id
+                }
+                // Se for string (ID), buscar nome no mapa
+                return flavorsMap.get(f) || f
+              })
             }
             extras = parsedExtras
           }
@@ -364,13 +380,22 @@ export async function POST(request: NextRequest) {
           quantity: parseInt(item.quantity.toString()),
           price: parseFloat(item.price.toString()),
           // Salvar dados de personalização
-          selectedFlavors: item.flavors ? JSON.stringify(item.flavors) : null,
+          // Se flavors for array de objetos, extrair apenas os IDs
+          selectedFlavors: item.flavors ? JSON.stringify(
+            Array.isArray(item.flavors) 
+              ? item.flavors.map((f: any) => typeof f === 'object' && f.id ? f.id : f)
+              : item.flavors
+          ) : null,
           observations: item.observations || null,
           pizzaSizeId: item.size || null,
           extras: item.extraItems || item.stuffedCrust ? JSON.stringify({
             extraItems: item.extraItems || {},
             stuffedCrust: item.stuffedCrust || false,
-            flavorsPizza2: item.flavorsPizza2 || []
+            flavorsPizza2: item.flavorsPizza2 
+              ? (Array.isArray(item.flavorsPizza2) 
+                  ? item.flavorsPizza2.map((f: any) => typeof f === 'object' && f.id ? f.id : f)
+                  : item.flavorsPizza2)
+              : []
           }) : null
         }
       })

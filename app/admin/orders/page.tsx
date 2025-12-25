@@ -81,17 +81,17 @@ export default function OrdersManagement() {
   const [deliveryPerson, setDeliveryPerson] = useState<{ [key: string]: string }>({})
   const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
   const [settings, setSettings] = useState<any>(null)
-  const [lastPendingCount, setLastPendingCount] = useState(0)
+  const [lastPendingIds, setLastPendingIds] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
     fetchSettings()
     fetchOrders()
     fetchDeliveryPersons()
-    // Polling para novos pedidos
+    // Polling para novos pedidos - reduzido para 3 segundos para detecção mais rápida
     const interval = setInterval(() => {
       fetchOrders()
-    }, 10000)
+    }, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -118,9 +118,14 @@ export default function OrdersManagement() {
       
       // Garantir que os dados estão no formato esperado
       if (Array.isArray(data)) {
-        // Detectar novos pedidos pendentes para reproduzir som
-        const pendingCount = data.filter((order: Order) => order.status === 'PENDING').length
-        if (pendingCount > lastPendingCount && settings?.notificationSound) {
+        // Detectar novos pedidos pendentes para reproduzir som - comparação por ID para detecção instantânea
+        const pendingOrders = data.filter((order: Order) => order.status === 'PENDING')
+        const currentPendingIds = new Set(pendingOrders.map((o: Order) => o.id))
+        
+        // Verificar se há novos pedidos (IDs que não estavam na lista anterior)
+        const newPendingIds = Array.from(currentPendingIds).filter(id => !lastPendingIds.has(id))
+        
+        if (newPendingIds.length > 0 && settings?.notificationSound) {
           try {
             const audio = new Audio(settings.notificationSound)
             audio.volume = 0.7
@@ -129,7 +134,8 @@ export default function OrdersManagement() {
             console.error('Erro ao criar elemento de áudio:', error)
           }
         }
-        setLastPendingCount(pendingCount)
+        
+        setLastPendingIds(currentPendingIds)
         setOrders(data)
       } else {
         console.error('Dados recebidos não são um array:', data)
