@@ -61,7 +61,57 @@ export async function GET(request: NextRequest) {
         name: true
       }
     })
-    const flavorsMap = new Map(allFlavors.map(f => [f.id, f.name]))
+    
+    // Mapeamento de sabores fixos (IDs hardcoded do item-customizer)
+    const fixedFlavorsMap = new Map([
+      ['trad-1', 'Baiana'],
+      ['trad-2', 'Banana com canela'],
+      ['trad-3', 'Brigadeiro de panela'],
+      ['trad-4', 'Caipira'],
+      ['trad-5', 'Calabresa'],
+      ['trad-6', 'Calabresa c/ cheddar'],
+      ['trad-7', 'Churros'],
+      ['trad-8', 'Dois queijos'],
+      ['trad-9', 'Frango c/ catupiry'],
+      ['trad-10', 'Frango c/ cheddar'],
+      ['trad-11', 'Lombinho'],
+      ['trad-12', 'Marguerita'],
+      ['trad-13', 'Milho verde'],
+      ['trad-14', 'Mista especial'],
+      ['trad-15', 'Moda vegetariana'],
+      ['trad-16', 'Portuguesa'],
+      ['trad-17', 'Romeu e julieta'],
+      ['esp-1', '4 queijos'],
+      ['esp-2', 'Atum'],
+      ['esp-3', 'Atum acebolado'],
+      ['esp-4', 'Atum a moda do chef'],
+      ['esp-5', 'Atum especial'],
+      ['esp-6', 'Bacon'],
+      ['esp-7', 'Bacon crocante'],
+      ['esp-8', 'Bacon especial'],
+      ['esp-9', 'Frango a moda da casa'],
+      ['esp-10', 'Frango a moda do chef'],
+      ['esp-11', 'Frango especial'],
+      ['esp-12', 'Lombinho'],
+      ['esp-13', 'Nordestina'],
+      ['esp-14', 'Nordestina a moda do chef'],
+      ['esp-15', 'Nordestina especial'],
+      ['prem-1', 'Camarão aos três queijos'],
+      ['prem-2', 'Camarão com catupiry philadelphia'],
+      ['prem-3', 'Camarão especial'],
+      ['prem-4', 'Carne do Sol aos três Queijos'],
+      ['prem-5', 'Carne do sol apimentada'],
+      ['prem-6', 'Carne do sol com catupiry philadelphia'],
+      ['prem-7', 'Mega nordestina'],
+      ['prem-8', 'Sabor do chef'],
+      ['prem-9', 'Strogonoff de Camarão']
+    ])
+    
+    // Combinar sabores do banco com sabores fixos
+    const flavorsMap = new Map([
+      ...Array.from(allFlavors.map(f => [f.id, f.name] as [string, string])),
+      ...Array.from(fixedFlavorsMap)
+    ])
 
     // Transformar para o formato esperado pelo frontend
     const formattedOrders = orders.map(order => ({

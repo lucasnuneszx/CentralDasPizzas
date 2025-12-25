@@ -81,7 +81,7 @@ export default function OrdersManagement() {
   const [deliveryPerson, setDeliveryPerson] = useState<{ [key: string]: string }>({})
   const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
   const [settings, setSettings] = useState<any>(null)
-  const [lastPendingIds, setLastPendingIds] = useState<Set<string>>(new Set())
+  const [allSeenOrderIds, setAllSeenOrderIds] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
@@ -118,24 +118,27 @@ export default function OrdersManagement() {
       
       // Garantir que os dados estão no formato esperado
       if (Array.isArray(data)) {
-        // Detectar novos pedidos pendentes para reproduzir som - comparação por ID para detecção instantânea
+        // Detectar novos pedidos PENDING que nunca foram vistos antes
         const pendingOrders = data.filter((order: Order) => order.status === 'PENDING')
-        const currentPendingIds = new Set(pendingOrders.map((o: Order) => o.id))
         
-        // Verificar se há novos pedidos (IDs que não estavam na lista anterior)
-        const newPendingIds = Array.from(currentPendingIds).filter(id => !lastPendingIds.has(id))
+        // Verificar se há pedidos PENDING que nunca foram vistos (realmente novos)
+        const newPendingOrders = pendingOrders.filter((order: Order) => !allSeenOrderIds.has(order.id))
         
-        if (newPendingIds.length > 0 && settings?.notificationSound) {
+        if (newPendingOrders.length > 0 && settings?.notificationSound) {
           try {
             const audio = new Audio(settings.notificationSound)
             audio.volume = 0.7
             audio.play().catch(err => console.log('Erro ao reproduzir som (esperado em alguns navegadores):', err))
+            console.log('🔔 Som de notificação reproduzido para', newPendingOrders.length, 'novo(s) pedido(s)')
           } catch (error) {
             console.error('Erro ao criar elemento de áudio:', error)
           }
         }
         
-        setLastPendingIds(currentPendingIds)
+        // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos
+        const currentOrderIds = new Set(data.map((o: Order) => o.id))
+        setAllSeenOrderIds(prev => new Set([...prev, ...Array.from(currentOrderIds)]))
+        
         setOrders(data)
       } else {
         console.error('Dados recebidos não são um array:', data)
