@@ -327,49 +327,46 @@ async function generatePrintContent(order: any, printType: string) {
     order.items.forEach((item: any) => {
       content += `\n${item.quantity}x ${item.combo.name}\n`
       
-      // Sabores - LÓGICA SIMPLIFICADA E ROBUSTA PARA CUPOM FISCAL
+      // Sabores - LÓGICA ROBUSTA E SIMPLES
+      let flavorNames: string[] = []
+      
       if (item.selectedFlavors) {
         try {
           let parsed: any = null
           
           // Tentar parsear se for string
-          if (typeof item.selectedFlavors === 'string') {
+          if (typeof item.selectedFlavors === 'string' && item.selectedFlavors.trim() !== '') {
             parsed = JSON.parse(item.selectedFlavors)
-          } else {
+          } else if (item.selectedFlavors) {
             parsed = item.selectedFlavors
           }
           
           // Garantir que é um array
-          if (!Array.isArray(parsed)) {
-            parsed = [parsed]
-          }
-          
-          // Mapear IDs para nomes
-          if (parsed && parsed.length > 0) {
-            const flavorNames: string[] = []
+          if (parsed) {
+            if (!Array.isArray(parsed)) {
+              parsed = [parsed]
+            }
             
+            // Mapear cada ID para nome
             for (const f of parsed) {
               let flavorId = ''
               
-              if (typeof f === 'object' && f !== null) {
-                flavorId = f.id || f
+              if (typeof f === 'object' && f !== null && f.id) {
+                flavorId = String(f.id)
+              } else if (typeof f === 'object' && f !== null) {
+                flavorId = String(f)
               } else {
                 flavorId = String(f)
               }
               
               // Buscar no mapa de sabores
               const flavorName = flavorsMap.get(flavorId)
-              if (flavorName) {
+              if (flavorName && flavorName.trim() !== '') {
                 flavorNames.push(flavorName)
-              } else {
-                // Se não encontrar, usar o ID mesmo
-                flavorNames.push(String(flavorId))
+              } else if (flavorId && flavorId.trim() !== '') {
+                // Se não encontrar, tentar usar como ID mesmo
+                flavorNames.push(flavorId)
               }
-            }
-            
-            // Adicionar ao conteúdo apenas se tiver nomes
-            if (flavorNames.length > 0) {
-              content += `  Sabores: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
@@ -377,6 +374,11 @@ async function generatePrintContent(order: any, printType: string) {
           console.error('Valor recebido:', item.selectedFlavors)
           console.error('Tipo:', typeof item.selectedFlavors)
         }
+      }
+      
+      // SEMPRE adicionar sabores se existirem
+      if (flavorNames.length > 0) {
+        content += `  Sabores: ${flavorNames.join(', ')}\n`
       }
       
       // Sabores Pizza 2 - LÓGICA SIMPLIFICADA PARA CUPOM FISCAL
