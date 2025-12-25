@@ -241,20 +241,40 @@ async function generatePrintContent(order: any, printType: string) {
     }
     
   } else if (printType === 'receipt') {
-    // Impressão de cupom fiscal
+    // Impressão de cupom fiscal - ORGANIZADO
     content += 'CUPOM FISCAL\n'
+    content += '='.repeat(40) + '\n'
+    content += `Data/Hora: ${dateTime}\n`
+    content += `Pedido: #${order.id.slice(-8)}\n`
     content += '-'.repeat(40) + '\n'
     
+    // Informações do cliente
+    content += 'CLIENTE:\n'
+    content += `Nome: ${order.user.name}\n`
+    if (order.user.phone) {
+      content += `Telefone: ${order.user.phone}\n`
+    }
+    content += '-'.repeat(40) + '\n'
+    
+    // Itens do pedido
+    content += 'ITENS:\n'
     order.items.forEach((item: any) => {
-      content += `${item.combo.name}\n`
+      content += `\n${item.quantity}x ${item.combo.name}\n`
       
       // Sabores
       if (item.selectedFlavors) {
         try {
-          const flavorIds = JSON.parse(item.selectedFlavors)
-          if (Array.isArray(flavorIds) && flavorIds.length > 0) {
-            const flavorNames = flavorIds.map((id: string) => flavorsMap.get(id) || id)
-            content += `   Sabores: ${flavorNames.join(', ')}\n`
+          const parsed = JSON.parse(item.selectedFlavors)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const flavorNames = parsed.map((f: any) => {
+              // Se for objeto com id, buscar nome no mapa
+              if (typeof f === 'object' && f.id) {
+                return flavorsMap.get(f.id) || f.name || f.id
+              }
+              // Se for string (ID), buscar nome no mapa
+              return flavorsMap.get(f) || f
+            })
+            content += `  Sabores: ${flavorNames.join(', ')}\n`
           }
         } catch (e) {
           // Ignorar erro de parse
@@ -266,30 +286,37 @@ async function generatePrintContent(order: any, printType: string) {
         try {
           const extras = JSON.parse(item.extras)
           if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames = extras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
-            content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+            const flavorNames = extras.flavorsPizza2.map((f: any) => {
+              // Se for objeto com id, buscar nome no mapa
+              if (typeof f === 'object' && f.id) {
+                return flavorsMap.get(f.id) || f.name || f.id
+              }
+              // Se for string (ID), buscar nome no mapa
+              return flavorsMap.get(f) || f
+            })
+            content += `  Sabores Pizza 2: ${flavorNames.join(', ')}\n`
           }
         } catch (e) {
           // Ignorar erro de parse
         }
       }
       
-      content += `   ${item.quantity} x R$ ${item.price.toFixed(2)} = R$ ${(item.price * item.quantity).toFixed(2)}\n`
+      content += `  ${item.quantity} x R$ ${item.price.toFixed(2).replace('.', ',')} = R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`
       
       // Observações do item
       if (item.observations) {
-        content += `   Obs: ${item.observations}\n`
+        content += `  Obs: ${item.observations}\n`
       }
     })
     
-    content += '-'.repeat(40) + '\n'
-    content += `SUBTOTAL: R$ ${order.total.toFixed(2)}\n`
+    content += '\n' + '-'.repeat(40) + '\n'
+    content += `SUBTOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}\n`
     
     if (order.deliveryType === 'DELIVERY') {
       content += `TAXA ENTREGA: R$ 5,00\n`
-      content += `TOTAL: R$ ${(order.total + 5).toFixed(2)}\n`
+      content += `TOTAL: R$ ${(order.total + 5).toFixed(2).replace('.', ',')}\n`
     } else {
-      content += `TOTAL: R$ ${order.total.toFixed(2)}\n`
+      content += `TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}\n`
     }
     
     content += '-'.repeat(40) + '\n'
@@ -310,15 +337,9 @@ async function generatePrintContent(order: any, printType: string) {
       }
     }
     
-    // Informações do cliente
-    content += '\nCLIENTE:\n'
-    content += `Nome: ${order.user.name}\n`
-    if (order.user.phone) {
-      content += `Telefone: ${order.user.phone}\n`
-    }
-    
     if (order.notes) {
-      content += `\nOBSERVAÇÕES:\n${order.notes}\n`
+      content += '\nOBSERVAÇÕES:\n'
+      content += `${order.notes}\n`
     }
     
     content += '\n' + '='.repeat(40) + '\n'
