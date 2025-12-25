@@ -269,15 +269,20 @@ async function generatePrintContent(order: any, printType: string) {
             const flavorNames = parsed.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
               if (typeof f === 'object' && f.id) {
-                return flavorsMap.get(f.id) || f.name || f.id
+                const name = flavorsMap.get(f.id) || f.name || f.id
+                return name
               }
               // Se for string (ID), buscar nome no mapa
-              return flavorsMap.get(f) || f
-            })
-            content += `  Sabores: ${flavorNames.join(', ')}\n`
+              const name = flavorsMap.get(f) || f
+              return name
+            }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
+            
+            if (flavorNames.length > 0) {
+              content += `  Sabores: ${flavorNames.join(', ')}\n`
+            }
           }
         } catch (e) {
-          // Ignorar erro de parse
+          console.error('Erro ao parsear selectedFlavors no cupom fiscal:', e, item.selectedFlavors)
         }
       }
       
@@ -289,15 +294,20 @@ async function generatePrintContent(order: any, printType: string) {
             const flavorNames = extras.flavorsPizza2.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
               if (typeof f === 'object' && f.id) {
-                return flavorsMap.get(f.id) || f.name || f.id
+                const name = flavorsMap.get(f.id) || f.name || f.id
+                return name
               }
               // Se for string (ID), buscar nome no mapa
-              return flavorsMap.get(f) || f
-            })
-            content += `  Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+              const name = flavorsMap.get(f) || f
+              return name
+            }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
+            
+            if (flavorNames.length > 0) {
+              content += `  Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+            }
           }
         } catch (e) {
-          // Ignorar erro de parse
+          console.error('Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
         }
       }
       
