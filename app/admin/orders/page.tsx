@@ -136,8 +136,12 @@ export default function OrdersManagement() {
         }
         
         // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos
-        const currentOrderIds = new Set(data.map((o: Order) => o.id))
-        setAllSeenOrderIds(prev => new Set([...prev, ...Array.from(currentOrderIds)]))
+        const currentOrderIds = data.map((o: Order) => o.id)
+        setAllSeenOrderIds(prev => {
+          const newSet = new Set(prev)
+          currentOrderIds.forEach(id => newSet.add(id))
+          return newSet
+        })
         
         setOrders(data)
       } else {
