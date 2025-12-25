@@ -904,48 +904,65 @@ export default function MenuPage() {
         </div>
       </main>
 
-      {/* Carrinho flutuante */}
+      {/* Carrinho - Desktop: barra lateral, Mobile: ícone flutuante */}
       {getCartItemsCount() > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
-          <div className="bg-white rounded-lg shadow-xl border max-h-96 overflow-hidden">
-            {/* Header do carrinho */}
-            <div className="p-4 border-b bg-gray-50">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">
-                  Carrinho ({getCartItemsCount()})
-                </h3>
-                <Link href="/client/checkout-public">
-                  <Button size="sm" className="bg-red-500 hover:bg-red-600">
-                    Finalizar
-                  </Button>
-                </Link>
+        <>
+          {/* Desktop: Barra lateral (como estava antes) */}
+          <div className="hidden md:block fixed bottom-4 right-4 w-96 z-50">
+            <div className="bg-white rounded-lg shadow-xl border max-h-96 overflow-hidden">
+              {/* Header do carrinho */}
+              <div className="p-4 border-b bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    Carrinho ({getCartItemsCount()})
+                  </h3>
+                  <Link href="/client/checkout-public">
+                    <Button size="sm" className="bg-red-500 hover:bg-red-600">
+                      Finalizar
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            {/* Itens do carrinho */}
-            <div className="max-h-64 overflow-y-auto">
-              {cart.map((item) => (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                  onUpdateQuantity={handleUpdateQuantity}
-                  onRemove={handleRemoveItem}
-                  onEdit={handleItemEdit}
-                />
-              ))}
-            </div>
+              {/* Itens do carrinho */}
+              <div className="max-h-64 overflow-y-auto">
+                {cart.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemove={handleRemoveItem}
+                    onEdit={handleItemEdit}
+                  />
+                ))}
+              </div>
 
-            {/* Total */}
-            <div className="p-4 border-t bg-gray-50">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-gray-900">Total:</span>
-                <span className="text-xl font-bold text-red-600">
-                  R$ {getCartTotal().toFixed(2).replace('.', ',')}
-                </span>
+              {/* Total */}
+              <div className="p-4 border-t bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-900">Total:</span>
+                  <span className="text-xl font-bold text-red-600">
+                    R$ {getCartTotal().toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Mobile: Ícone flutuante no canto inferior direito */}
+          <div className="md:hidden fixed bottom-4 right-4 z-50">
+            <Link href="/client/checkout-public">
+              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full p-4 shadow-2xl flex items-center justify-center relative">
+                <ShoppingCart className="h-6 w-6" />
+                {getCartItemsCount() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-white text-red-500 rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold border-2 border-red-500">
+                    {getCartItemsCount()}
+                  </span>
+                )}
+              </button>
+            </Link>
+          </div>
+        </>
       )}
 
       {/* Footer */}

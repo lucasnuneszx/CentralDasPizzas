@@ -125,28 +125,28 @@ export default function OrdersManagement() {
         // Usar useRef para garantir que sempre temos o valor mais atualizado
         const newPendingOrders = pendingOrders.filter((order: Order) => !allSeenOrderIdsRef.current.has(order.id))
         
+        // Tocar som ANTES de adicionar ao ref para garantir que toca imediatamente
         if (newPendingOrders.length > 0 && settings?.notificationSound) {
+          // Adicionar os novos IDs ao ref ANTES de tocar o som para evitar tocar múltiplas vezes
+          newPendingOrders.forEach(order => allSeenOrderIdsRef.current.add(order.id))
+          
           try {
             const audio = new Audio(settings.notificationSound)
-            audio.volume = 0.8 // Aumentar volume para garantir que seja ouvido
+            audio.volume = 1.0 // Volume máximo
             // Tentar tocar imediatamente
-            const playPromise = audio.play()
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
-                })
-                .catch(err => {
-                  console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
-                })
-            }
+            audio.play()
+              .then(() => {
+                console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
+              })
+              .catch(err => {
+                console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
+              })
           } catch (error) {
             console.error('Erro ao criar elemento de áudio:', error)
           }
         }
         
-        // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos
-        // Atualizar o ref diretamente para garantir que o próximo polling tenha o valor correto
+        // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos (para garantir que não percamos nenhum)
         const currentOrderIds = data.map((o: Order) => o.id)
         currentOrderIds.forEach(id => allSeenOrderIdsRef.current.add(id))
         

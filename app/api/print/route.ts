@@ -172,40 +172,53 @@ async function generatePrintContent(order: any, printType: string) {
       // Sabores
       if (item.selectedFlavors) {
         try {
-          const parsed = JSON.parse(item.selectedFlavors)
+          const parsed = typeof item.selectedFlavors === 'string' 
+            ? JSON.parse(item.selectedFlavors) 
+            : item.selectedFlavors
+          
           if (Array.isArray(parsed) && parsed.length > 0) {
             const flavorNames = parsed.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f.id) {
-                return flavorsMap.get(f.id) || f.name || f.id
+              if (typeof f === 'object' && f !== null && f.id) {
+                const name = flavorsMap.get(f.id) || f.name || f.id
+                return name
               }
               // Se for string (ID), buscar nome no mapa
-              return flavorsMap.get(f) || f
-            })
-            content += `   Sabores: ${flavorNames.join(', ')}\n`
+              const name = flavorsMap.get(String(f)) || String(f)
+              return name
+            }).filter((name: string) => name && name.trim() !== '')
+            
+            if (flavorNames.length > 0) {
+              content += `   Sabores: ${flavorNames.join(', ')}\n`
+            }
           }
         } catch (e) {
-          // Ignorar erro de parse
+          console.error('Erro ao parsear selectedFlavors na comanda:', e, item.selectedFlavors)
         }
       }
       
       // Sabores Pizza 2
       if (item.extras) {
         try {
-          const extras = JSON.parse(item.extras)
-          if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
+          const extras = typeof item.extras === 'string' ? JSON.parse(item.extras) : item.extras
+          if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
             const flavorNames = extras.flavorsPizza2.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f.id) {
-                return flavorsMap.get(f.id) || f.name || f.id
+              if (typeof f === 'object' && f !== null && f.id) {
+                const name = flavorsMap.get(f.id) || f.name || f.id
+                return name
               }
               // Se for string (ID), buscar nome no mapa
-              return flavorsMap.get(f) || f
-            })
-            content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+              const name = flavorsMap.get(String(f)) || String(f)
+              return name
+            }).filter((name: string) => name && name.trim() !== '')
+            
+            if (flavorNames.length > 0) {
+              content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+            }
           }
         } catch (e) {
-          // Ignorar erro de parse
+          console.error('Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
         }
       }
       
@@ -264,16 +277,19 @@ async function generatePrintContent(order: any, printType: string) {
       // Sabores
       if (item.selectedFlavors) {
         try {
-          const parsed = JSON.parse(item.selectedFlavors)
+          const parsed = typeof item.selectedFlavors === 'string' 
+            ? JSON.parse(item.selectedFlavors) 
+            : item.selectedFlavors
+          
           if (Array.isArray(parsed) && parsed.length > 0) {
             const flavorNames = parsed.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f.id) {
+              if (typeof f === 'object' && f !== null && f.id) {
                 const name = flavorsMap.get(f.id) || f.name || f.id
                 return name
               }
               // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(f) || f
+              const name = flavorsMap.get(String(f)) || String(f)
               return name
             }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
             
@@ -289,16 +305,16 @@ async function generatePrintContent(order: any, printType: string) {
       // Sabores Pizza 2
       if (item.extras) {
         try {
-          const extras = JSON.parse(item.extras)
-          if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
+          const extras = typeof item.extras === 'string' ? JSON.parse(item.extras) : item.extras
+          if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
             const flavorNames = extras.flavorsPizza2.map((f: any) => {
               // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f.id) {
+              if (typeof f === 'object' && f !== null && f.id) {
                 const name = flavorsMap.get(f.id) || f.name || f.id
                 return name
               }
               // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(f) || f
+              const name = flavorsMap.get(String(f)) || String(f)
               return name
             }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
             
