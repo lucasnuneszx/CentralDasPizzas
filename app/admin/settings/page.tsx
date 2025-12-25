@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ImageUpload } from '@/components/image-upload'
-import { Save, Upload, Eye, EyeOff, Usb } from 'lucide-react'
+import { Save, Upload, Eye, EyeOff, Usb, Music, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { requestSerialPort, getAvailablePorts, getPortInfo, discoverPrinters } from '@/lib/printer-client'
 
@@ -35,6 +35,7 @@ interface SystemSettings {
   minOrderValue: number
   autoCloseTime?: string
   autoCloseEnabled: boolean
+  notificationSound?: string
 }
 
 export default function SettingsPage() {
@@ -59,7 +60,8 @@ export default function SettingsPage() {
     deliveryFee: 0,
     minOrderValue: 0,
     autoCloseTime: '23:00',
-    autoCloseEnabled: false
+    autoCloseEnabled: false,
+    notificationSound: ''
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -242,6 +244,85 @@ export default function SettingsPage() {
       toast.error('Erro ao salvar configurações')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSoundUpload = async (file: File | null) => {
+    if (!file) {
+      // Remover som
+      setSettings(prev => ({
+        ...prev,
+        notificationSound: ''
+      }))
+      return
+    }
+
+    try {
+      toast.loading('Enviando arquivo de som...', { id: 'sound-upload' })
+      
+      // Criar FormData para enviar o arquivo
+      const formData = new FormData()
+      formData.append('image', file) // API usa 'image' mas aceita MP3 agora
+      formData.append('field', 'notificationSound')
+
+      // Fazer upload para o servidor
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers,
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Atualizar o estado com a URL retornada
+        setSettings(prev => ({
+          ...prev,
+          notificationSound: data.url
+        }))
+        toast.success('Arquivo de som enviado com sucesso!', { id: 'sound-upload' })
+        
+        // Salvar nas configurações
+        const saveResponse = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            ...settings,
+            notificationSound: data.url
+          })
+        })
+        
+        if (saveResponse.ok) {
+          toast.success('Som de notificação salvo!', { id: 'sound-upload' })
+        }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Erro ao fazer upload do arquivo')
+      }
+    } catch (error: any) {
+      console.error('Erro ao fazer upload:', error)
+      toast.error(error.message || 'Erro ao enviar arquivo de som.', { id: 'sound-upload' })
+      
+      // Fallback: usar base64 local
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const url = e.target?.result as string
+          setSettings(prev => ({
+            ...prev,
+            notificationSound: url
+          }))
+        }
+        reader.readAsDataURL(file)
+      }
     }
   }
 
@@ -684,6 +765,87 @@ export default function SettingsPage() {
                       : '⚠️ Use Chrome ou Edge para selecionar impressora USB'}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Configurações de Notificação */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Som de Notificação de Pedidos</CardTitle>
+              <CardDescription>
+                Configure um som para ser reproduzido quando houver um novo pedido
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="notificationSound">Arquivo de Som (MP3)</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Faça upload de um arquivo MP3 que será reproduzido sempre que houver um novo pedido
+                </p>
+                
+                {settings.notificationSound ? (
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <Music className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium">Som configurado</p>
+                        <p className="text-xs text-gray-500">Arquivo MP3 carregado</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <audio controls className="h-8">
+                        <source src={settings.notificationSound} type="audio/mpeg" />
+                        Seu navegador não suporta o elemento de áudio.
+                      </audio>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSoundUpload(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                    <div className="text-center">
+                      <Music className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-sm text-gray-600 mb-4">
+                        Nenhum som configurado
+                      </p>
+                      <input
+                        type="file"
+                        accept="audio/mpeg,audio/mp3,.mp3"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            handleSoundUpload(file)
+                          }
+                        }}
+                        className="hidden"
+                        id="sound-upload-input"
+                      />
+                      <label htmlFor="sound-upload-input">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="cursor-pointer"
+                          asChild
+                        >
+                          <span>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Selecionar Arquivo MP3
+                          </span>
+                        </Button>
+                      </label>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Máximo 10MB
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
           whatsappAccessToken: true,
           whatsappBusinessAccountId: true,
           whatsappConnected: true,
+          notificationSound: true,
           createdAt: true,
           updatedAt: true,
         }

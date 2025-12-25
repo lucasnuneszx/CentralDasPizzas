@@ -23,14 +23,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Nenhum arquivo enviado' }, { status: 400 })
     }
 
-    // Validar tipo de arquivo
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ message: 'Apenas arquivos de imagem são permitidos' }, { status: 400 })
+    // Validar tipo de arquivo - aceitar imagens e áudio MP3
+    const isImage = file.type.startsWith('image/')
+    const isAudio = file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.name.toLowerCase().endsWith('.mp3')
+    
+    if (!isImage && !isAudio) {
+      return NextResponse.json({ message: 'Apenas arquivos de imagem ou áudio MP3 são permitidos' }, { status: 400 })
     }
 
-    // Validar tamanho (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ message: 'A imagem deve ter no máximo 5MB' }, { status: 400 })
+    // Validar tamanho (máximo 5MB para imagens, 10MB para áudio)
+    const maxSize = isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      return NextResponse.json({ 
+        message: isImage ? 'A imagem deve ter no máximo 5MB' : 'O áudio deve ter no máximo 10MB' 
+      }, { status: 400 })
     }
 
     // Converter para base64 para armazenar no banco de dados

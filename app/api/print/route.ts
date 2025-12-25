@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth-helper'
 import { prisma } from '@/lib/prisma'
 
+// Função auxiliar para buscar sabores (definida fora para ser reutilizada)
+async function getFlavorsMap() {
+  const allFlavors = await prisma.pizzaFlavor.findMany({
+    select: {
+      id: true,
+      name: true
+    }
+  })
+  return new Map(allFlavors.map(f => [f.id, f.name]))
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser(request)
@@ -29,6 +40,9 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Buscar sabores para mapear IDs para nomes
+    const flavorsMap = await getFlavorsMap()
+
     if (!order) {
       return NextResponse.json(
         { message: 'Pedido não encontrado' },
@@ -37,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar conteúdo para impressão (texto simples para download)
-    const printContent = generatePrintContent(order, printType)
+    const printContent = await generatePrintContent(order, printType)
 
     // Formatar dados para impressão nativa
     const orderData = {
@@ -79,7 +93,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generatePrintContent(order: any, printType: string) {
+async function generatePrintContent(order: any, printType: string) {
+  // Buscar sabores para mapear IDs para nomes
+  const flavorsMap = await getFlavorsMap()
   const now = new Date()
   const dateTime = now.toLocaleString('pt-BR')
   
@@ -102,9 +118,42 @@ function generatePrintContent(order: any, printType: string) {
     
     order.items.forEach((item: any) => {
       content += `${item.quantity}x ${item.combo.name}\n`
+      
+      // Sabores
+      if (item.selectedFlavors) {
+        try {
+          const flavorIds = JSON.parse(item.selectedFlavors)
+          if (Array.isArray(flavorIds) && flavorIds.length > 0) {
+            const flavorNames = flavorIds.map((id: string) => flavorsMap.get(id) || id)
+            content += `   Sabores: ${flavorNames.join(', ')}\n`
+          }
+        } catch (e) {
+          // Ignorar erro de parse
+        }
+      }
+      
+      // Sabores Pizza 2
+      if (item.extras) {
+        try {
+          const extras = JSON.parse(item.extras)
+          if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
+            const flavorNames = extras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
+            content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+          }
+        } catch (e) {
+          // Ignorar erro de parse
+        }
+      }
+      
       content += `   R$ ${item.price.toFixed(2)} cada\n`
-      if (order.notes) {
-        content += `   Obs: ${order.notes}\n`
+      
+      // Observações do item
+      if (item.observations) {
+        content += `   Obs: ${item.observations}\n`
+      }
+      
+      if (order.notes && order.items.indexOf(item) === 0) {
+        content += `   Obs Geral: ${order.notes}\n`
       }
       content += '\n'
     })
@@ -134,7 +183,39 @@ function generatePrintContent(order: any, printType: string) {
     
     order.items.forEach((item: any) => {
       content += `${item.combo.name}\n`
+      
+      // Sabores
+      if (item.selectedFlavors) {
+        try {
+          const flavorIds = JSON.parse(item.selectedFlavors)
+          if (Array.isArray(flavorIds) && flavorIds.length > 0) {
+            const flavorNames = flavorIds.map((id: string) => flavorsMap.get(id) || id)
+            content += `   Sabores: ${flavorNames.join(', ')}\n`
+          }
+        } catch (e) {
+          // Ignorar erro de parse
+        }
+      }
+      
+      // Sabores Pizza 2
+      if (item.extras) {
+        try {
+          const extras = JSON.parse(item.extras)
+          if (extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
+            const flavorNames = extras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
+            content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
+          }
+        } catch (e) {
+          // Ignorar erro de parse
+        }
+      }
+      
       content += `   ${item.quantity} x R$ ${item.price.toFixed(2)} = R$ ${(item.price * item.quantity).toFixed(2)}\n`
+      
+      // Observações do item
+      if (item.observations) {
+        content += `   Obs: ${item.observations}\n`
+      }
     })
     
     content += '-'.repeat(40) + '\n'

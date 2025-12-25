@@ -54,6 +54,15 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Buscar todos os sabores para mapear IDs para nomes
+    const allFlavors = await prisma.pizzaFlavor.findMany({
+      select: {
+        id: true,
+        name: true
+      }
+    })
+    const flavorsMap = new Map(allFlavors.map(f => [f.id, f.name]))
+
     // Transformar para o formato esperado pelo frontend
     const formattedOrders = orders.map(order => ({
       id: order.id,
@@ -74,17 +83,46 @@ export async function GET(request: NextRequest) {
         state: order.address.state,
         zipCode: order.address.zipCode
       } : null,
-      items: order.items.map(item => ({
-        id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-        combo: {
-          id: item.combo.id,
-          name: item.combo.name,
-          description: item.combo.description,
-          image: item.combo.image
+      items: order.items.map(item => {
+        // Parse sabores e extras
+        let selectedFlavors = null
+        let extras = null
+        
+        try {
+          if (item.selectedFlavors) {
+            const flavorIds = JSON.parse(item.selectedFlavors)
+            // Converter IDs para nomes
+            selectedFlavors = Array.isArray(flavorIds) 
+              ? flavorIds.map(id => flavorsMap.get(id) || id)
+              : flavorIds
+          }
+          if (item.extras) {
+            const parsedExtras = JSON.parse(item.extras)
+            // Se houver flavorsPizza2, converter IDs para nomes
+            if (parsedExtras.flavorsPizza2 && Array.isArray(parsedExtras.flavorsPizza2)) {
+              parsedExtras.flavorsPizza2 = parsedExtras.flavorsPizza2.map((id: string) => flavorsMap.get(id) || id)
+            }
+            extras = parsedExtras
+          }
+        } catch (e) {
+          console.error('Erro ao parsear dados do item:', e)
         }
-      })),
+        
+        return {
+          id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          combo: {
+            id: item.combo.id,
+            name: item.combo.name,
+            description: item.combo.description,
+            image: item.combo.image
+          },
+          selectedFlavors,
+          extras,
+          observations: item.observations
+        }
+      }),
       notes: order.notes
     }))
 

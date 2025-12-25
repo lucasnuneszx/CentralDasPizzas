@@ -47,6 +47,9 @@ interface Order {
     combo: {
       name: string
     }
+    selectedFlavors?: any
+    extras?: any
+    observations?: string
   }>
 }
 
@@ -61,13 +64,28 @@ const statusSteps = [
 export function ActiveOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [settings, setSettings] = useState<any>(null)
+  const [lastPendingCount, setLastPendingCount] = useState(0)
 
   useEffect(() => {
+    fetchSettings()
     fetchActiveOrders()
     // Atualizar a cada 5 segundos
     const interval = setInterval(fetchActiveOrders, 5000)
     return () => clearInterval(interval)
   }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings')
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error)
+    }
+  }
 
   const fetchActiveOrders = async () => {
     try {
@@ -96,6 +114,20 @@ export function ActiveOrders() {
       const activeOrders = allOrders.filter(
         (order: Order) => order.status !== 'DELIVERED' && order.status !== 'CANCELLED'
       )
+      
+      // Detectar novos pedidos pendentes para reproduzir som
+      const pendingCount = activeOrders.filter((order: Order) => order.status === 'PENDING').length
+      if (pendingCount > lastPendingCount && settings?.notificationSound) {
+        try {
+          const audio = new Audio(settings.notificationSound)
+          audio.volume = 0.7
+          audio.play().catch(err => console.log('Erro ao reproduzir som (esperado em alguns navegadores):', err))
+        } catch (error) {
+          console.error('Erro ao criar elemento de áudio:', error)
+        }
+      }
+      setLastPendingCount(pendingCount)
+      
       setOrders(activeOrders)
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error)
@@ -450,10 +482,34 @@ export function ActiveOrders() {
                   <p className="text-xs font-semibold text-muted-foreground mb-2">ITENS:</p>
                   <div className="space-y-1">
                     {order.items.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">
+                      <div key={idx} className="flex flex-col space-y-1">
+                        <span className="text-sm text-foreground font-medium">
                           {item.quantity}x {item.combo.name}
                         </span>
+                        {/* Sabores */}
+                        {item.selectedFlavors && Array.isArray(item.selectedFlavors) && item.selectedFlavors.length > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-semibold">Sabores: </span>
+                            {item.selectedFlavors.map((flavor: any, fIdx: number) => (
+                              <span key={fIdx}>
+                                {typeof flavor === 'string' ? flavor : flavor.name || flavor}
+                                {fIdx < item.selectedFlavors.length - 1 ? ', ' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {/* Sabores Pizza 2 */}
+                        {item.extras?.flavorsPizza2 && Array.isArray(item.extras.flavorsPizza2) && item.extras.flavorsPizza2.length > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-semibold">Sabores Pizza 2: </span>
+                            {item.extras.flavorsPizza2.map((flavor: any, fIdx: number) => (
+                              <span key={fIdx}>
+                                {typeof flavor === 'string' ? flavor : flavor.name || flavor}
+                                {fIdx < item.extras.flavorsPizza2.length - 1 ? ', ' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                     {order.items.length > 3 && (

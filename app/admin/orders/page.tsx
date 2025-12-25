@@ -55,6 +55,9 @@ interface Order {
       description: string
       image?: string
     }
+    selectedFlavors?: any
+    extras?: any
+    observations?: string
   }>
   notes?: string
 }
@@ -77,15 +80,32 @@ export default function OrdersManagement() {
   const [sourceFilter, setSourceFilter] = useState<string>('ALL')
   const [deliveryPerson, setDeliveryPerson] = useState<{ [key: string]: string }>({})
   const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
+  const [settings, setSettings] = useState<any>(null)
+  const [lastPendingCount, setLastPendingCount] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
+    fetchSettings()
     fetchOrders()
     fetchDeliveryPersons()
     // Polling para novos pedidos
-    const interval = setInterval(fetchOrders, 10000)
+    const interval = setInterval(() => {
+      fetchOrders()
+    }, 10000)
     return () => clearInterval(interval)
   }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings')
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error)
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -98,6 +118,18 @@ export default function OrdersManagement() {
       
       // Garantir que os dados estão no formato esperado
       if (Array.isArray(data)) {
+        // Detectar novos pedidos pendentes para reproduzir som
+        const pendingCount = data.filter((order: Order) => order.status === 'PENDING').length
+        if (pendingCount > lastPendingCount && settings?.notificationSound) {
+          try {
+            const audio = new Audio(settings.notificationSound)
+            audio.volume = 0.7
+            audio.play().catch(err => console.log('Erro ao reproduzir som (esperado em alguns navegadores):', err))
+          } catch (error) {
+            console.error('Erro ao criar elemento de áudio:', error)
+          }
+        }
+        setLastPendingCount(pendingCount)
         setOrders(data)
       } else {
         console.error('Dados recebidos não são um array:', data)
@@ -488,7 +520,41 @@ export default function OrdersManagement() {
                                   <div className="flex-1">
                                     <p className="font-medium">{item.combo.name}</p>
                                     <p className="text-sm text-gray-600">{item.combo.description}</p>
-                                    <p className="text-sm text-gray-500">
+                                    
+                                    {/* Sabores */}
+                                    {item.selectedFlavors && Array.isArray(item.selectedFlavors) && item.selectedFlavors.length > 0 && (
+                                      <div className="mt-1">
+                                        <p className="text-xs font-semibold text-gray-700">Sabores:</p>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {item.selectedFlavors.map((flavor: any, idx: number) => (
+                                            <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                              {typeof flavor === 'string' ? flavor : flavor.name || flavor}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Sabores Pizza 2 */}
+                                    {item.extras?.flavorsPizza2 && Array.isArray(item.extras.flavorsPizza2) && item.extras.flavorsPizza2.length > 0 && (
+                                      <div className="mt-1">
+                                        <p className="text-xs font-semibold text-gray-700">Sabores Pizza 2:</p>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {item.extras.flavorsPizza2.map((flavor: any, idx: number) => (
+                                            <span key={idx} className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
+                                              {typeof flavor === 'string' ? flavor : flavor.name || flavor}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Observações do item */}
+                                    {item.observations && (
+                                      <p className="text-xs text-gray-600 mt-1 italic">Obs: {item.observations}</p>
+                                    )}
+                                    
+                                    <p className="text-sm text-gray-500 mt-1">
                                       Qtd: {item.quantity} x {formatCurrency(item.price)}
                                     </p>
                                   </div>

@@ -302,6 +302,7 @@ model SystemSettings {
   whatsappAccessToken String? // Access Token (Business API)
   whatsappBusinessAccountId String? // Business Account ID
   whatsappConnected   Boolean @default(false) // Status da conexão
+  notificationSound   String? // URL ou caminho do arquivo de som para notificação de novos pedidos
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

@@ -493,35 +493,6 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
 
   const handleAddToCart = () => {
     // Para hambúrgueres, o tipo sempre está definido (padrão é artesanal)
-    
-    // Validar se é combo/pizza que precisa de sabores
-    if (isCombo && !isBurger) {
-      const maxFlavors = selectedSize ? selectedSize.maxFlavors : defaultMaxFlavors
-      
-      // Validar sabores da pizza 1
-      if (selectedFlavors.length === 0) {
-        toast.error(`Selecione pelo menos 1 sabor para a pizza`)
-        return
-      }
-      
-      if (selectedFlavors.length > maxFlavors) {
-        toast.error(`Selecione no máximo ${maxFlavors} sabor(es) para a pizza`)
-        return
-      }
-      
-      // Validar sabores da pizza 2 se houver
-      if (pizzaQuantity > 1) {
-        if (selectedFlavorsPizza2.length === 0) {
-          toast.error(`Selecione pelo menos 1 sabor para a segunda pizza`)
-          return
-        }
-        
-        if (selectedFlavorsPizza2.length > maxFlavors) {
-          toast.error(`Selecione no máximo ${maxFlavors} sabor(es) para a segunda pizza`)
-          return
-        }
-      }
-    }
 
     const customizedItem: CustomizedItem = {
       id: `${item.id}-${Date.now()}`,
