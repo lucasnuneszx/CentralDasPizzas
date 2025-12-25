@@ -149,6 +149,20 @@ async function generatePrintContent(order: any, printType: string) {
   const now = new Date()
   const dateTime = now.toLocaleString('pt-BR')
   
+  // DEBUG: Log para verificar dados do pedido
+  console.log('=== DEBUG IMPRESSÃO ===')
+  console.log('Order ID:', order.id)
+  console.log('Items count:', order.items?.length)
+  order.items?.forEach((item: any, index: number) => {
+    console.log(`Item ${index}:`, {
+      comboName: item.combo?.name,
+      selectedFlavors: item.selectedFlavors,
+      selectedFlavorsType: typeof item.selectedFlavors,
+      extras: item.extras,
+      extrasType: typeof item.extras
+    })
+  })
+  
   let content = ''
   
   // Cabeçalho
@@ -169,56 +183,95 @@ async function generatePrintContent(order: any, printType: string) {
     order.items.forEach((item: any) => {
       content += `${item.quantity}x ${item.combo.name}\n`
       
-      // Sabores
+      // Sabores - LÓGICA SIMPLIFICADA E ROBUSTA
       if (item.selectedFlavors) {
         try {
-          const parsed = typeof item.selectedFlavors === 'string' 
-            ? JSON.parse(item.selectedFlavors) 
-            : item.selectedFlavors
+          let parsed: any = null
           
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const flavorNames = parsed.map((f: any) => {
-              // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f !== null && f.id) {
-                const name = flavorsMap.get(f.id) || f.name || f.id
-                return name
-              }
-              // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(String(f)) || String(f)
-              return name
-            }).filter((name: string) => name && name.trim() !== '')
+          // Tentar parsear se for string
+          if (typeof item.selectedFlavors === 'string') {
+            parsed = JSON.parse(item.selectedFlavors)
+          } else {
+            parsed = item.selectedFlavors
+          }
+          
+          // Garantir que é um array
+          if (!Array.isArray(parsed)) {
+            parsed = [parsed]
+          }
+          
+          // Mapear IDs para nomes
+          if (parsed && parsed.length > 0) {
+            const flavorNames: string[] = []
             
+            for (const f of parsed) {
+              let flavorId = ''
+              
+              if (typeof f === 'object' && f !== null) {
+                flavorId = f.id || f
+              } else {
+                flavorId = String(f)
+              }
+              
+              // Buscar no mapa de sabores
+              const flavorName = flavorsMap.get(flavorId)
+              if (flavorName) {
+                flavorNames.push(flavorName)
+              } else {
+                // Se não encontrar, usar o ID mesmo
+                flavorNames.push(String(flavorId))
+              }
+            }
+            
+            // Adicionar ao conteúdo apenas se tiver nomes
             if (flavorNames.length > 0) {
               content += `   Sabores: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
-          console.error('Erro ao parsear selectedFlavors na comanda:', e, item.selectedFlavors)
+          console.error('❌ Erro ao parsear selectedFlavors na comanda:', e)
+          console.error('Valor recebido:', item.selectedFlavors)
+          console.error('Tipo:', typeof item.selectedFlavors)
         }
       }
       
-      // Sabores Pizza 2
+      // Sabores Pizza 2 - LÓGICA SIMPLIFICADA
       if (item.extras) {
         try {
-          const extras = typeof item.extras === 'string' ? JSON.parse(item.extras) : item.extras
+          let extras: any = null
+          
+          if (typeof item.extras === 'string') {
+            extras = JSON.parse(item.extras)
+          } else {
+            extras = item.extras
+          }
+          
           if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames = extras.flavorsPizza2.map((f: any) => {
-              // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f !== null && f.id) {
-                const name = flavorsMap.get(f.id) || f.name || f.id
-                return name
+            const flavorNames: string[] = []
+            
+            for (const f of extras.flavorsPizza2) {
+              let flavorId = ''
+              
+              if (typeof f === 'object' && f !== null) {
+                flavorId = f.id || f
+              } else {
+                flavorId = String(f)
               }
-              // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(String(f)) || String(f)
-              return name
-            }).filter((name: string) => name && name.trim() !== '')
+              
+              const flavorName = flavorsMap.get(flavorId)
+              if (flavorName) {
+                flavorNames.push(flavorName)
+              } else {
+                flavorNames.push(String(flavorId))
+              }
+            }
             
             if (flavorNames.length > 0) {
               content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
-          console.error('Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
+          console.error('❌ Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
         }
       }
       
@@ -274,56 +327,95 @@ async function generatePrintContent(order: any, printType: string) {
     order.items.forEach((item: any) => {
       content += `\n${item.quantity}x ${item.combo.name}\n`
       
-      // Sabores
+      // Sabores - LÓGICA SIMPLIFICADA E ROBUSTA PARA CUPOM FISCAL
       if (item.selectedFlavors) {
         try {
-          const parsed = typeof item.selectedFlavors === 'string' 
-            ? JSON.parse(item.selectedFlavors) 
-            : item.selectedFlavors
+          let parsed: any = null
           
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const flavorNames = parsed.map((f: any) => {
-              // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f !== null && f.id) {
-                const name = flavorsMap.get(f.id) || f.name || f.id
-                return name
-              }
-              // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(String(f)) || String(f)
-              return name
-            }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
+          // Tentar parsear se for string
+          if (typeof item.selectedFlavors === 'string') {
+            parsed = JSON.parse(item.selectedFlavors)
+          } else {
+            parsed = item.selectedFlavors
+          }
+          
+          // Garantir que é um array
+          if (!Array.isArray(parsed)) {
+            parsed = [parsed]
+          }
+          
+          // Mapear IDs para nomes
+          if (parsed && parsed.length > 0) {
+            const flavorNames: string[] = []
             
+            for (const f of parsed) {
+              let flavorId = ''
+              
+              if (typeof f === 'object' && f !== null) {
+                flavorId = f.id || f
+              } else {
+                flavorId = String(f)
+              }
+              
+              // Buscar no mapa de sabores
+              const flavorName = flavorsMap.get(flavorId)
+              if (flavorName) {
+                flavorNames.push(flavorName)
+              } else {
+                // Se não encontrar, usar o ID mesmo
+                flavorNames.push(String(flavorId))
+              }
+            }
+            
+            // Adicionar ao conteúdo apenas se tiver nomes
             if (flavorNames.length > 0) {
               content += `  Sabores: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
-          console.error('Erro ao parsear selectedFlavors no cupom fiscal:', e, item.selectedFlavors)
+          console.error('❌ Erro ao parsear selectedFlavors no cupom fiscal:', e)
+          console.error('Valor recebido:', item.selectedFlavors)
+          console.error('Tipo:', typeof item.selectedFlavors)
         }
       }
       
-      // Sabores Pizza 2
+      // Sabores Pizza 2 - LÓGICA SIMPLIFICADA PARA CUPOM FISCAL
       if (item.extras) {
         try {
-          const extras = typeof item.extras === 'string' ? JSON.parse(item.extras) : item.extras
+          let extras: any = null
+          
+          if (typeof item.extras === 'string') {
+            extras = JSON.parse(item.extras)
+          } else {
+            extras = item.extras
+          }
+          
           if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames = extras.flavorsPizza2.map((f: any) => {
-              // Se for objeto com id, buscar nome no mapa
-              if (typeof f === 'object' && f !== null && f.id) {
-                const name = flavorsMap.get(f.id) || f.name || f.id
-                return name
+            const flavorNames: string[] = []
+            
+            for (const f of extras.flavorsPizza2) {
+              let flavorId = ''
+              
+              if (typeof f === 'object' && f !== null) {
+                flavorId = f.id || f
+              } else {
+                flavorId = String(f)
               }
-              // Se for string (ID), buscar nome no mapa
-              const name = flavorsMap.get(String(f)) || String(f)
-              return name
-            }).filter((name: string) => name && name.trim() !== '') // Filtrar nomes vazios
+              
+              const flavorName = flavorsMap.get(flavorId)
+              if (flavorName) {
+                flavorNames.push(flavorName)
+              } else {
+                flavorNames.push(String(flavorId))
+              }
+            }
             
             if (flavorNames.length > 0) {
               content += `  Sabores Pizza 2: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
-          console.error('Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
+          console.error('❌ Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
         }
       }
       
