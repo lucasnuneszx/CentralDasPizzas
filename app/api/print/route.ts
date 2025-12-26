@@ -254,6 +254,8 @@ async function generatePrintContent(order: any, printType: string) {
       content += `${item.quantity}x ${item.combo.name}\n`
       
       // Sabores - LÓGICA SIMPLIFICADA E ROBUSTA
+      let allFlavorNames: string[] = []
+      
       if (item.selectedFlavors) {
         try {
           let parsed: any = null
@@ -272,8 +274,6 @@ async function generatePrintContent(order: any, printType: string) {
           
           // Mapear IDs para nomes
           if (parsed && parsed.length > 0) {
-            const flavorNames: string[] = []
-            
             for (const f of parsed) {
               let flavorId = ''
               
@@ -286,16 +286,11 @@ async function generatePrintContent(order: any, printType: string) {
               // Buscar no mapa de sabores
               const flavorName = flavorsMap.get(flavorId)
               if (flavorName) {
-                flavorNames.push(flavorName)
+                allFlavorNames.push(flavorName)
               } else {
                 // Se não encontrar, usar o ID mesmo
-                flavorNames.push(String(flavorId))
+                allFlavorNames.push(String(flavorId))
               }
-            }
-            
-            // Adicionar ao conteúdo apenas se tiver nomes
-            if (flavorNames.length > 0) {
-              content += `   Sabores: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
@@ -317,8 +312,6 @@ async function generatePrintContent(order: any, printType: string) {
           }
           
           if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames: string[] = []
-            
             for (const f of extras.flavorsPizza2) {
               let flavorId = ''
               
@@ -330,19 +323,31 @@ async function generatePrintContent(order: any, printType: string) {
               
               const flavorName = flavorsMap.get(flavorId)
               if (flavorName) {
-                flavorNames.push(flavorName)
+                allFlavorNames.push(flavorName)
               } else {
-                flavorNames.push(String(flavorId))
+                allFlavorNames.push(String(flavorId))
               }
-            }
-            
-            if (flavorNames.length > 0) {
-              content += `   Sabores Pizza 2: ${flavorNames.join(', ')}\n`
             }
           }
         } catch (e) {
           console.error('❌ Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
         }
+      }
+      
+      // Mostrar sabores se existirem
+      if (allFlavorNames.length > 0) {
+        // Formatar lista de sabores: se tiver mais de 2, usar "e" antes do último
+        let saboresText = ''
+        if (allFlavorNames.length === 1) {
+          saboresText = allFlavorNames[0]
+        } else if (allFlavorNames.length === 2) {
+          saboresText = `${allFlavorNames[0]} E ${allFlavorNames[1]}`
+        } else {
+          const todosMenosUltimo = allFlavorNames.slice(0, -1).join(', ')
+          const ultimo = allFlavorNames[allFlavorNames.length - 1]
+          saboresText = `${todosMenosUltimo} E ${ultimo}`
+        }
+        content += `   SABORES - ${saboresText}\n`
       }
       
       content += `   R$ ${item.price.toFixed(2).replace('.', ',')} cada\n`

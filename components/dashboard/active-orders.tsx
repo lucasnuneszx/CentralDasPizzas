@@ -65,6 +65,7 @@ export function ActiveOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [settings, setSettings] = useState<any>(null)
+  const [showPrintDialog, setShowPrintDialog] = useState<string | null>(null)
   const allSeenOrderIdsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
@@ -74,6 +75,22 @@ export function ActiveOrders() {
     const interval = setInterval(fetchActiveOrders, 3000)
     return () => clearInterval(interval)
   }, [])
+
+  // Fechar diálogo ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showPrintDialog) {
+        const target = event.target as HTMLElement
+        if (!target.closest('.print-dialog-container')) {
+          setShowPrintDialog(null)
+        }
+      }
+    }
+    if (showPrintDialog) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showPrintDialog])
 
   const fetchSettings = async () => {
     try {
@@ -291,7 +308,9 @@ export function ActiveOrders() {
     }
   }
 
-  const handlePrintOrder = async (order: Order) => {
+  const [showPrintDialog, setShowPrintDialog] = useState<string | null>(null)
+
+  const handlePrintOrder = async (order: Order, printType: 'kitchen' | 'receipt') => {
     try {
       // Usar a API de impressão simplificada
       const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
@@ -303,7 +322,7 @@ export function ActiveOrders() {
         },
         body: JSON.stringify({
           orderId: order.id,
-          printType: 'kitchen'
+          printType
         })
       })
 
@@ -323,10 +342,11 @@ export function ActiveOrders() {
           paymentMethod: data.order.paymentMethod,
           address: data.order.address,
           notes: data.order.notes,
-          printType: 'kitchen'
+          printType
         })
         
-        toast.success('Abrindo impressão...')
+        toast.success(`Abrindo impressão ${printType === 'kitchen' ? 'para cozinha' : 'do cupom fiscal'}...`)
+        setShowPrintDialog(null)
       } else {
         const error = await response.json()
         toast.error(error.message || 'Erro ao imprimir pedido')
@@ -633,15 +653,37 @@ export function ActiveOrders() {
                         Aceitar
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePrintOrder(order)}
-                      className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
-                    >
-                      <Printer className="h-4 w-4 mr-1" />
-                      Imprimir
-                    </Button>
+                    <div className="relative print-dialog-container">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowPrintDialog(order.id)}
+                        className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+                      >
+                        <Printer className="h-4 w-4 mr-1" />
+                        Imprimir
+                      </Button>
+                      {showPrintDialog === order.id && (
+                        <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg min-w-[200px]">
+                          <div className="py-1">
+                            <button
+                              onClick={() => handlePrintOrder(order, 'kitchen')}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                              <ChefHat className="h-4 w-4" />
+                              Cupom Cozinha
+                            </button>
+                            <button
+                              onClick={() => handlePrintOrder(order, 'receipt')}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                              <Printer className="h-4 w-4" />
+                              Cupom Fiscal
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <Button
                       size="sm"
                       variant="outline"

@@ -191,17 +191,35 @@ function generatePrintHTML(data: PrintData): string {
       ${data.customerPhone ? `<div class="info-line"><strong>Telefone:</strong> ${data.customerPhone}</div>` : ''}
       
       <div style="margin-top: 15px;">
-        ${data.items.map(item => `
+        ${data.items.map(item => {
+          // Formatar sabores
+          let saboresText = ''
+          if (item.flavors && item.flavors.length > 0) {
+            if (item.flavors.length === 1) {
+              saboresText = item.flavors[0]
+            } else if (item.flavors.length === 2) {
+              saboresText = `${item.flavors[0]} E ${item.flavors[1]}`
+            } else {
+              const todosMenosUltimo = item.flavors.slice(0, -1).join(', ')
+              const ultimo = item.flavors[item.flavors.length - 1]
+              saboresText = `${todosMenosUltimo} E ${ultimo}`
+            }
+          }
+          
+          return `
           <div class="item">
             <div class="item-name">${item.quantity}x ${item.name}</div>
+            ${saboresText ? `<div class="item-details"><strong>Sabores:</strong> ${saboresText}</div>` : ''}
+            ${item.observations ? `<div class="item-details"><strong>Obs:</strong> ${item.observations}</div>` : ''}
             <div class="item-details">R$ ${item.price.toFixed(2)} cada</div>
           </div>
-        `).join('')}
+        `
+        }).join('')}
       </div>
       
       ${data.notes ? `
         <div class="notes">
-          <strong>OBSERVAÇÕES:</strong><br>
+          <strong>OBSERVAÇÕES GERAIS:</strong><br>
           ${data.notes}
         </div>
       ` : ''}
