@@ -308,8 +308,6 @@ export function ActiveOrders() {
     }
   }
 
-  const [showPrintDialog, setShowPrintDialog] = useState<string | null>(null)
-
   const handlePrintOrder = async (order: Order, printType: 'kitchen' | 'receipt') => {
     try {
       // Usar a API de impressão simplificada
