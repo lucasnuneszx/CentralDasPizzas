@@ -14,6 +14,8 @@ interface PrintData {
     name: string
     quantity: number
     price: number
+    flavors?: string[]
+    observations?: string
   }>
   total: number
   deliveryType: 'DELIVERY' | 'PICKUP'
@@ -233,14 +235,29 @@ function generatePrintHTML(data: PrintData): string {
       ${data.customerPhone ? `<div class="info-line"><strong>Telefone:</strong> ${data.customerPhone}</div>` : ''}
       
       <div style="margin-top: 15px;">
-        ${data.items.map(item => `
+        ${data.items.map(item => {
+          // Formatar sabores no formato IFOOD
+          let saboresText = ''
+          if (item.flavors && item.flavors.length > 0) {
+            if (item.flavors.length === 1) {
+              saboresText = item.flavors[0]
+            } else if (item.flavors.length === 2) {
+              saboresText = `${item.flavors[0]} E ${item.flavors[1]}`
+            } else {
+              const todosMenosUltimo = item.flavors.slice(0, -1).join(', ')
+              const ultimo = item.flavors[item.flavors.length - 1]
+              saboresText = `${todosMenosUltimo} E ${ultimo}`
+            }
+          }
+          
+          return `
           <div class="item">
-            <div class="item-name">${item.name}</div>
-            <div class="item-details">
-              ${item.quantity} x R$ ${item.price.toFixed(2)} = R$ ${(item.quantity * item.price).toFixed(2)}
-            </div>
+            <div class="item-name">${item.quantity}X ${item.name.toUpperCase()}</div>
+            ${saboresText ? `<div class="item-details">SABORES - ${saboresText}</div>` : ''}
+            ${item.observations ? `<div class="item-details">Obs: ${item.observations}</div>` : ''}
           </div>
-        `).join('')}
+        `
+        }).join('')}
       </div>
       
       <div class="total">

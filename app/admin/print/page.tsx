@@ -72,9 +72,23 @@ function PrintSettingsPage() {
       phone: '(11) 99999-8888'
     },
     items: [
-      { combo: { name: 'Pizza Margherita' }, quantity: 1, price: 29.90 },
-      { combo: { name: 'Pizza Calabresa' }, quantity: 1, price: 32.90 },
-      { combo: { name: 'Coca-Cola 350ml' }, quantity: 2, price: 4.50 }
+      { 
+        combo: { name: 'COMBO GRANDE' }, 
+        quantity: 1, 
+        price: 29.90,
+        flavors: ['Calabresa', 'Frango']
+      },
+      { 
+        combo: { name: 'COMBO PEQUENO' }, 
+        quantity: 1, 
+        price: 32.90,
+        flavors: ['Marguerita', 'Portuguesa', 'Bacon']
+      },
+      { 
+        combo: { name: 'Coca-Cola 350ml' }, 
+        quantity: 2, 
+        price: 4.50
+      }
     ],
     total: 67.30,
     deliveryType: 'DELIVERY',
@@ -155,8 +169,23 @@ function PrintSettingsPage() {
       content += '-'.repeat(settings.paperWidth) + '\n'
       
       sampleOrder.items.forEach((item: any) => {
-        content += `${item.combo.name}\n`
-        content += `   ${item.quantity} x R$ ${item.price.toFixed(2)} = R$ ${(item.price * item.quantity).toFixed(2)}\n`
+        // Formato IFOOD: quantidade + nome em maiúsculas
+        content += `\n${item.quantity}X ${item.combo.name.toUpperCase()}\n`
+        
+        // Sabores no formato IFOOD
+        if (item.flavors && item.flavors.length > 0) {
+          let saboresText = ''
+          if (item.flavors.length === 1) {
+            saboresText = item.flavors[0]
+          } else if (item.flavors.length === 2) {
+            saboresText = `${item.flavors[0]} E ${item.flavors[1]}`
+          } else {
+            const todosMenosUltimo = item.flavors.slice(0, -1).join(', ')
+            const ultimo = item.flavors[item.flavors.length - 1]
+            saboresText = `${todosMenosUltimo} E ${ultimo}`
+          }
+          content += `SABORES - ${saboresText}\n`
+        }
       })
       
       content += '-'.repeat(settings.paperWidth) + '\n'

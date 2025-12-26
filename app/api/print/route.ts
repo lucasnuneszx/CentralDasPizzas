@@ -109,11 +109,81 @@ export async function POST(request: NextRequest) {
       dateTime: new Date(order.createdAt).toLocaleString('pt-BR'),
       customerName: order.user.name,
       customerPhone: order.user.phone || undefined,
-      items: order.items.map((item: any) => ({
-        name: item.combo.name,
-        quantity: item.quantity,
-        price: parseFloat(item.price.toString())
-      })),
+      items: order.items.map((item: any) => {
+        // Extrair sabores para incluir nos dados
+        let flavorNames: string[] = []
+        
+        if (item.selectedFlavors) {
+          try {
+            let parsed: any = null
+            if (typeof item.selectedFlavors === 'string' && item.selectedFlavors.trim() !== '') {
+              parsed = JSON.parse(item.selectedFlavors)
+            } else if (item.selectedFlavors) {
+              parsed = item.selectedFlavors
+            }
+            
+            if (parsed) {
+              if (!Array.isArray(parsed)) {
+                parsed = [parsed]
+              }
+              
+              for (const f of parsed) {
+                let flavorId = ''
+                if (typeof f === 'object' && f !== null && f.id) {
+                  flavorId = String(f.id)
+                } else {
+                  flavorId = String(f)
+                }
+                
+                const flavorName = flavorsMap.get(flavorId)
+                if (flavorName && flavorName.trim() !== '') {
+                  flavorNames.push(flavorName)
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao parsear selectedFlavors:', e)
+          }
+        }
+        
+        // Sabores Pizza 2
+        if (item.extras) {
+          try {
+            let extras: any = null
+            if (typeof item.extras === 'string') {
+              extras = JSON.parse(item.extras)
+            } else {
+              extras = item.extras
+            }
+            
+            if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
+              for (const f of extras.flavorsPizza2) {
+                let flavorId = ''
+                if (typeof f === 'object' && f !== null) {
+                  flavorId = f.id || f
+                } else {
+                  flavorId = String(f)
+                }
+                
+                const flavorName = flavorsMap.get(flavorId)
+                if (flavorName) {
+                  flavorNames.push(flavorName)
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao parsear extras.flavorsPizza2:', e)
+          }
+        }
+        
+        return {
+          name: item.combo.name,
+          quantity: item.quantity,
+          price: parseFloat(item.price.toString()),
+          flavors: flavorNames,
+          observations: item.observations || undefined
+        }
+      }),
       total: parseFloat(order.total.toString()),
       deliveryType: order.deliveryType as 'DELIVERY' | 'PICKUP',
       paymentMethod: order.paymentMethod,
@@ -307,7 +377,7 @@ async function generatePrintContent(order: any, printType: string) {
     }
     
   } else if (printType === 'receipt') {
-    // Impressão de cupom fiscal - ORGANIZADO
+    // Impressão de cupom fiscal - FORMATO IFOOD
     content += 'CUPOM FISCAL\n'
     content += '='.repeat(40) + '\n'
     content += `Data/Hora: ${dateTime}\n`
@@ -322,12 +392,12 @@ async function generatePrintContent(order: any, printType: string) {
     }
     content += '-'.repeat(40) + '\n'
     
-    // Itens do pedido
-    content += 'ITENS:\n'
+    // Itens do pedido - FORMATO IFOOD
     order.items.forEach((item: any) => {
-      content += `\n${item.quantity}x ${item.combo.name}\n`
+      // Quantidade e nome do combo (em maiúsculas)
+      content += `\n${item.quantity}X ${item.combo.name.toUpperCase()}\n`
       
-      // Sabores - LÓGICA ROBUSTA E SIMPLES
+      // Sabores - FORMATO IFOOD
       let flavorNames: string[] = []
       
       if (item.selectedFlavors) {
@@ -376,12 +446,7 @@ async function generatePrintContent(order: any, printType: string) {
         }
       }
       
-      // SEMPRE adicionar sabores se existirem
-      if (flavorNames.length > 0) {
-        content += `  Sabores: ${flavorNames.join(', ')}\n`
-      }
-      
-      // Sabores Pizza 2 - LÓGICA SIMPLIFICADA PARA CUPOM FISCAL
+      // Sabores Pizza 2
       if (item.extras) {
         try {
           let extras: any = null
@@ -393,8 +458,6 @@ async function generatePrintContent(order: any, printType: string) {
           }
           
           if (extras && extras.flavorsPizza2 && Array.isArray(extras.flavorsPizza2) && extras.flavorsPizza2.length > 0) {
-            const flavorNames: string[] = []
-            
             for (const f of extras.flavorsPizza2) {
               let flavorId = ''
               
@@ -411,21 +474,31 @@ async function generatePrintContent(order: any, printType: string) {
                 flavorNames.push(String(flavorId))
               }
             }
-            
-            if (flavorNames.length > 0) {
-              content += `  Sabores Pizza 2: ${flavorNames.join(', ')}\n`
-            }
           }
         } catch (e) {
           console.error('❌ Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
         }
       }
       
-      content += `  ${item.quantity} x R$ ${item.price.toFixed(2).replace('.', ',')} = R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`
+      // Mostrar sabores no formato IFOOD: "SABORES - X, Y, Z"
+      if (flavorNames.length > 0) {
+        // Formatar lista de sabores: se tiver mais de 2, usar "e" antes do último
+        let saboresText = ''
+        if (flavorNames.length === 1) {
+          saboresText = flavorNames[0]
+        } else if (flavorNames.length === 2) {
+          saboresText = `${flavorNames[0]} E ${flavorNames[1]}`
+        } else {
+          const todosMenosUltimo = flavorNames.slice(0, -1).join(', ')
+          const ultimo = flavorNames[flavorNames.length - 1]
+          saboresText = `${todosMenosUltimo} E ${ultimo}`
+        }
+        content += `SABORES - ${saboresText}\n`
+      }
       
-      // Observações do item
+      // Observações do item (se houver)
       if (item.observations) {
-        content += `  Obs: ${item.observations}\n`
+        content += `Obs: ${item.observations}\n`
       }
     })
     
