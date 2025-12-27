@@ -74,7 +74,13 @@ export function ActiveOrders() {
     fetchSettings()
     fetchActiveOrders()
     // Solicitar permissão para notificações do navegador ao carregar
-    requestPermission()
+    requestPermission().then(hasPermission => {
+      if (hasPermission) {
+        console.log('✅ Permissão para notificações concedida no ActiveOrders')
+      } else {
+        console.warn('⚠️ Permissão para notificações não concedida no ActiveOrders')
+      }
+    })
     // Atualizar a cada 3 segundos para detecção mais rápida
     const interval = setInterval(fetchActiveOrders, 3000)
     return () => clearInterval(interval)
@@ -168,8 +174,10 @@ export function ActiveOrders() {
         }
         
         // Mostrar notificação do navegador para cada novo pedido
+        console.log('🔔 Detectados', newPendingOrders.length, 'novo(s) pedido(s). Tentando mostrar notificações...')
         newPendingOrders.forEach(order => {
           const orderNumber = order.id.slice(-8)
+          console.log('🔔 Chamando notifyNewOrder para pedido:', orderNumber)
           notifyNewOrder(orderNumber, order.total, order.id)
         })
       }

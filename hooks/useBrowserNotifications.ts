@@ -23,11 +23,21 @@ export function useBrowserNotifications() {
     // Verificar se o navegador suporta notificações
     if ('Notification' in window) {
       setIsSupported(true)
-      setPermission(Notification.permission)
+      const currentPermission = Notification.permission
+      setPermission(currentPermission)
+      console.log('🔔 Status de notificações:', {
+        suportado: true,
+        permissao: currentPermission
+      })
 
-      // Se a permissão ainda não foi solicitada ou foi negada, tentar solicitar
-      if (Notification.permission === 'default') {
+      // Se a permissão ainda não foi solicitada, tentar solicitar
+      if (currentPermission === 'default') {
+        console.log('🔔 Solicitando permissão para notificações...')
         requestPermission()
+      } else if (currentPermission === 'granted') {
+        console.log('✅ Permissão para notificações já concedida')
+      } else {
+        console.warn('⚠️ Permissão para notificações negada. O usuário precisa permitir manualmente nas configurações do navegador.')
       }
     } else {
       console.warn('⚠️ Este navegador não suporta notificações do sistema')
@@ -92,10 +102,22 @@ export function useBrowserNotifications() {
    */
   const createNotification = (options: NotificationOptions): Notification | null => {
     try {
+      // Verificar permissão novamente antes de criar
+      if (Notification.permission !== 'granted') {
+        console.warn('⚠️ Permissão não concedida. Status atual:', Notification.permission)
+        return null
+      }
+
       // Fechar notificação anterior se existir (para evitar múltiplas notificações)
       if (notificationRef.current) {
         notificationRef.current.close()
       }
+
+      console.log('🔔 Criando notificação:', {
+        title: options.title,
+        message: options.message,
+        tag: options.tag
+      })
 
       const notification = new Notification(options.title, {
         body: options.message,
@@ -106,21 +128,32 @@ export function useBrowserNotifications() {
         requireInteraction: options.requireInteraction || false,
       })
 
-      // Fechar automaticamente após 5 segundos
+      console.log('✅ Notificação criada com sucesso')
+
+      // Fechar automaticamente após 10 segundos (aumentado de 5 para 10)
       setTimeout(() => {
-        notification.close()
-      }, 5000)
+        if (notification) {
+          notification.close()
+          console.log('🔔 Notificação fechada automaticamente após 10 segundos')
+        }
+      }, 10000)
 
       // Adicionar evento de clique para focar na janela
       notification.onclick = () => {
+        console.log('🔔 Notificação clicada, focando janela')
         window.focus()
         notification.close()
+      }
+
+      // Adicionar eventos de erro
+      notification.onerror = (error) => {
+        console.error('❌ Erro na notificação:', error)
       }
 
       notificationRef.current = notification
       return notification
     } catch (error) {
-      console.error('Erro ao criar notificação:', error)
+      console.error('❌ Erro ao criar notificação:', error)
       return null
     }
   }
@@ -129,16 +162,32 @@ export function useBrowserNotifications() {
    * Notificar sobre novo pedido
    */
   const notifyNewOrder = (orderNumber: string, total: number, orderId?: string) => {
+    console.log('🔔 Tentando mostrar notificação para novo pedido:', {
+      orderNumber,
+      total,
+      orderId,
+      permission,
+      isSupported
+    })
+    
     const title = '🍕 Novo Pedido Recebido!'
     const message = `Pedido #${orderNumber} - Total: R$ ${total.toFixed(2).replace('.', ',')}`
     
-    return showNotification({
+    const result = showNotification({
       title,
       message,
       tag: `order-${orderId || orderNumber}`,
       data: { orderId, orderNumber },
       requireInteraction: true, // Manter notificação até o usuário interagir
     })
+    
+    if (result) {
+      console.log('✅ Notificação exibida com sucesso')
+    } else {
+      console.warn('⚠️ Não foi possível exibir a notificação. Verifique a permissão do navegador.')
+    }
+    
+    return result
   }
 
   /**

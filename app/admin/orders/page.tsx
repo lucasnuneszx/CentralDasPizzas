@@ -91,7 +91,13 @@ export default function OrdersManagement() {
     fetchOrders()
     fetchDeliveryPersons()
     // Solicitar permissão para notificações do navegador ao carregar
-    requestPermission()
+    requestPermission().then(hasPermission => {
+      if (hasPermission) {
+        console.log('✅ Permissão para notificações concedida no OrdersManagement')
+      } else {
+        console.warn('⚠️ Permissão para notificações não concedida no OrdersManagement')
+      }
+    })
     // Polling para novos pedidos - reduzido para 3 segundos para detecção mais rápida
     const interval = setInterval(() => {
       fetchOrders()
@@ -154,8 +160,10 @@ export default function OrdersManagement() {
           }
           
           // Mostrar notificação do navegador para cada novo pedido
+          console.log('🔔 Detectados', newPendingOrders.length, 'novo(s) pedido(s). Tentando mostrar notificações...')
           newPendingOrders.forEach(order => {
             const orderNumber = order.id.slice(-8)
+            console.log('🔔 Chamando notifyNewOrder para pedido:', orderNumber)
             notifyNewOrder(orderNumber, order.total, order.id)
           })
         }
