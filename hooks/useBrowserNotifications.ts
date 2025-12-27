@@ -78,19 +78,24 @@ export function useBrowserNotifications() {
    * Mostrar notificação do navegador
    */
   const showNotification = (options: NotificationOptions) => {
-    if (!isSupported) {
-      console.warn('Notificações não são suportadas')
+    // Verificar suporte diretamente (não confiar apenas no estado)
+    if (!('Notification' in window)) {
+      console.warn('⚠️ Notificações não são suportadas neste navegador')
       return null
     }
 
-    // Se não tiver permissão, tentar solicitar
-    if (permission !== 'granted') {
-      console.warn('Permissão para notificações não concedida. Tentando solicitar...')
-      requestPermission().then(hasPermission => {
-        if (hasPermission) {
-          createNotification(options)
-        }
-      })
+    // Verificar permissão diretamente (não confiar apenas no estado)
+    const currentPermission = Notification.permission
+    if (currentPermission !== 'granted') {
+      console.warn('⚠️ Permissão para notificações não concedida. Status:', currentPermission)
+      // Tentar solicitar se ainda não foi decidido
+      if (currentPermission === 'default') {
+        requestPermission().then(hasPermission => {
+          if (hasPermission) {
+            createNotification(options)
+          }
+        })
+      }
       return null
     }
 
@@ -102,7 +107,12 @@ export function useBrowserNotifications() {
    */
   const createNotification = (options: NotificationOptions): Notification | null => {
     try {
-      // Verificar permissão novamente antes de criar
+      // Verificar suporte e permissão novamente antes de criar
+      if (!('Notification' in window)) {
+        console.warn('⚠️ Notificações não são suportadas neste navegador')
+        return null
+      }
+
       if (Notification.permission !== 'granted') {
         console.warn('⚠️ Permissão não concedida. Status atual:', Notification.permission)
         return null
@@ -162,13 +172,45 @@ export function useBrowserNotifications() {
    * Notificar sobre novo pedido
    */
   const notifyNewOrder = (orderNumber: string, total: number, orderId?: string) => {
+    // Verificar suporte e permissão diretamente no window (não confiar no estado)
+    const hasSupport = 'Notification' in window
+    const currentPermission = hasSupport ? Notification.permission : 'denied'
+    
     console.log('🔔 Tentando mostrar notificação para novo pedido:', {
       orderNumber,
       total,
       orderId,
-      permission,
-      isSupported
+      hasSupport,
+      currentPermission,
+      permissionState: permission,
+      isSupportedState: isSupported
     })
+    
+    if (!hasSupport) {
+      console.error('❌ Notificações não são suportadas neste navegador')
+      return null
+    }
+    
+    if (currentPermission !== 'granted') {
+      console.warn('⚠️ Permissão não concedida. Status:', currentPermission)
+      // Tentar solicitar se ainda não foi decidido
+      if (currentPermission === 'default') {
+        requestPermission().then(hasPermission => {
+          if (hasPermission) {
+            const title = '🍕 Novo Pedido Recebido!'
+            const message = `Pedido #${orderNumber} - Total: R$ ${total.toFixed(2).replace('.', ',')}`
+            showNotification({
+              title,
+              message,
+              tag: `order-${orderId || orderNumber}`,
+              data: { orderId, orderNumber },
+              requireInteraction: true,
+            })
+          }
+        })
+      }
+      return null
+    }
     
     const title = '🍕 Novo Pedido Recebido!'
     const message = `Pedido #${orderNumber} - Total: R$ ${total.toFixed(2).replace('.', ',')}`
