@@ -279,19 +279,45 @@ function generatePrintHTML(data: PrintData): string {
       </div>
       
       <div class="total">
-        ${data.deliveryType === 'DELIVERY' ? `
-          SUBTOTAL: R$ ${data.total.toFixed(2)}<br>
-          TAXA ENTREGA: R$ 5,00<br>
-          TOTAL: R$ ${(data.total + 5).toFixed(2)}
-        ` : `
-          TOTAL: R$ ${data.total.toFixed(2)}
-        `}
+        ${(() => {
+          // Calcular subtotal dos itens (soma de todos os itens)
+          const subtotal = data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          // Calcular taxa de entrega como diferença entre total e subtotal
+          const deliveryFee = data.deliveryType === 'DELIVERY' ? data.total - subtotal : 0
+          
+          if (data.deliveryType === 'DELIVERY' && deliveryFee > 0) {
+            return `
+              SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}<br>
+              TAXA ENTREGA: R$ ${deliveryFee.toFixed(2).replace('.', ',')}<br>
+              TOTAL: R$ ${data.total.toFixed(2).replace('.', ',')}
+            `
+          } else {
+            return `TOTAL: R$ ${data.total.toFixed(2).replace('.', ',')}`
+          }
+        })()}
       </div>
       
       <div class="section">
         <div class="info-line"><strong>Forma de Pagamento:</strong> ${getPaymentMethodText(data.paymentMethod)}</div>
         <div class="info-line"><strong>Tipo:</strong> ${data.deliveryType === 'DELIVERY' ? 'ENTREGA' : 'RETIRADA'}</div>
       </div>
+      
+      ${data.deliveryType === 'DELIVERY' && data.address ? `
+        <div class="section">
+          <div class="section-title">ENTREGA</div>
+          <div class="address">
+            ${data.address.street}, ${data.address.number}<br>
+            ${data.address.complement ? data.address.complement + '<br>' : ''}
+            ${data.address.neighborhood}<br>
+            ${data.address.city} - ${data.address.state}<br>
+            CEP: ${data.address.zipCode}
+          </div>
+        </div>
+      ` : data.deliveryType === 'PICKUP' ? `
+        <div class="section">
+          <div class="section-title">RETIRADA NO BALCÃO</div>
+        </div>
+      ` : ''}
       
       ${data.notes ? `
         <div class="notes">

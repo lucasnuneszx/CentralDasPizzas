@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { printNative } from '@/lib/print-native'
+import { useBrowserNotifications } from '@/hooks/useBrowserNotifications'
 
 interface Order {
   id: string
@@ -67,13 +68,17 @@ export function ActiveOrders() {
   const [settings, setSettings] = useState<any>(null)
   const [showPrintDialog, setShowPrintDialog] = useState<string | null>(null)
   const allSeenOrderIdsRef = useRef<Set<string>>(new Set())
+  const { notifyNewOrder, requestPermission } = useBrowserNotifications()
 
   useEffect(() => {
     fetchSettings()
     fetchActiveOrders()
+    // Solicitar permissão para notificações do navegador ao carregar
+    requestPermission()
     // Atualizar a cada 3 segundos para detecção mais rápida
     const interval = setInterval(fetchActiveOrders, 3000)
     return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Fechar diálogo ao clicar fora
@@ -139,25 +144,34 @@ export function ActiveOrders() {
       // Usar useRef para garantir que sempre temos o valor mais atualizado
       const newPendingOrders = pendingOrders.filter((order: Order) => !allSeenOrderIdsRef.current.has(order.id))
       
-      // Tocar som ANTES de adicionar ao ref para garantir que toca imediatamente
-      if (newPendingOrders.length > 0 && settings?.notificationSound) {
+      // Tocar som e mostrar notificação do navegador ANTES de adicionar ao ref
+      if (newPendingOrders.length > 0) {
         // Adicionar os novos IDs ao ref ANTES de tocar o som para evitar tocar múltiplas vezes
         newPendingOrders.forEach(order => allSeenOrderIdsRef.current.add(order.id))
         
-        try {
-          const audio = new Audio(settings.notificationSound)
-          audio.volume = 1.0 // Volume máximo
-          // Tentar tocar imediatamente
-          audio.play()
-            .then(() => {
-              console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
-            })
-            .catch(err => {
-              console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
-            })
-        } catch (error) {
-          console.error('Erro ao criar elemento de áudio:', error)
+        // Tocar som se configurado
+        if (settings?.notificationSound) {
+          try {
+            const audio = new Audio(settings.notificationSound)
+            audio.volume = 1.0 // Volume máximo
+            // Tentar tocar imediatamente
+            audio.play()
+              .then(() => {
+                console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
+              })
+              .catch(err => {
+                console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
+              })
+          } catch (error) {
+            console.error('Erro ao criar elemento de áudio:', error)
+          }
         }
+        
+        // Mostrar notificação do navegador para cada novo pedido
+        newPendingOrders.forEach(order => {
+          const orderNumber = order.id.slice(-8)
+          notifyNewOrder(orderNumber, order.total, order.id)
+        })
       }
       
       // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos (para garantir que não percamos nenhum)

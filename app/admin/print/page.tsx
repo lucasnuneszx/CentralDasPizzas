@@ -188,12 +188,17 @@ function PrintSettingsPage() {
         }
       })
       
-      content += '-'.repeat(settings.paperWidth) + '\n'
-      content += `SUBTOTAL: R$ ${sampleOrder.total.toFixed(2)}\n`
+      // Calcular subtotal dos itens (soma de todos os itens)
+      const subtotal = sampleOrder.items.reduce((sum: number, item: any) => sum + (parseFloat(item.price.toString()) * item.quantity), 0)
+      // Calcular taxa de entrega como diferença entre total e subtotal
+      const deliveryFee = sampleOrder.deliveryType === 'DELIVERY' ? sampleOrder.total - subtotal : 0
       
-      if (sampleOrder.deliveryType === 'DELIVERY') {
-        content += `TAXA ENTREGA: R$ 5,00\n`
-        content += `TOTAL: R$ ${(sampleOrder.total + 5).toFixed(2)}\n`
+      content += '-'.repeat(settings.paperWidth) + '\n'
+      
+      if (sampleOrder.deliveryType === 'DELIVERY' && deliveryFee > 0) {
+        content += `SUBTOTAL: R$ ${subtotal.toFixed(2)}\n`
+        content += `TAXA ENTREGA: R$ ${deliveryFee.toFixed(2)}\n`
+        content += `TOTAL: R$ ${sampleOrder.total.toFixed(2)}\n`
       } else {
         content += `TOTAL: R$ ${sampleOrder.total.toFixed(2)}\n`
       }
@@ -203,6 +208,20 @@ function PrintSettingsPage() {
       if (settings.showPaymentInfo) {
         content += `FORMA DE PAGAMENTO: ${getPaymentMethodText(sampleOrder.paymentMethod)}\n`
         content += `TIPO: ${sampleOrder.deliveryType === 'DELIVERY' ? 'ENTREGA' : 'RETIRADA'}\n`
+      }
+      
+      // Endereço completo se for entrega
+      if (settings.showDeliveryInfo && sampleOrder.deliveryType === 'DELIVERY' && sampleOrder.address) {
+        content += '\nENDEREÇO DE ENTREGA:\n'
+        content += `${sampleOrder.address.street}, ${sampleOrder.address.number}\n`
+        if (sampleOrder.address.complement) {
+          content += `${sampleOrder.address.complement}\n`
+        }
+        content += `${sampleOrder.address.neighborhood}\n`
+        content += `${sampleOrder.address.city} - ${sampleOrder.address.state}\n`
+        if (sampleOrder.address.zipCode) {
+          content += `CEP: ${sampleOrder.address.zipCode}\n`
+        }
       }
       
       if (settings.showNotes && sampleOrder.notes) {

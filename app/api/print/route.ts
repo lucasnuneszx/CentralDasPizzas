@@ -507,12 +507,17 @@ async function generatePrintContent(order: any, printType: string) {
       }
     })
     
-    content += '\n' + '-'.repeat(40) + '\n'
-    content += `SUBTOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}\n`
+    // Calcular subtotal dos itens (soma de todos os itens)
+    const subtotal = order.items.reduce((sum: number, item: any) => sum + (parseFloat(item.price.toString()) * item.quantity), 0)
+    // Calcular taxa de entrega como diferença entre total e subtotal
+    const deliveryFee = order.deliveryType === 'DELIVERY' ? order.total - subtotal : 0
     
-    if (order.deliveryType === 'DELIVERY') {
-      content += `TAXA ENTREGA: R$ 5,00\n`
-      content += `TOTAL: R$ ${(order.total + 5).toFixed(2).replace('.', ',')}\n`
+    content += '\n' + '-'.repeat(40) + '\n'
+    
+    if (order.deliveryType === 'DELIVERY' && deliveryFee > 0) {
+      content += `SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`
+      content += `TAXA ENTREGA: R$ ${deliveryFee.toFixed(2).replace('.', ',')}\n`
+      content += `TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}\n`
     } else {
       content += `TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}\n`
     }
