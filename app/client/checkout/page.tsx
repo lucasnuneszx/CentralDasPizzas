@@ -554,7 +554,7 @@ export default function Checkout() {
                         id="zipCode"
                         value={addressForm.zipCode}
                         onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })}
-                        required
+                        placeholder="Opcional"
                       />
                     </div>
                     

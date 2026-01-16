@@ -252,18 +252,24 @@ function CheckoutPublicContent() {
           return
         }
       } else {
-        // Para usuários não logados, validar endereço manual e área de entrega
-        if (!formData.address.street || !formData.address.number || !formData.address.city || !formData.address.state || !formData.selectedDeliveryAreaId) {
-          toast.error('Preencha todos os campos do endereço e selecione o bairro para entrega')
+        // Para usuários não logados, validar endereço manual
+        if (!formData.address.street || !formData.address.number || !formData.address.city || !formData.address.state) {
+          toast.error('Preencha rua, número, cidade e estado para a entrega')
           setIsLoading(false)
           return
         }
       }
     }
 
-    // Validar dados do cliente
+    // Validar dados do cliente - apenas Nome e Telefone
     if (!formData.customerName) {
       toast.error('Preencha o nome')
+      setIsLoading(false)
+      return
+    }
+
+    if (!formData.customerPhone) {
+      toast.error('Preencha o telefone')
       setIsLoading(false)
       return
     }
@@ -514,28 +520,17 @@ function CheckoutPublicContent() {
                      />
                    </div>
                    <div>
-                     <Label htmlFor="customerPhone">Telefone (opcional)</Label>
+                     <Label htmlFor="customerPhone">Telefone *</Label>
                      <Input
                        id="customerPhone"
                        value={formData.customerPhone}
                        onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                        disabled={!!user}
                        readOnly={!!user}
-                       placeholder="Opcional"
+                       placeholder="Seu telefone"
+                       required
                      />
                    </div>
-                 </div>
-                 <div>
-                   <Label htmlFor="customerEmail">E-mail</Label>
-                   <Input
-                     id="customerEmail"
-                     type="email"
-                     value={formData.customerEmail}
-                     onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                     disabled={!!user}
-                     readOnly={!!user}
-                     required={!user}
-                   />
                  </div>
                </CardContent>
              </Card>
@@ -938,7 +933,7 @@ function CheckoutPublicContent() {
                        </div>
                        
                        <div>
-                         <Label htmlFor="zipCode">CEP *</Label>
+                         <Label htmlFor="zipCode">CEP</Label>
                          <Input
                            id="zipCode"
                            value={formData.address.zipCode}
@@ -946,7 +941,7 @@ function CheckoutPublicContent() {
                              ...formData, 
                              address: { ...formData.address, zipCode: e.target.value }
                            })}
-                           required
+                           placeholder="Opcional"
                          />
                        </div>
                      </>
