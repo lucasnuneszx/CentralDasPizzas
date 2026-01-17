@@ -9,8 +9,8 @@ export async function PUT(
   try {
     const user = await getAuthUser(request)
     
-    if (!user) {
-      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!user || !(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
+      return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 
     const { id } = params
@@ -71,8 +71,8 @@ export async function DELETE(
   try {
     const user = await getAuthUser(request)
     
-    if (!user) {
-      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!user || !(await checkAnyRole(request, ['ADMIN', 'MANAGER']))) {
+      return NextResponse.json({ message: 'Acesso negado' }, { status: 403 })
     }
 
     const { id } = params

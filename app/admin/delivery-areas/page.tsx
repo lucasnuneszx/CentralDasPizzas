@@ -114,17 +114,25 @@ export default function DeliveryAreasPage() {
         isActive: formData.isActive
       }
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       let response
       if (editingId) {
         response = await fetch(`/api/delivery-areas/${editingId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(areaData)
         })
       } else {
         response = await fetch('/api/delivery-areas', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(areaData)
         })
       }
@@ -149,8 +157,15 @@ export default function DeliveryAreasPage() {
     }
 
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(`/api/delivery-areas/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers
       })
 
       if (response.ok) {
