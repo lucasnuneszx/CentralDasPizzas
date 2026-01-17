@@ -383,6 +383,27 @@ function CheckoutPublicContent() {
         toast.success('Pedido realizado com sucesso!')
         localStorage.removeItem('cart')
         
+        // Limpar dados do formulário para o próximo pedido
+        setFormData({
+          deliveryType: DeliveryType.DELIVERY,
+          paymentMethod: PaymentMethod.PIX,
+          notes: '',
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          selectedAddressId: '',
+          selectedDeliveryAreaId: '',
+          address: {
+            street: '',
+            number: '',
+            complement: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            zipCode: ''
+          }
+        })
+        
         // Redirecionar para página de sucesso
         const orderId = result.order?.id || ''
         const total = result.order?.total || finalTotal

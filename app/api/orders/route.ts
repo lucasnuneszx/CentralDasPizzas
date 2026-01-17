@@ -280,40 +280,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Se não estiver logado, criar ou buscar usuário público
+    // Se não estiver logado, criar novo usuário para este pedido
     if (!userId) {
-      console.log('Usuário não logado, criando/buscando usuário público')
+      console.log('Usuário não logado, criando novo usuário para este pedido')
       try {
         // Usar valores padrão para cliente se não fornecido
         const customerName = customer?.name || 'Cliente'
-        const customerEmail = customer?.email || 'public@centraldaspizzas.com'
         const customerPhone = customer?.phone || ''
-
-        // Buscar ou criar usuário público
-        let publicUser = await prisma.user.findUnique({
-          where: { email: 'public@centraldaspizzas.com' }
-        })
-
-        if (!publicUser) {
-          console.log('Criando usuário público')
-          const customerName = customer?.name || 'Cliente'
-          const customerEmail = customer?.email || 'public@centraldaspizzas.com'
+        
+        // Gerar email único para cada pedido não autenticado
+        // Usar timestamp + random para garantir unicidade
+        const uniqueEmail = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}@centraldaspizzas.com`
+        
+        console.log('Criando novo usuário para pedido não autenticado')
           
-          publicUser = await prisma.user.create({
-            data: {
-              email: customerEmail,
-              name: customerName,
-              phone: customer?.phone || null,
-              role: 'CLIENT',
-              isActive: true
-            }
-          })
-          console.log('Usuário público criado:', publicUser.id)
-        } else {
-          console.log('Usuário público encontrado:', publicUser.id)
-        }
+        const newUser = await prisma.user.create({
+          data: {
+            email: uniqueEmail,
+            name: customerName,
+            phone: customerPhone || null,
+            role: 'CLIENT',
+            isActive: true
+          }
+        })
+        console.log('Novo usuário de pedido criado:', newUser.id, 'com email:', uniqueEmail)
 
-        userId = publicUser.id
+        userId = newUser.id
 
         // Criar endereço se necessário para entrega
         if (deliveryType === 'DELIVERY' && address && !addressId) {
