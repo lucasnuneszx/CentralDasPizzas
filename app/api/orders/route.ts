@@ -232,6 +232,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Validar telefone do cliente (OBRIGATÓRIO para controle de ligação)
+    const customerPhone = customer?.phone || body.customerPhone
+    if (!customerPhone || customerPhone.trim() === '') {
+      console.error('ERRO: Telefone do cliente não fornecido')
+      return NextResponse.json(
+        { message: 'Telefone do cliente é obrigatório' },
+        { status: 400 }
+      )
+    }
     
     // Usar valores padrão se não fornecidos
     const finalDeliveryType = deliveryType || 'PICKUP'
