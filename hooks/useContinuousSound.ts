@@ -22,11 +22,8 @@ export function useContinuousSound({
   // Função para gerar som usando Web Audio API (fallback)
   const playWebAudioSound = () => {
     try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
-      }
-
-      const audioContext = audioContextRef.current
+      // Criar novo AudioContext a cada toque para garantir funcionamento em macOS/Safari
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
       const now = audioContext.currentTime
 
       // Criar dois osciladores para um som de alerta mais notável
@@ -44,7 +41,7 @@ export function useContinuousSound({
       gain.connect(audioContext.destination)
 
       // Volume e envelope
-      const maxVolume = Math.min(Math.max(volume, 0), 1) * 0.3
+      const maxVolume = Math.min(Math.max(volume, 0), 1) * 0.5 // Volume aumentado para 50%
       gain.gain.setValueAtTime(maxVolume, now)
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
 
@@ -56,6 +53,8 @@ export function useContinuousSound({
       osc2.start(now)
       osc1.stop(now + 0.4)
       osc2.stop(now + 0.4)
+
+      console.log('🔊 Web Audio API som tocou com sucesso')
     } catch (error) {
       console.warn('Erro ao reproduzir som via Web Audio API:', error)
     }
@@ -73,8 +72,11 @@ export function useContinuousSound({
         audioRef.current.currentTime = 0
       }
       isPlayingRef.current = false
+      console.log('🔇 Som desativado', { soundUrl, isActive, soundEnabled })
       return
     }
+
+    console.log('🔊 INICIANDO som contínuo', { soundUrl, isActive, soundEnabled, volume, interval })
 
     // Função para tocar o som
     const playSound = () => {
@@ -86,14 +88,17 @@ export function useContinuousSound({
             const audio = new Audio(soundUrl)
             audio.volume = Math.min(Math.max(volume, 0), 1) // Garantir volume entre 0 e 1
             
-            audio.play().catch(error => {
-              console.warn('Erro ao reproduzir som de arquivo:', error)
-              // Fallback para Web Audio API
-              playWebAudioSound()
-            })
-            
-            audioRef.current = audio
-            isPlayingRef.current = true
+            audio.play()
+              .then(() => {
+                console.log('✅ Som de arquivo reproduzido com sucesso')
+                audioRef.current = audio
+                isPlayingRef.current = true
+              })
+              .catch(error => {
+                console.warn('⚠️ Erro ao reproduzir som de arquivo:', error)
+                // Fallback para Web Audio API
+                playWebAudioSound()
+              })
           }
         } else {
           // Se não há URL, usar Web Audio API
@@ -107,6 +112,7 @@ export function useContinuousSound({
     }
 
     // Tocar imediatamente
+    console.log('🔊 Tocando som imediatamente...')
     playSound()
 
     // Configurar intervalo para repetir
