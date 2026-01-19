@@ -26,6 +26,7 @@ import {
 import toast from 'react-hot-toast'
 import { maskName, maskPhone, maskId } from '@/lib/utils'
 import { useBrowserNotifications } from '@/hooks/useBrowserNotifications'
+import { OrderSoundAlert } from '@/components/order-sound-alert'
 
 interface Order {
   id: string
@@ -82,6 +83,7 @@ export default function OrdersManagement() {
   const [deliveryPerson, setDeliveryPerson] = useState<{ [key: string]: string }>({})
   const [showSensitiveData, setShowSensitiveData] = useState<{ [key: string]: boolean }>({})
   const [settings, setSettings] = useState<any>(null)
+  const [activeSoundAlertOrderId, setActiveSoundAlertOrderId] = useState<string | null>(null)
   const allSeenOrderIdsRef = useRef<Set<string>>(new Set())
   const router = useRouter()
   const { notifyNewOrder, requestPermission } = useBrowserNotifications()
@@ -140,6 +142,11 @@ export default function OrdersManagement() {
         if (newPendingOrders.length > 0) {
           // Adicionar os novos IDs ao ref ANTES de tocar o som para evitar tocar múltiplas vezes
           newPendingOrders.forEach(order => allSeenOrderIdsRef.current.add(order.id))
+          
+          // Ativar alerta sonoro contínuo para o primeiro pedido pendente novo
+          if (!activeSoundAlertOrderId && newPendingOrders.length > 0) {
+            setActiveSoundAlertOrderId(newPendingOrders[0].id)
+          }
           
           // Tocar som se configurado
           if (settings?.notificationSound) {
@@ -207,6 +214,12 @@ export default function OrdersManagement() {
       if (response.ok) {
         const actionText = action === 'ACCEPT' ? 'aceito' : action === 'REJECT' ? 'rejeitado' : 'impresso'
         toast.success(`Pedido ${actionText} com sucesso!`)
+        
+        // Desativar alerta sonoro quando um pedido é aceito ou rejeitado
+        if ((action === 'ACCEPT' || action === 'REJECT') && activeSoundAlertOrderId === orderId) {
+          setActiveSoundAlertOrderId(null)
+        }
+        
         fetchOrders()
       } else {
         toast.error('Erro ao processar pedido')
@@ -361,6 +374,28 @@ export default function OrdersManagement() {
 
   return (
     <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER]}>
+      {/* Alerta Sonoro para Novo Pedido */}
+      {activeSoundAlertOrderId && orders.length > 0 && (
+        (() => {
+          const alertOrder = orders.find(o => o.id === activeSoundAlertOrderId && o.status === 'PENDING')
+          if (alertOrder) {
+            const pendingCount = orders.filter(o => o.status === 'PENDING').length
+            return (
+              <OrderSoundAlert
+                orderId={alertOrder.id}
+                orderNumber={alertOrder.ifoodOrderId || alertOrder.id.slice(-8)}
+                total={alertOrder.total}
+                soundUrl={settings?.notificationSound}
+                onAccept={() => handleOrderAction(alertOrder.id, 'ACCEPT')}
+                isAccepting={isProcessing === alertOrder.id}
+                pendingCount={pendingCount}
+              />
+            )
+          }
+          return null
+        })()
+      )}
+
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
