@@ -24,6 +24,7 @@ import {
 import toast from 'react-hot-toast'
 import { printNative } from '@/lib/print-native'
 import { useBrowserNotifications } from '@/hooks/useBrowserNotifications'
+import { useAutoPrint } from '@/hooks/useAutoPrint'
 
 interface Order {
   id: string
@@ -35,16 +36,20 @@ interface Order {
   customerName: string
   customerPhone?: string
   deliveryPerson?: string
+  notes?: string
   address?: {
     street: string
     number: string
     neighborhood: string
     city: string
     state: string
+    zipCode?: string
+    complement?: string
   }
   items: Array<{
     id: string
     quantity: number
+    price?: number
     combo: {
       name: string
     }
@@ -69,6 +74,7 @@ export function ActiveOrders() {
   const [showPrintDialog, setShowPrintDialog] = useState<string | null>(null)
   const allSeenOrderIdsRef = useRef<Set<string>>(new Set())
   const { notifyNewOrder, requestPermission } = useBrowserNotifications()
+  const { autoPrintOrder, printedOrdersRef } = useAutoPrint()
 
   useEffect(() => {
     fetchSettings()
@@ -180,6 +186,23 @@ export function ActiveOrders() {
           console.log('🔔 Chamando notifyNewOrder para pedido:', orderNumber)
           notifyNewOrder(orderNumber, order.total, order.id)
         })
+
+        // IMPRESSÃO AUTOMÁTICA: Se autoPrint estiver ativado, imprimir automaticamente
+        if (settings?.autoPrint === true) {
+          console.log('🖨️ Impressão automática ATIVADA. Imprimindo novos pedidos...')
+          newPendingOrders.forEach(order => {
+            // Verificar se este pedido já não foi impresso
+            if (!printedOrdersRef.current.has(order.id)) {
+              console.log(`🖨️ Iniciando impressão automática do pedido ${order.id.slice(-8)}`)
+              // Usar setTimeout para não bloquear o fluxo principal e espaçar as impressões
+              setTimeout(() => {
+                autoPrintOrder(order)
+              }, 500)
+            }
+          })
+        } else {
+          console.log('🖨️ Impressão automática DESATIVADA nas configurações')
+        }
       }
       
       // Adicionar todos os IDs dos pedidos atuais ao conjunto de IDs vistos (para garantir que não percamos nenhum)
@@ -460,10 +483,23 @@ export function ActiveOrders() {
   return (
     <div className="mt-8">
       <div className="mb-6">
-        <h3 className="text-2xl font-bold text-foreground mb-2">Pedidos em Andamento</h3>
-        <p className="text-sm text-muted-foreground">
-          Acompanhe o progresso dos pedidos em tempo real
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Pedidos em Andamento</h3>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe o progresso dos pedidos em tempo real
+            </p>
+          </div>
+          {/* Indicador de Impressão Automática */}
+          {settings?.autoPrint && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
+              <Printer className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                Impressão Automática Ativada
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

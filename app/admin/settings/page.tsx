@@ -663,7 +663,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="autoPrint">Impressão Automática</Label>
-                  <p className="text-sm text-gray-500">Imprimir pedidos automaticamente</p>
+                  <p className="text-sm text-gray-500">
+                    Ao receber um novo pedido, imprime automaticamente:<br/>
+                    <span className="text-green-600 font-medium">🍳 Nota da Cozinha</span> + <span className="text-blue-600 font-medium">📦 Nota de Entrega</span>
+                  </p>
                 </div>
                 <Switch
                   id="autoPrint"
