@@ -4,10 +4,10 @@ const prisma = new PrismaClient()
 
 async function populatePizzaData() {
   try {
-    console.log('🍕 Populando dados de pizza com tamanhos e sabores...')
+    console.log('Populando dados de pizza com tamanhos e sabores...')
 
     // Pular configurações por enquanto - focar nos sabores e tamanhos
-    console.log('⚠️ Pulando configurações por enquanto...')
+    console.log('Pulando configurações por enquanto...')
 
     // Criar sabores de pizza
     const flavors = [
@@ -65,7 +65,7 @@ async function populatePizzaData() {
       })
     }
 
-    console.log(`✅ ${flavors.length} sabores de pizza criados`)
+    console.log(`${flavors.length} sabores de pizza criados`)
 
     // Buscar ou criar categoria de pizza
     let pizzaCategory = await prisma.category.findFirst({
@@ -144,13 +144,13 @@ async function populatePizzaData() {
       })
     }
 
-    console.log(`✅ ${sizes.length} tamanhos de pizza criados`)
+    console.log(`${sizes.length} tamanhos de pizza criados`)
 
-    console.log('🎉 Dados de pizza populados com sucesso!')
-    console.log('📱 Acesse /client/menu para ver as opções de pizza')
+    console.log('Dados de pizza populados com sucesso!')
+    console.log('Acesse /client/menu para ver as opções de pizza')
 
   } catch (error) {
-    console.error('❌ Erro ao popular dados de pizza:', error)
+    console.error('Erro ao popular dados de pizza:', error)
   } finally {
     await prisma.$disconnect()
   }

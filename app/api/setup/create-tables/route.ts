@@ -8,7 +8,7 @@ import { execSync } from 'child_process'
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🗄️ Criando tabelas no banco de dados...')
+    console.log('Criando tabelas no banco de dados...')
 
     // Verificar se DATABASE_URL está configurada
     if (!process.env.DATABASE_URL) {
@@ -29,19 +29,19 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('📊 DATABASE_URL configurada:', process.env.DATABASE_URL.substring(0, 50) + '...')
+    console.log('DATABASE_URL configurada:', process.env.DATABASE_URL.substring(0, 50) + '...')
 
     // Executar prisma db push
     try {
-      console.log('🔄 Executando prisma db push...')
+      console.log('Executando prisma db push...')
       execSync('npx prisma db push --accept-data-loss --skip-generate', {
         stdio: 'inherit',
         env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL },
         cwd: process.cwd()
       })
-      console.log('✅ Tabelas criadas com sucesso!')
+      console.log('Tabelas criadas com sucesso!')
     } catch (error: any) {
-      console.error('❌ Erro ao criar tabelas:', error.message)
+      console.error('Erro ao criar tabelas:', error.message)
       return NextResponse.json({
         success: false,
         message: 'Erro ao criar tabelas',
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       }, { status: 200 })
 
     } catch (error: any) {
-      console.error('❌ Erro ao verificar tabelas:', error.message)
+      console.error('Erro ao verificar tabelas:', error.message)
       return NextResponse.json({
         success: true,
         message: 'Tabelas podem ter sido criadas, mas não foi possível verificar',
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('❌ Erro ao criar tabelas:', error)
+    console.error('Erro ao criar tabelas:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao criar tabelas',

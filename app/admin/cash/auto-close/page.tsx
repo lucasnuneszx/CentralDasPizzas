@@ -77,7 +77,6 @@ export default function AutoCloseSettings() {
       if (response.ok) {
         const result = await response.json()
         toast.success('Teste de fechamento executado com sucesso!')
-        console.log('Relatório:', result.report)
       } else {
         toast.error('Erro no teste de fechamento')
       }

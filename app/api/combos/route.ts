@@ -36,7 +36,7 @@ export async function GET() {
     }).catch((error: any) => {
       // Se houver erro por coluna faltante, buscar sem elas
       if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('isBurger') || error.message?.includes('burgerArtisanalPrice') || error.message?.includes('burgerIndustrialPrice') || error.message?.includes('does not exist')) {
-        console.warn('⚠️ Alguma coluna não existe. Buscando sem campos opcionais...')
+        console.warn('Alguma coluna não existe. Buscando sem campos opcionais...')
         return prisma.combo.findMany({
           select: {
             id: true,
@@ -121,13 +121,6 @@ export async function POST(request: NextRequest) {
           category: true
         }
       })
-      console.log('✅ Combo criado com sucesso:', {
-        id: combo.id,
-        name: combo.name,
-        isBurger: (combo as any).isBurger,
-        burgerArtisanalPrice: (combo as any).burgerArtisanalPrice,
-        burgerIndustrialPrice: (combo as any).burgerIndustrialPrice
-      })
       return NextResponse.json(combo, { status: 201 })
     } catch (createError: any) {
       // Se o erro for por coluna não existir, tentar sem elas
@@ -135,7 +128,7 @@ export async function POST(request: NextRequest) {
           createError.message?.includes('showFlavors') || 
           createError.message?.includes('pizzaQuantity') ||
           createError.message?.includes('does not exist')) {
-        console.warn('⚠️ Coluna showFlavors ou pizzaQuantity não existe. Criando sem elas...')
+        console.warn('Coluna showFlavors ou pizzaQuantity não existe. Criando sem elas...')
         
         // Tentar criar apenas com pizzaQuantity se possível
         try {

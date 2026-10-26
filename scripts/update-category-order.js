@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function updateCategoryOrder() {
   try {
-    console.log('🔄 Atualizando ordem das categorias...')
+    console.log('Atualizando ordem das categorias...')
 
     // Definir a ordem desejada
     const categoryOrder = [
@@ -22,17 +22,17 @@ async function updateCategoryOrder() {
         where: { name: category.name },
         data: { order: category.order }
       })
-      console.log(`✅ ${category.name} -> ordem ${category.order}`)
+      console.log(`${category.name} -> ordem ${category.order}`)
     }
 
-    console.log('✅ Ordem das categorias atualizada com sucesso!')
-    console.log('📋 Nova ordem:')
+    console.log('Ordem das categorias atualizada com sucesso!')
+    console.log('Nova ordem:')
     categoryOrder.forEach((cat, index) => {
       console.log(`${index + 1}. ${cat.name}`)
     })
 
   } catch (error) {
-    console.error('❌ Erro ao atualizar ordem das categorias:', error)
+    console.error('Erro ao atualizar ordem das categorias:', error)
   } finally {
     await prisma.$disconnect()
   }

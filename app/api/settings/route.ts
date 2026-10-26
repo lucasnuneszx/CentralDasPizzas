@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
       // Se houver erro por colunas faltantes, buscar apenas colunas básicas
       if (error.code === 'P2022' || error.message?.includes('does not exist')) {
-        console.warn('⚠️ Algumas colunas não existem ainda. Buscando apenas colunas básicas...')
+        console.warn('Algumas colunas não existem ainda. Buscando apenas colunas básicas...')
         try {
           settings = await prisma.systemSettings.findFirst({
             select: {
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
             }
           })
         } catch (innerError) {
-          console.warn('⚠️ Erro ao buscar configurações básicas. Usando padrões.')
+          console.warn('Erro ao buscar configurações básicas. Usando padrões.')
           settings = null
         }
       } else {
@@ -176,15 +176,6 @@ export async function PUT(request: NextRequest) {
     const settingsData = await request.json()
     
     // Log para debug
-    console.log('Salvando configurações:', {
-      restaurantName: settingsData.restaurantName,
-      hasLogo: !!settingsData.restaurantLogo,
-      hasBanner: !!settingsData.restaurantBanner,
-      logoLength: settingsData.restaurantLogo?.length || 0,
-      bannerLength: settingsData.restaurantBanner?.length || 0,
-      isOpen: settingsData.isOpen,
-      deliveryEstimate: settingsData.deliveryEstimate
-    })
 
     // Verificar se já existem configurações
     const existingSettings = await prisma.systemSettings.findFirst()
@@ -196,7 +187,6 @@ export async function PUT(request: NextRequest) {
         data: settingsData
       })
       
-      console.log('Configurações atualizadas com sucesso')
       return NextResponse.json(updatedSettings)
     } else {
       // Criar novas configurações
@@ -204,7 +194,6 @@ export async function PUT(request: NextRequest) {
         data: settingsData
       })
       
-      console.log('Configurações criadas com sucesso')
       return NextResponse.json(newSettings)
     }
   } catch (error) {

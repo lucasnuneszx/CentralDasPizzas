@@ -48,21 +48,21 @@ async function createTestUsers() {
         await prisma.user.create({
           data: userData
         })
-        console.log(`✅ Usuário criado: ${userData.name} (${userData.role})`)
+        console.log(`Usuário criado: ${userData.name} (${userData.role})`)
       } else {
-        console.log(`⚠️ Usuário já existe: ${userData.name}`)
+        console.log(`Usuário já existe: ${userData.name}`)
       }
     }
 
-    console.log('\n🎉 Usuários de teste criados com sucesso!')
-    console.log('\n📋 Credenciais de teste:')
+    console.log('\nUsuários de teste criados com sucesso!')
+    console.log('\nCredenciais de teste:')
     console.log('Email: joao@centraldaspizzas.com | Senha: 123456 | Função: Caixa')
     console.log('Email: maria@centraldaspizzas.com | Senha: 123456 | Função: Cozinha')
     console.log('Email: pedro@centraldaspizzas.com | Senha: 123456 | Função: Gerente')
     console.log('Email: ana@centraldaspizzas.com | Senha: 123456 | Função: Cliente')
 
   } catch (error) {
-    console.error('❌ Erro ao criar usuários:', error)
+    console.error('Erro ao criar usuários:', error)
   } finally {
     await prisma.$disconnect()
   }

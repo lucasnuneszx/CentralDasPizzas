@@ -94,10 +94,8 @@ export default function OrdersManagement() {
     fetchDeliveryPersons()
     // Solicitar permissão para notificações do navegador ao carregar
     requestPermission().then(hasPermission => {
-      if (hasPermission) {
-        console.log('✅ Permissão para notificações concedida no OrdersManagement')
-      } else {
-        console.warn('⚠️ Permissão para notificações não concedida no OrdersManagement')
+      if (!hasPermission) {
+        console.warn('Permissão para notificações não concedida')
       }
     })
     // Polling para novos pedidos - reduzido para 3 segundos para detecção mais rápida
@@ -154,23 +152,16 @@ export default function OrdersManagement() {
               const audio = new Audio(settings.notificationSound)
               audio.volume = 1.0 // Volume máximo
               // Tentar tocar imediatamente
-              audio.play()
-                .then(() => {
-                  console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
-                })
-                .catch(err => {
-                  console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
-                })
+              // O navegador pode bloquear autoplay sem interação do usuário
+              audio.play().catch(() => {})
             } catch (error) {
               console.error('Erro ao criar elemento de áudio:', error)
             }
           }
           
           // Mostrar notificação do navegador para cada novo pedido
-          console.log('🔔 Detectados', newPendingOrders.length, 'novo(s) pedido(s). Tentando mostrar notificações...')
           newPendingOrders.forEach(order => {
             const orderNumber = order.id.slice(-8)
-            console.log('🔔 Chamando notifyNewOrder para pedido:', orderNumber)
             notifyNewOrder(orderNumber, order.total, order.id)
           })
         }

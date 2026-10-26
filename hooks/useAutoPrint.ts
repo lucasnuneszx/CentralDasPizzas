@@ -111,34 +111,29 @@ export function useAutoPrint(): UseAutoPrintReturn {
   const autoPrintOrder = useCallback(async (order: Order) => {
     // Verificar se já foi impresso
     if (printedOrdersRef.current.has(order.id)) {
-      console.log(`📄 Pedido ${order.id.slice(-8)} já foi impresso automaticamente`)
       return
     }
 
-    console.log(`🖨️ Iniciando impressão automática do pedido ${order.id.slice(-8)}`)
 
     try {
       // Marcar como impresso antes de iniciar para evitar duplicatas
       printedOrdersRef.current.add(order.id)
 
       // Primeiro: Imprimir nota da COZINHA
-      console.log(`🍳 Imprimindo nota da COZINHA para pedido ${order.id.slice(-8)}...`)
       await printOrder(order, 'kitchen')
       
       // Aguardar um pouco entre as impressões para não sobrecarregar
       await new Promise(resolve => setTimeout(resolve, 1500))
 
       // Segundo: Imprimir nota de ENTREGA/CLIENTE
-      console.log(`📦 Imprimindo nota de ENTREGA para pedido ${order.id.slice(-8)}...`)
       await printOrder(order, 'receipt')
 
-      console.log(`✅ Impressão automática concluída para pedido ${order.id.slice(-8)}`)
       toast.success(`🖨️ Pedido #${order.id.slice(-8)} impresso automaticamente (Cozinha + Entrega)`, {
         duration: 3000
       })
 
     } catch (error: any) {
-      console.error(`❌ Erro na impressão automática do pedido ${order.id.slice(-8)}:`, error)
+      console.error(`Erro na impressão automática do pedido ${order.id.slice(-8)}:`, error)
       // Remover do conjunto para permitir nova tentativa
       printedOrdersRef.current.delete(order.id)
       toast.error(`Erro ao imprimir pedido #${order.id.slice(-8)} automaticamente`, {

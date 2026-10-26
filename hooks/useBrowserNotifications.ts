@@ -25,22 +25,15 @@ export function useBrowserNotifications() {
       setIsSupported(true)
       const currentPermission = Notification.permission
       setPermission(currentPermission)
-      console.log('🔔 Status de notificações:', {
-        suportado: true,
-        permissao: currentPermission
-      })
 
       // Se a permissão ainda não foi solicitada, tentar solicitar
       if (currentPermission === 'default') {
-        console.log('🔔 Solicitando permissão para notificações...')
         requestPermission()
-      } else if (currentPermission === 'granted') {
-        console.log('✅ Permissão para notificações já concedida')
-      } else {
-        console.warn('⚠️ Permissão para notificações negada. O usuário precisa permitir manualmente nas configurações do navegador.')
+      } else if (currentPermission === 'denied') {
+        console.warn('Permissão para notificações negada. O usuário precisa permitir manualmente nas configurações do navegador.')
       }
     } else {
-      console.warn('⚠️ Este navegador não suporta notificações do sistema')
+      console.warn('Este navegador não suporta notificações do sistema')
       setIsSupported(false)
     }
   }, [])
@@ -59,13 +52,12 @@ export function useBrowserNotifications() {
       setPermission(result)
       
       if (result === 'granted') {
-        console.log('✅ Permissão para notificações concedida')
         return true
       } else if (result === 'denied') {
-        console.warn('⚠️ Permissão para notificações negada pelo usuário')
+        console.warn('Permissão para notificações negada pelo usuário')
         return false
       } else {
-        console.warn('⚠️ Permissão para notificações ainda não foi decidida')
+        console.warn('Permissão para notificações ainda não foi decidida')
         return false
       }
     } catch (error) {
@@ -80,14 +72,14 @@ export function useBrowserNotifications() {
   const showNotification = (options: NotificationOptions) => {
     // Verificar suporte diretamente (não confiar apenas no estado)
     if (!('Notification' in window)) {
-      console.warn('⚠️ Notificações não são suportadas neste navegador')
+      console.warn('Notificações não são suportadas neste navegador')
       return null
     }
 
     // Verificar permissão diretamente (não confiar apenas no estado)
     const currentPermission = Notification.permission
     if (currentPermission !== 'granted') {
-      console.warn('⚠️ Permissão para notificações não concedida. Status:', currentPermission)
+      console.warn('Permissão para notificações não concedida. Status:', currentPermission)
       // Tentar solicitar se ainda não foi decidido
       if (currentPermission === 'default') {
         requestPermission().then(hasPermission => {
@@ -109,12 +101,12 @@ export function useBrowserNotifications() {
     try {
       // Verificar suporte e permissão novamente antes de criar
       if (!('Notification' in window)) {
-        console.warn('⚠️ Notificações não são suportadas neste navegador')
+        console.warn('Notificações não são suportadas neste navegador')
         return null
       }
 
       if (Notification.permission !== 'granted') {
-        console.warn('⚠️ Permissão não concedida. Status atual:', Notification.permission)
+        console.warn('Permissão não concedida. Status atual:', Notification.permission)
         return null
       }
 
@@ -123,11 +115,6 @@ export function useBrowserNotifications() {
         notificationRef.current.close()
       }
 
-      console.log('🔔 Criando notificação:', {
-        title: options.title,
-        message: options.message,
-        tag: options.tag
-      })
 
       const notification = new Notification(options.title, {
         body: options.message,
@@ -138,32 +125,29 @@ export function useBrowserNotifications() {
         requireInteraction: options.requireInteraction || false,
       })
 
-      console.log('✅ Notificação criada com sucesso')
 
       // Fechar automaticamente após 10 segundos (aumentado de 5 para 10)
       setTimeout(() => {
         if (notification) {
           notification.close()
-          console.log('🔔 Notificação fechada automaticamente após 10 segundos')
         }
       }, 10000)
 
       // Adicionar evento de clique para focar na janela
       notification.onclick = () => {
-        console.log('🔔 Notificação clicada, focando janela')
         window.focus()
         notification.close()
       }
 
       // Adicionar eventos de erro
       notification.onerror = (error) => {
-        console.error('❌ Erro na notificação:', error)
+        console.error('Erro na notificação:', error)
       }
 
       notificationRef.current = notification
       return notification
     } catch (error) {
-      console.error('❌ Erro ao criar notificação:', error)
+      console.error('Erro ao criar notificação:', error)
       return null
     }
   }
@@ -176,23 +160,14 @@ export function useBrowserNotifications() {
     const hasSupport = 'Notification' in window
     const currentPermission = hasSupport ? Notification.permission : 'denied'
     
-    console.log('🔔 Tentando mostrar notificação para novo pedido:', {
-      orderNumber,
-      total,
-      orderId,
-      hasSupport,
-      currentPermission,
-      permissionState: permission,
-      isSupportedState: isSupported
-    })
     
     if (!hasSupport) {
-      console.error('❌ Notificações não são suportadas neste navegador')
+      console.error('Notificações não são suportadas neste navegador')
       return null
     }
     
     if (currentPermission !== 'granted') {
-      console.warn('⚠️ Permissão não concedida. Status:', currentPermission)
+      console.warn('Permissão não concedida. Status:', currentPermission)
       // Tentar solicitar se ainda não foi decidido
       if (currentPermission === 'default') {
         requestPermission().then(hasPermission => {
@@ -223,10 +198,8 @@ export function useBrowserNotifications() {
       requireInteraction: true, // Manter notificação até o usuário interagir
     })
     
-    if (result) {
-      console.log('✅ Notificação exibida com sucesso')
-    } else {
-      console.warn('⚠️ Não foi possível exibir a notificação. Verifique a permissão do navegador.')
+    if (!result) {
+      console.warn('Não foi possível exibir a notificação. Verifique a permissão do navegador.')
     }
     
     return result

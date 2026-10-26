@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     //   return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     // }
 
-    console.log('🔧 Criando usuários padrão...')
+    console.log('Criando usuários padrão...')
     
     // Validar DATABASE_URL antes de tentar usar o Prisma
     const databaseUrl = process.env.DATABASE_URL?.trim() || ''
@@ -98,14 +98,14 @@ export async function GET(request: NextRequest) {
             email: user.email,
             role: user.role
           })
-          console.log(`✅ Usuário criado: ${user.name} (${user.email})`)
+          console.log(`Usuário criado: ${user.name} (${user.email})`)
         } else {
           existingUsers.push({
             name: existingUser.name,
             email: existingUser.email,
             role: existingUser.role
           })
-          console.log(`⚠️ Usuário já existe: ${userData.email}`)
+          console.log(`Usuário já existe: ${userData.email}`)
         }
       } catch (error) {
         let errorMessage = 'Erro desconhecido'
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
           email: userData.email,
           error: errorMessage
         })
-        console.error(`❌ Erro ao criar ${userData.email}:`, error)
+        console.error(`Erro ao criar ${userData.email}:`, error)
       }
     }
 
@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao criar usuários:', error)
+    console.error('Erro ao criar usuários:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao criar usuários',

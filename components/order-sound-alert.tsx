@@ -27,7 +27,6 @@ export function OrderSoundAlert({
 }: OrderSoundAlertProps) {
   const [showAlert, setShowAlert] = useState(true)
   
-  console.log('🔔 OrderSoundAlert renderizado', { orderId, soundUrl, showAlert })
   
   const { toggleSound, soundEnabled } = useContinuousSound({
     soundUrl: soundUrl || '/sounds/notification.mp3',

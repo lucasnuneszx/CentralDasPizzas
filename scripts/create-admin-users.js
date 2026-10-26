@@ -52,14 +52,14 @@ async function createAdminUsers() {
         const user = await prisma.user.create({
           data: userData
         })
-        console.log(`✅ Usuário criado: ${user.name} (${user.email}) - Senha: 123456`)
+        console.log(`Usuário criado: ${user.name} (${user.email}) - Senha: 123456`)
       } else {
-        console.log(`⚠️  Usuário já existe: ${userData.email}`)
+        console.log(`Usuário já existe: ${userData.email}`)
       }
     }
 
-    console.log('\n🎉 Usuários administrativos criados com sucesso!')
-    console.log('\n📋 Credenciais de acesso:')
+    console.log('\nUsuários administrativos criados com sucesso!')
+    console.log('\nCredenciais de acesso:')
     console.log('┌─────────────────────────────────────────────────────────┐')
     console.log('│                    CENTRAL DAS PIZZAS                    │')
     console.log('├─────────────────────────────────────────────────────────┤')
@@ -81,7 +81,7 @@ async function createAdminUsers() {
     console.log('└─────────────────────────────────────────────────────────┘')
 
   } catch (error) {
-    console.error('❌ Erro ao criar usuários:', error)
+    console.error('Erro ao criar usuários:', error)
   } finally {
     await prisma.$disconnect()
   }

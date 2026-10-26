@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🍕 Populando combos do cardápio...')
+    console.log('Populando combos do cardápio...')
 
     // Buscar ou criar categoria de Combos
     let combosCategory = await prisma.category.findFirst({
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
           order: 0
         }
       })
-      console.log('✅ Categoria "Combos" criada')
+      console.log('Categoria "Combos" criada')
     }
 
     // Lista de combos com informações de personalização
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
             description: combo.description,
             price: combo.price
           })
-          console.log(`✅ Combo criado: ${combo.name} - R$ ${combo.price}`)
+          console.log(`Combo criado: ${combo.name} - R$ ${combo.price}`)
         } else {
           existingCombos.push({
             id: existingCombo.id,
@@ -201,14 +201,14 @@ export async function GET(request: NextRequest) {
             description: existingCombo.description,
             price: existingCombo.price
           })
-          console.log(`⚠️ Combo já existe: ${comboData.name}`)
+          console.log(`Combo já existe: ${comboData.name}`)
         }
       } catch (error) {
         errors.push({
           name: comboData.name,
           error: error instanceof Error ? error.message : 'Erro desconhecido'
         })
-        console.error(`❌ Erro ao criar combo ${comboData.name}:`, error)
+        console.error(`Erro ao criar combo ${comboData.name}:`, error)
       }
     }
 
@@ -231,7 +231,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao popular combos:', error)
+    console.error('Erro ao popular combos:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao popular combos',

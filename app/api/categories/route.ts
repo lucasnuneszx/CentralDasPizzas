@@ -43,7 +43,7 @@ export async function GET() {
     } catch (error: any) {
       // Se houver erro por coluna faltante (pizzaQuantity ou showFlavors), buscar sem elas
       if (error.code === 'P2022' || error.message?.includes('pizzaQuantity') || error.message?.includes('showFlavors') || error.message?.includes('does not exist')) {
-        console.warn('⚠️ Coluna pizzaQuantity ou showFlavors não existe. Buscando sem elas...')
+        console.warn('Coluna pizzaQuantity ou showFlavors não existe. Buscando sem elas...')
         categories = await prisma.category.findMany({
           where: {
             isActive: true

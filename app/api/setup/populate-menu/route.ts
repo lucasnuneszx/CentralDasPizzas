@@ -5,7 +5,7 @@ import { getAuthUser, checkAnyRole } from '@/lib/auth-helper'
 /**
  * Endpoint para popular dados do cardápio
  * 
- * ⚠️ ATENÇÃO: Esta rota DELETA TODOS os combos e categorias existentes!
+ * ATENÇÃO: Esta rota DELETA TODOS os combos e categorias existentes!
  * Apenas ADMIN pode executar esta operação.
  */
 export async function GET(request: NextRequest) {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('🍕 Populando dados do cardápio...')
+    console.log('Populando dados do cardápio...')
 
     // Criar configurações iniciais da loja
     const settings = await prisma.systemSettings.upsert({
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('✅ Configurações da loja criadas')
+    console.log('Configurações da loja criadas')
 
     // Criar categorias
     const categories = [
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     })
 
     const allCategories = await prisma.category.findMany()
-    console.log(`✅ ${allCategories.length} categorias criadas`)
+    console.log(`${allCategories.length} categorias criadas`)
 
     // Criar combos/pizzas
     const combos = [
@@ -209,7 +209,7 @@ export async function GET(request: NextRequest) {
           }
         })
         createdCombos.push(combo)
-        console.log(`✅ Combo criado: ${combo.name}`)
+        console.log(`Combo criado: ${combo.name}`)
       }
     }
 
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao popular dados do cardápio:', error)
+    console.error('Erro ao popular dados do cardápio:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao popular dados do cardápio',

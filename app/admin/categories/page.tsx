@@ -194,9 +194,6 @@ export default function AdminCategories() {
 
       if (response.ok && data.success) {
         toast.success('Categorias de pizza criadas com sucesso!')
-        if (data.results && data.results.length > 0) {
-          console.log('Resultados:', data.results)
-        }
         fetchCategories()
       } else {
         toast.error(data.message || 'Erro ao criar categorias')

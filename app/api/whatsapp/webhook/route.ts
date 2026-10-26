@@ -39,10 +39,8 @@ import { prisma } from '@/lib/prisma'
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('📱 Webhook WhatsApp recebido')
     
     const body = await request.json()
-    console.log('Dados recebidos:', JSON.stringify(body, null, 2))
 
     // Validar dados obrigatórios
     const { phone, customer, items, deliveryType, paymentMethod, address, notes, total } = body
@@ -89,7 +87,6 @@ export async function POST(request: NextRequest) {
           isActive: true
         }
       })
-      console.log('✅ Novo usuário criado:', user.id)
     }
 
     // Criar endereço se necessário
@@ -160,7 +157,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('✅ Pedido criado:', order.id)
 
     // Criar os itens do pedido
     await prisma.orderItem.createMany({
@@ -186,7 +182,7 @@ export async function POST(request: NextRequest) {
         }),
       })
     } catch (error) {
-      console.warn('⚠️ Erro ao registrar venda no caixa:', error)
+      console.warn('Erro ao registrar venda no caixa:', error)
     }
 
     // Buscar pedido completo
@@ -210,7 +206,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('✅ Pedido processado com sucesso:', order.id)
 
     return NextResponse.json({
       success: true,
@@ -220,7 +215,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('❌ Erro ao processar webhook WhatsApp:', error)
+    console.error('Erro ao processar webhook WhatsApp:', error)
     
     return NextResponse.json(
       { 

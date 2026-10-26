@@ -34,9 +34,6 @@ export async function POST(
       )
     }
     
-    console.log('=== PROCESSANDO AÇÃO DO PEDIDO ===')
-    console.log('Order ID:', orderId)
-    console.log('Action:', action)
 
     // Buscar o pedido (usar select explícito para evitar erro de coluna não existente)
     const order = await prisma.order.findUnique({
@@ -117,9 +114,6 @@ export async function POST(
 
 async function acceptOrder(order: any, userId: string) {
   try {
-    console.log('=== ACEITANDO PEDIDO ===')
-    console.log('Order ID:', order.id)
-    console.log('User ID:', userId)
     
     // Atualizar status do pedido
     const updatedOrder = await prisma.order.update({
@@ -139,7 +133,6 @@ async function acceptOrder(order: any, userId: string) {
       }
     })
     
-    console.log('Pedido atualizado:', updatedOrder)
 
     // Criar notificação para o cliente (não crítico se falhar)
     try {
@@ -210,9 +203,6 @@ async function acceptOrder(order: any, userId: string) {
 
 async function rejectOrder(order: any, userId: string) {
   try {
-    console.log('=== REJEITANDO PEDIDO ===')
-    console.log('Order ID:', order.id)
-    console.log('User ID:', userId)
     
     // Atualizar status do pedido
     const updatedOrder = await prisma.order.update({
@@ -232,7 +222,6 @@ async function rejectOrder(order: any, userId: string) {
       }
     })
     
-    console.log('Pedido atualizado:', updatedOrder)
 
     // Criar notificação para o cliente (não crítico se falhar)
     try {

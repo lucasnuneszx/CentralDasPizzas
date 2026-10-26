@@ -292,13 +292,6 @@ function CheckoutPublicContent() {
       const finalDeliveryFee = formData.deliveryType === DeliveryType.DELIVERY ? deliveryFee : 0
       const finalTotal = subtotal + finalDeliveryFee
       
-      console.log('Cálculo do total:', {
-        subtotal,
-        deliveryFee: finalDeliveryFee,
-        finalTotal,
-        cartLength: cart.length,
-        deliveryType: formData.deliveryType
-      })
       
       // Validar que o total é válido
       if (!finalTotal || finalTotal <= 0 || isNaN(finalTotal)) {
@@ -357,7 +350,6 @@ function CheckoutPublicContent() {
                    } : null
       }
 
-      console.log('Dados do pedido sendo enviados:', orderData)
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -370,7 +362,6 @@ function CheckoutPublicContent() {
       const result = await response.json()
       
       if (response.ok && result.success !== false) {
-        console.log('Pedido criado com sucesso:', result)
         
         // Salvar dados do pedido no localStorage para a página de sucesso
         if (result.order) {

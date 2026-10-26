@@ -204,13 +204,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== INÍCIO DO PROCESSAMENTO DE PEDIDO ===')
     
     const user = await getAuthUser(request)
-    console.log('User encontrado:', !!user)
     
     const body = await request.json()
-    console.log('Body recebido:', JSON.stringify(body, null, 2))
     
     // Validar dados obrigatórios
     const { items, deliveryType, paymentMethod, addressId, notes, total, customer, address, customPizzas } = body
@@ -256,19 +253,17 @@ export async function POST(request: NextRequest) {
         // Endereço existente selecionado, continuar
       } else {
         // Sem endereço mas é entrega - usar endereço padrão ou permitir sem validação rigorosa
-        console.warn('⚠️ Entrega sem endereço completo, continuando mesmo assim')
+        console.warn('Entrega sem endereço completo, continuando mesmo assim')
       }
     }
 
     let userId = user?.id || null
     let orderAddressId = addressId
 
-    console.log('User ID da sessão:', userId)
 
     // Se usuário logado e forneceu novo endereço, salvar
     if (userId && address && !addressId && deliveryType === 'DELIVERY') {
       try {
-        console.log('Salvando novo endereço para usuário logado')
         const newAddress = await prisma.address.create({
           data: {
             userId: userId,
@@ -283,7 +278,6 @@ export async function POST(request: NextRequest) {
           }
         })
         orderAddressId = newAddress.id
-        console.log('Endereço salvo:', orderAddressId)
       } catch (error) {
         console.error('Erro ao salvar endereço:', error)
         // Continuar mesmo se falhar ao salvar endereço
@@ -292,7 +286,6 @@ export async function POST(request: NextRequest) {
 
     // Se não estiver logado, criar novo usuário para este pedido
     if (!userId) {
-      console.log('Usuário não logado, criando novo usuário para este pedido')
       try {
         // Usar valores padrão para cliente se não fornecido
         const customerName = customer?.name || 'Cliente'
@@ -302,7 +295,6 @@ export async function POST(request: NextRequest) {
         // Usar timestamp + random para garantir unicidade
         const uniqueEmail = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}@centraldaspizzas.com`
         
-        console.log('Criando novo usuário para pedido não autenticado')
           
         const newUser = await prisma.user.create({
           data: {
@@ -313,13 +305,11 @@ export async function POST(request: NextRequest) {
             isActive: true
           }
         })
-        console.log('Novo usuário de pedido criado:', newUser.id, 'com email:', uniqueEmail)
 
         userId = newUser.id
 
         // Criar endereço se necessário para entrega
         if (deliveryType === 'DELIVERY' && address && !addressId) {
-          console.log('Criando endereço para entrega')
           const newAddress = await prisma.address.create({
             data: {
               userId: userId,
@@ -334,7 +324,6 @@ export async function POST(request: NextRequest) {
             }
           })
           orderAddressId = newAddress.id
-          console.log('Endereço criado:', orderAddressId)
         }
       } catch (error) {
         console.error('ERRO ao criar/buscar usuário público:', error)
@@ -345,15 +334,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('Dados do pedido:', {
-      userId,
-      items: items.length,
-      deliveryType,
-      paymentMethod,
-      total,
-      notes: notes?.length || 0,
-      orderAddressId
-    })
 
     // Validar itens do pedido (apenas comboId é realmente crítico)
     for (const item of items) {
@@ -380,7 +360,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar o pedido
-    console.log('Criando pedido no banco de dados...')
     const order = await prisma.order.create({
       data: {
         userId: userId,
@@ -393,11 +372,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Pedido criado com sucesso:', order.id)
 
     // Criar os itens do pedido
-    console.log('Criando itens do pedido...')
-    console.log('Items recebidos:', JSON.stringify(items, null, 2))
     
     for (const item of items) {
       // Validar dados básicos do item
@@ -496,14 +472,11 @@ export async function POST(request: NextRequest) {
       // Se houver flavorsPizza2, criar um segundo item ou salvar no extras
       if (item.flavorsPizza2 && Array.isArray(item.flavorsPizza2) && item.flavorsPizza2.length > 0) {
         // Já está sendo salvo no campo extras acima
-        console.log('Sabores da pizza 2 salvos:', item.flavorsPizza2)
       }
     }
-    console.log('Itens do pedido criados:', items.length)
 
     // Criar pizzas personalizadas se existirem
     if (customPizzas && customPizzas.length > 0) {
-      console.log('Criando pizzas personalizadas...')
       for (const customPizza of customPizzas) {
         await prisma.orderItem.create({
           data: {
@@ -522,12 +495,10 @@ export async function POST(request: NextRequest) {
           }
         })
       }
-      console.log('Pizzas personalizadas criadas:', customPizzas.length)
     }
 
     // Registrar venda no caixa (não crítico se falhar)
     try {
-      console.log('Registrando venda no caixa...')
       // Usar URL relativa para chamadas internas (mais confiável)
       const cashResponse = await fetch('/api/cash/sale', {
         method: 'POST',
@@ -542,8 +513,6 @@ export async function POST(request: NextRequest) {
       
       if (!cashResponse.ok) {
         console.warn('Erro ao registrar venda no caixa, mas pedido foi criado')
-      } else {
-        console.log('Venda registrada no caixa com sucesso')
       }
     } catch (error) {
       console.warn('Erro ao registrar venda no caixa:', error)
@@ -574,14 +543,12 @@ export async function POST(request: NextRequest) {
           }
         })
       }
-      console.log(`✅ Notificações criadas para ${admins.length} admin(s)/manager(s)`)
     } catch (notificationError) {
-      console.error('⚠️ Erro ao criar notificações (não crítico):', notificationError)
+      console.error('Erro ao criar notificações (não crítico):', notificationError)
       // Não bloquear o pedido se falhar ao criar notificação
     }
 
     // Buscar o pedido completo para retornar
-    console.log('Buscando pedido completo...')
     const completeOrder = await prisma.order.findUnique({
       where: { id: order.id },
       include: {
@@ -616,7 +583,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('=== PEDIDO PROCESSADO COM SUCESSO ===')
     return NextResponse.json({
       success: true,
       message: 'Pedido criado com sucesso',

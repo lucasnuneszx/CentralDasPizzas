@@ -189,14 +189,13 @@ export default function AdminCombos() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }))
-        console.error('❌ Erro ao salvar combo:', errorData)
+        console.error('Erro ao salvar combo:', errorData)
         toast.error(`Erro ao salvar: ${errorData.message || 'Erro desconhecido'}`)
         setIsLoading(false)
         return
       }
 
       const savedCombo = await response.json()
-      console.log('✅ Combo salvo:', savedCombo)
       
       // Se for uma pizza, criar/atualizar os tamanhos
         if (formData.isPizza) {
@@ -507,7 +506,6 @@ export default function AdminCombos() {
 
   const handleAddToCart = (customizedCombo: any) => {
     // Aqui você pode implementar a lógica para adicionar ao carrinho
-    console.log('Combo personalizado adicionado:', customizedCombo)
     toast.success('Combo personalizado adicionado ao carrinho!')
   }
 
@@ -824,7 +822,6 @@ export default function AdminCombos() {
 
       if (response.ok) {
         toast.success('Colunas adicionadas com sucesso!')
-        console.log('Resultados:', data.results)
         // Recarregar combos para verificar se funcionou
         fetchCombos()
       } else {

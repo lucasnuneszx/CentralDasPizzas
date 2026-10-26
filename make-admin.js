@@ -10,7 +10,7 @@ const prisma = new PrismaClient()
 // ========================================
 async function makeAdmin() {
   try {
-    console.log('🔧 Tornando admin@teste.com como ADMINISTRADOR...')
+    console.log('Tornando admin@teste.com como ADMINISTRADOR...')
 
     // ========================================
     // ATUALIZAÇÃO DO USUÁRIO
@@ -27,19 +27,19 @@ async function makeAdmin() {
     // ========================================
     // LOGS DE SUCESSO
     // ========================================
-    console.log('✅ Usuário atualizado com sucesso!')
-    console.log(`📧 Email: ${updatedUser.email}`)
-    console.log(`👑 Role: ${updatedUser.role}`)
-    console.log(`👤 Nome: ${updatedUser.name}`)
+    console.log('Usuário atualizado com sucesso!')
+    console.log(`Email: ${updatedUser.email}`)
+    console.log(`Role: ${updatedUser.role}`)
+    console.log(`Nome: ${updatedUser.name}`)
 
   } catch (error) {
     // ========================================
     // TRATAMENTO DE ERROS
     // ========================================
     if (error.code === 'P2025') {
-      console.log('❌ Usuário admin@teste.com não encontrado!')
+      console.log('Usuário admin@teste.com não encontrado!')
     } else {
-      console.error('❌ Erro:', error.message)
+      console.error('Erro:', error.message)
     }
   } finally {
     // ========================================

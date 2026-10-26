@@ -81,10 +81,8 @@ export function ActiveOrders() {
     fetchActiveOrders()
     // Solicitar permissão para notificações do navegador ao carregar
     requestPermission().then(hasPermission => {
-      if (hasPermission) {
-        console.log('✅ Permissão para notificações concedida no ActiveOrders')
-      } else {
-        console.warn('⚠️ Permissão para notificações não concedida no ActiveOrders')
+      if (!hasPermission) {
+        console.warn('Permissão para notificações não concedida')
       }
     })
     // Atualizar a cada 3 segundos para detecção mais rápida
@@ -167,41 +165,30 @@ export function ActiveOrders() {
             const audio = new Audio(settings.notificationSound)
             audio.volume = 1.0 // Volume máximo
             // Tentar tocar imediatamente
-            audio.play()
-              .then(() => {
-                console.log('🔔 Som de notificação reproduzido com sucesso para', newPendingOrders.length, 'novo(s) pedido(s)')
-              })
-              .catch(err => {
-                console.log('⚠️ Erro ao reproduzir som (pode ser bloqueado pelo navegador):', err)
-              })
+            // O navegador pode bloquear autoplay sem interação do usuário
+            audio.play().catch(() => {})
           } catch (error) {
             console.error('Erro ao criar elemento de áudio:', error)
           }
         }
         
         // Mostrar notificação do navegador para cada novo pedido
-        console.log('🔔 Detectados', newPendingOrders.length, 'novo(s) pedido(s). Tentando mostrar notificações...')
         newPendingOrders.forEach(order => {
           const orderNumber = order.id.slice(-8)
-          console.log('🔔 Chamando notifyNewOrder para pedido:', orderNumber)
           notifyNewOrder(orderNumber, order.total, order.id)
         })
 
         // IMPRESSÃO AUTOMÁTICA: Se autoPrint estiver ativado, imprimir automaticamente
         if (settings?.autoPrint === true) {
-          console.log('🖨️ Impressão automática ATIVADA. Imprimindo novos pedidos...')
           newPendingOrders.forEach(order => {
             // Verificar se este pedido já não foi impresso
             if (!printedOrdersRef.current.has(order.id)) {
-              console.log(`🖨️ Iniciando impressão automática do pedido ${order.id.slice(-8)}`)
               // Usar setTimeout para não bloquear o fluxo principal e espaçar as impressões
               setTimeout(() => {
                 autoPrintOrder(order)
               }, 500)
             }
           })
-        } else {
-          console.log('🖨️ Impressão automática DESATIVADA nas configurações')
         }
       }
       

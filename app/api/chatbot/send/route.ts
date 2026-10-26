@@ -137,17 +137,17 @@ export async function POST(request: NextRequest) {
     if (settings?.whatsappConnected && settings?.whatsappProvider) {
       try {
         await sendWhatsAppMessage(cleanPhone, message, settings)
-        console.log('✅ Mensagem enviada via WhatsApp:', {
+        console.log('Mensagem enviada via WhatsApp:', {
           phone: cleanPhone,
           template: template.name
         })
       } catch (whatsappError: any) {
-        console.error('❌ Erro ao enviar via WhatsApp:', whatsappError)
+        console.error('Erro ao enviar via WhatsApp:', whatsappError)
         // Continuar mesmo se falhar, apenas logar
       }
     } else {
       // Se WhatsApp não estiver configurado, apenas logar
-      console.log('📱 Mensagem do chatbot (WhatsApp não configurado):', {
+      console.log('Mensagem do chatbot (WhatsApp não configurado):', {
         phone: cleanPhone,
         message,
         template: template.name,

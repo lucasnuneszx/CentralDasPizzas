@@ -50,23 +50,23 @@ async function createUsers() {
           const user = await prisma.user.create({
             data: userData
           })
-          console.log(`✅ Usuário criado: ${user.name} (${user.email})`)
+          console.log(`Usuário criado: ${user.name} (${user.email})`)
         } else {
-          console.log(`⚠️ Usuário já existe: ${userData.email}`)
+          console.log(`Usuário já existe: ${userData.email}`)
         }
       } catch (error) {
-        console.log(`❌ Erro ao criar ${userData.email}:`, error.message)
+        console.log(`Erro ao criar ${userData.email}:`, error.message)
       }
     }
 
-    console.log('\n🎉 Usuários criados!')
-    console.log('\n📋 Use estes logins:')
+    console.log('\nUsuários criados!')
+    console.log('\nUse estes logins:')
     console.log('Email: admin@centraldaspizzas.com | Senha: 123456')
     console.log('Email: gerente@centraldaspizzas.com | Senha: 123456')
     console.log('Email: caixa@centraldaspizzas.com | Senha: 123456')
 
   } catch (error) {
-    console.error('❌ Erro:', error)
+    console.error('Erro:', error)
   } finally {
     await prisma.$disconnect()
   }

@@ -31,7 +31,7 @@ async function createSampleData() {
         data: categoryData
       })
       createdCategories.push(category)
-      console.log(`✅ Categoria criada: ${category.name}`)
+      console.log(`Categoria criada: ${category.name}`)
     }
 
     // Criar combos
@@ -84,17 +84,17 @@ async function createSampleData() {
       const combo = await prisma.combo.create({
         data: comboData
       })
-      console.log(`✅ Combo criado: ${combo.name} - R$ ${combo.price}`)
+      console.log(`Combo criado: ${combo.name} - R$ ${combo.price}`)
     }
 
-    console.log('\n🎉 Dados de exemplo criados com sucesso!')
-    console.log('\n📋 Resumo:')
+    console.log('\nDados de exemplo criados com sucesso!')
+    console.log('\nResumo:')
     console.log(`- ${createdCategories.length} categorias criadas`)
     console.log(`- ${combos.length} combos criados`)
-    console.log('\n🌐 Acesse http://localhost:3000 para ver o sistema funcionando!')
+    console.log('\nAcesse http://localhost:3000 para ver o sistema funcionando!')
 
   } catch (error) {
-    console.error('❌ Erro ao criar dados de exemplo:', error)
+    console.error('Erro ao criar dados de exemplo:', error)
   } finally {
     await prisma.$disconnect()
   }

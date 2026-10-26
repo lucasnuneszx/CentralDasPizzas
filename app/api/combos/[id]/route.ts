@@ -90,7 +90,7 @@ export async function PUT(
           updateError.message?.includes('pizzaQuantity') ||
           updateError.message?.includes('does not exist') ||
           updateError.message?.includes('Unknown column')) {
-        console.warn('⚠️ Coluna showFlavors ou pizzaQuantity não existe. Atualizando sem elas...')
+        console.warn('Coluna showFlavors ou pizzaQuantity não existe. Atualizando sem elas...')
         
         const fallbackUpdateData: any = {
           name,

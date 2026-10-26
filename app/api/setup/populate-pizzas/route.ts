@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🍕 Populando dados de pizza com tamanhos e sabores...')
+    console.log('Populando dados de pizza com tamanhos e sabores...')
 
     // Criar sabores de pizza
     const flavors = [
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       createdFlavors.push(created)
     }
 
-    console.log(`✅ ${createdFlavors.length} sabores de pizza criados`)
+    console.log(`${createdFlavors.length} sabores de pizza criados`)
 
     // Buscar ou criar categoria de pizza
     let pizzaCategory = await prisma.category.findFirst({
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
       createdSizes.push(created)
     }
 
-    console.log(`✅ ${createdSizes.length} tamanhos de pizza criados`)
+    console.log(`${createdSizes.length} tamanhos de pizza criados`)
 
     return NextResponse.json({
       success: true,
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao popular dados de pizza:', error)
+    console.error('Erro ao popular dados de pizza:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao popular dados de pizza',

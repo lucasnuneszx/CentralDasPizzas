@@ -79,7 +79,7 @@ async function handleWhatsAppMessage(messageData) {
       timestamp: new Date()
     });
 
-    console.log(`📱 Processando mensagem de ${phone}: ${message}`);
+    console.log(`Processando mensagem de ${phone}: ${message}`);
 
     // Processar pedido com IA
     const result = await processWhatsAppOrder(
@@ -122,7 +122,7 @@ async function handleWhatsAppMessage(messageData) {
     }
 
   } catch (error) {
-    console.error('❌ Erro ao processar mensagem:', error);
+    console.error('Erro ao processar mensagem:', error);
     return {
       success: false,
       response: generateErrorMessage('Erro interno. Por favor, tente novamente em alguns instantes.'),
@@ -195,14 +195,14 @@ async function sendWhatsAppMessage(phone, message) {
         }
       );
       
-      console.log(`✅ Mensagem enviada via Evolution API para ${phone}`);
+      console.log(`Mensagem enviada via Evolution API para ${phone}`);
       return {
         success: true,
         messageId: response.data?.key?.id || `msg_${Date.now()}`,
         provider: 'evolution'
       };
     } catch (error) {
-      console.error('❌ Erro ao enviar via Evolution API:', error.message);
+      console.error('Erro ao enviar via Evolution API:', error.message);
       throw error;
     }
   }
@@ -227,21 +227,21 @@ async function sendWhatsAppMessage(phone, message) {
         }
       );
       
-      console.log(`✅ Mensagem enviada via WhatsApp Business API para ${phone}`);
+      console.log(`Mensagem enviada via WhatsApp Business API para ${phone}`);
       return {
         success: true,
         messageId: response.data.messages[0]?.id || `msg_${Date.now()}`,
         provider: 'whatsapp-business'
       };
     } catch (error) {
-      console.error('❌ Erro ao enviar via WhatsApp Business API:', error.message);
+      console.error('Erro ao enviar via WhatsApp Business API:', error.message);
       throw error;
     }
   }
   
   // Modo de desenvolvimento (apenas log)
   else {
-    console.log(`📤 [MODO DEV] Enviando para ${phone}:`);
+    console.log(`[MODO DEV] Enviando para ${phone}:`);
     console.log(message);
     console.log('---');
     
@@ -275,7 +275,7 @@ async function handleWebhook(webhookData) {
     return result;
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error);
+    console.error('Erro no webhook:', error);
     throw error;
   }
 }
@@ -315,8 +315,8 @@ function setupWebhookServer() {
 
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
-    console.log(`🤖 Servidor da Mila rodando na porta ${PORT}`);
-    console.log(`📱 Webhook: http://localhost:${PORT}/webhook/whatsapp`);
+    console.log(`Servidor da Mila rodando na porta ${PORT}`);
+    console.log(`Webhook: http://localhost:${PORT}/webhook/whatsapp`);
   });
 }
 

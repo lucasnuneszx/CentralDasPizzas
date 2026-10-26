@@ -219,20 +219,6 @@ async function generatePrintContent(order: any, printType: string) {
   const now = new Date()
   const dateTime = now.toLocaleString('pt-BR')
   
-  // DEBUG: Log para verificar dados do pedido
-  console.log('=== DEBUG IMPRESSÃO ===')
-  console.log('Order ID:', order.id)
-  console.log('Items count:', order.items?.length)
-  order.items?.forEach((item: any, index: number) => {
-    console.log(`Item ${index}:`, {
-      comboName: item.combo?.name,
-      selectedFlavors: item.selectedFlavors,
-      selectedFlavorsType: typeof item.selectedFlavors,
-      extras: item.extras,
-      extrasType: typeof item.extras
-    })
-  })
-  
   let content = ''
   
   // Cabeçalho
@@ -294,7 +280,7 @@ async function generatePrintContent(order: any, printType: string) {
             }
           }
         } catch (e) {
-          console.error('❌ Erro ao parsear selectedFlavors na comanda:', e)
+          console.error('Erro ao parsear selectedFlavors na comanda:', e)
           console.error('Valor recebido:', item.selectedFlavors)
           console.error('Tipo:', typeof item.selectedFlavors)
         }
@@ -330,7 +316,7 @@ async function generatePrintContent(order: any, printType: string) {
             }
           }
         } catch (e) {
-          console.error('❌ Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
+          console.error('Erro ao parsear extras.flavorsPizza2 na comanda:', e, item.extras)
         }
       }
       
@@ -445,7 +431,7 @@ async function generatePrintContent(order: any, printType: string) {
             }
           }
         } catch (e) {
-          console.error('❌ Erro ao parsear selectedFlavors no cupom fiscal:', e)
+          console.error('Erro ao parsear selectedFlavors no cupom fiscal:', e)
           console.error('Valor recebido:', item.selectedFlavors)
           console.error('Tipo:', typeof item.selectedFlavors)
         }
@@ -481,7 +467,7 @@ async function generatePrintContent(order: any, printType: string) {
             }
           }
         } catch (e) {
-          console.error('❌ Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
+          console.error('Erro ao parsear extras.flavorsPizza2 no cupom fiscal:', e, item.extras)
         }
       }
       

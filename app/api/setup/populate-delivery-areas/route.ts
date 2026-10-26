@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 Populando áreas de entrega...')
+    console.log('Populando áreas de entrega...')
 
     // Lista de bairros com seus respectivos valores
     const deliveryAreas = [
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
             state: area.state,
             deliveryFee: area.deliveryFee
           })
-          console.log(`✅ Área criada: ${area.name} - Taxa: R$ ${area.deliveryFee}`)
+          console.log(`Área criada: ${area.name} - Taxa: R$ ${area.deliveryFee}`)
         } else {
           existingAreas.push({
             name: existingArea.name,
@@ -108,14 +108,14 @@ export async function GET(request: NextRequest) {
             state: existingArea.state,
             deliveryFee: existingArea.deliveryFee
           })
-          console.log(`⚠️ Área já existe: ${areaData.name}`)
+          console.log(`Área já existe: ${areaData.name}`)
         }
       } catch (error) {
         errors.push({
           name: areaData.name,
           error: error instanceof Error ? error.message : 'Erro desconhecido'
         })
-        console.error(`❌ Erro ao criar ${areaData.name}:`, error)
+        console.error(`Erro ao criar ${areaData.name}:`, error)
       }
     }
 
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao popular áreas de entrega:', error)
+    console.error('Erro ao popular áreas de entrega:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao popular áreas de entrega',

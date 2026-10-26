@@ -4,7 +4,7 @@ import { getAuthUser, checkAnyRole } from '@/lib/auth-helper'
 
 /**
  * Rota para substituir TODOS os sabores pelos novos baseados nos cardápios
- * ⚠️ ATENÇÃO: Esta operação é destrutiva e irreversível!
+ * ATENÇÃO: Esta operação é destrutiva e irreversível!
  */
 export async function POST(request: NextRequest) {
   try {
@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('🗑️ Removendo todos os sabores existentes...')
+    console.log('Removendo todos os sabores existentes...')
     
     // Deletar todos os sabores existentes
     const deletedCount = await prisma.pizzaFlavor.deleteMany({})
-    console.log(`✅ ${deletedCount.count} sabores removidos`)
+    console.log(`${deletedCount.count} sabores removidos`)
 
     // Sabores Tradicionais (do cardápio)
     const saboresTradicionais = [
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       { name: 'Strogonoff de Camarão', description: 'Mussarela, strogonoff de camarão, batata palha e orégano' }
     ]
 
-    console.log('📝 Criando novos sabores...')
+    console.log('Criando novos sabores...')
 
     // Criar sabores tradicionais
     const tradicionais = await Promise.all(
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${tradicionais.length} sabores tradicionais criados`)
+    console.log(`${tradicionais.length} sabores tradicionais criados`)
 
     // Criar sabores especiais
     const especiais = await Promise.all(
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${especiais.length} sabores especiais criados`)
+    console.log(`${especiais.length} sabores especiais criados`)
 
     // Criar sabores premiums
     const premiums = await Promise.all(
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${premiums.length} sabores premiums criados`)
+    console.log(`${premiums.length} sabores premiums criados`)
 
     const total = tradicionais.length + especiais.length + premiums.length
 
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error: any) {
-    console.error('❌ Erro ao substituir sabores:', error)
+    console.error('Erro ao substituir sabores:', error)
     return NextResponse.json(
       { 
         success: false,

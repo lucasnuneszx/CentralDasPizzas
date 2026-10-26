@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function populateMenuData() {
   try {
-    console.log('🍕 Populando dados do cardápio...')
+    console.log('Populando dados do cardápio...')
 
     // Criar configurações iniciais da loja
     const settings = await prisma.systemSettings.upsert({
@@ -24,7 +24,7 @@ async function populateMenuData() {
       }
     })
 
-    console.log('✅ Configurações da loja criadas')
+    console.log('Configurações da loja criadas')
 
     // Criar categorias
     const categories = [
@@ -60,7 +60,7 @@ async function populateMenuData() {
     })
 
     const allCategories = await prisma.category.findMany()
-    console.log(`✅ ${allCategories.length} categorias criadas`)
+    console.log(`${allCategories.length} categorias criadas`)
 
     // Criar combos/pizzas
     const combos = [
@@ -170,16 +170,16 @@ async function populateMenuData() {
             isActive: true
           }
         })
-        console.log(`✅ Combo criado: ${combo.name}`)
+        console.log(`Combo criado: ${combo.name}`)
       }
     }
 
-    console.log('🎉 Dados do cardápio populados com sucesso!')
-    console.log('📱 Acesse /client/menu para ver o cardápio')
-    console.log('⚙️ Acesse /admin/settings para configurar a loja')
+    console.log('Dados do cardápio populados com sucesso!')
+    console.log('Acesse /client/menu para ver o cardápio')
+    console.log('Acesse /admin/settings para configurar a loja')
 
   } catch (error) {
-    console.error('❌ Erro ao popular dados:', error)
+    console.error('Erro ao popular dados:', error)
   } finally {
     await prisma.$disconnect()
   }

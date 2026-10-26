@@ -83,7 +83,6 @@ export default function MenuPage() {
   }, [categories])
 
   useEffect(() => {
-    console.log('🚀 Componente montado. Iniciando carregamento...')
     fetchSettings()
     fetchCategories()
   }, [])
@@ -91,9 +90,8 @@ export default function MenuPage() {
   // Re-tentar carregar se não houver categorias após 3 segundos
   useEffect(() => {
     if (!loading && categories.length === 0) {
-      console.warn('⚠️ Nenhuma categoria carregada. Tentando novamente em 3 segundos...')
+      console.warn('Nenhuma categoria carregada. Tentando novamente em 3 segundos...')
       const timer = setTimeout(() => {
-        console.log('🔄 Re-tentando carregar categorias...')
         fetchCategories()
       }, 3000)
       return () => clearTimeout(timer)
@@ -149,27 +147,19 @@ export default function MenuPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Iniciando busca de categorias...')
       
-      // CRÍTICO: Usar URL absoluta e garantir que funcione
       let apiUrl = '/api/categories'
       if (typeof window !== 'undefined') {
-        // Garantir URL absoluta
         const origin = window.location.origin
         apiUrl = `${origin}/api/categories`
-        console.log('📡 URL da API (absoluta):', apiUrl)
-        console.log('📡 Window location:', window.location.href)
       }
-      
-      console.log('📡 Fazendo fetch para:', apiUrl)
-      
+
       // Tentar múltiplas vezes se necessário
       let response: Response | null = null
       let lastError: Error | null = null
       
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          console.log(`🔄 Tentativa ${attempt}/3...`)
           response = await fetch(apiUrl, {
             method: 'GET',
             cache: 'no-store',
@@ -182,11 +172,10 @@ export default function MenuPage() {
             signal: AbortSignal.timeout(10000) // 10 segundos
           } as RequestInit)
           
-          console.log('📥 Resposta recebida:', response.status, response.statusText)
           break // Sucesso, sair do loop
         } catch (fetchError) {
           lastError = fetchError as Error
-          console.error(`❌ Erro na tentativa ${attempt}:`, fetchError)
+          console.error(`Erro na tentativa ${attempt}:`, fetchError)
           if (attempt < 3) {
             await new Promise(resolve => setTimeout(resolve, 1000 * attempt)) // Esperar antes de tentar novamente
           }
@@ -199,50 +188,23 @@ export default function MenuPage() {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('✅ Dados recebidos (tipo):', typeof data, Array.isArray(data))
-        console.log('✅ Dados recebidos (quantidade):', data?.length || 0)
         
         if (data && Array.isArray(data) && data.length > 0) {
-          console.log('✅ Primeira categoria (exemplo):', {
-            name: data[0]?.name,
-            combosCount: data[0]?.combos?.length || 0,
-            isActive: data[0]?.isActive
-          })
-          
-          const totalCombos = data.reduce((total: number, cat: Category) => {
-            return total + (cat.combos && Array.isArray(cat.combos) ? cat.combos.length : 0)
-          }, 0)
-          console.log('✅ Total de combos:', totalCombos)
-          
-          // IMPORTANTE: Não filtrar categorias sem combos - mostrar todas
+          // Mantém categorias sem combos; o filtro de exibição é feito na renderização
           const validCategories = data.filter((cat: Category) => {
             const isValid = cat && 
                            cat.isActive !== false &&
                            Array.isArray(cat.combos)
             return isValid
           })
-          
-          console.log('✅ Categorias válidas:', validCategories.length)
-          
-          // FORÇAR atualização do estado
+
           setCategories(validCategories)
           
           // Buscar preços mínimos para combos de pizza
           const allCombos = validCategories.flatMap(cat => cat.combos || [])
           await fetchMinPrices(allCombos)
-          
-          // Forçar re-render
-          setTimeout(() => {
-            console.log('🔄 Forçando re-render após 100ms...')
-            setCategories(prev => {
-              console.log('🔄 Estado atual no re-render:', prev.length)
-              return prev
-            })
-          }, 100)
-          
-          console.log('✅ Categorias setadas no estado:', validCategories.length)
         } else {
-          console.error('❌ Dados inválidos ou vazios:', {
+          console.error('Dados inválidos ou vazios:', {
             isArray: Array.isArray(data),
             length: data?.length,
             data: data
@@ -251,20 +213,19 @@ export default function MenuPage() {
         }
       } else {
         const errorText = await response.text()
-        console.error('❌ Erro HTTP:', response.status, response.statusText)
-        console.error('❌ Resposta de erro:', errorText)
+        console.error('Erro HTTP:', response.status, response.statusText)
+        console.error('Resposta de erro:', errorText)
         setCategories([])
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar categorias:', error)
+      console.error('Erro ao carregar categorias:', error)
       if (error instanceof Error) {
-        console.error('❌ Mensagem:', error.message)
-        console.error('❌ Stack:', error.stack)
+        console.error('Mensagem:', error.message)
+        console.error('Stack:', error.stack)
       }
       setCategories([])
     } finally {
       setLoading(false)
-      console.log('✅ Carregamento finalizado. Estado final:', categories.length)
     }
   }
 
@@ -287,14 +248,6 @@ export default function MenuPage() {
       category: finalCategory || { id: '', name: '' }
     }
     
-    console.log('🎯 Personalizando item:', {
-      comboName: combo.name,
-      categoryName: comboWithCategory.category?.name,
-      categoryId: comboWithCategory.category?.id,
-      isPizza: combo.isPizza,
-      pizzaQuantity,
-      fullCombo: comboWithCategory
-    })
     
     // Se for pizza ou tiver quantidade de pizzas, sempre usar o customizador completo para mostrar sabores
     if (combo.isPizza || pizzaQuantity > 0) {
@@ -374,14 +327,8 @@ export default function MenuPage() {
   }
 
   // Filtrar categorias e combos baseado na seleção e busca
-  // IMPORTANTE: Se não houver filtros, mostrar TODAS as categorias COM combos
+  // Sem filtros: todas as categorias com combos
   const filteredCategories = (() => {
-    console.log('🔍 Aplicando filtros...', {
-      totalCategories: categories.length,
-      selectedCategory,
-      searchTerm,
-      categoriesWithCombos: categories.filter(c => c.combos && c.combos.length > 0).length
-    })
     
     // Se não há filtros ativos, mostrar todas as categorias com combos
     if (!selectedCategory && !searchTerm) {
@@ -391,15 +338,11 @@ export default function MenuPage() {
                Array.isArray(category.combos) && 
                category.combos.length > 0 &&
                category.isActive !== false
-        
-        if (!hasCombos && category) {
-          console.log(`  ⚠️ Categoria "${category.name}" sem combos ou inativa`)
-        }
+
         
         return hasCombos
       })
       
-      console.log('✅ Categorias sem filtro:', result.length)
       return result
     }
     
@@ -437,22 +380,9 @@ export default function MenuPage() {
       return filteredCombos.length > 0
     })
     
-    console.log('✅ Categorias após filtro:', result.length)
     return result
   })()
   
-  // Debug: Log para verificar filtros
-  useEffect(() => {
-    if (!loading) {
-      console.log('📊 Estado atual:')
-      console.log('  - Total de categorias:', categories.length)
-      console.log('  - Categorias filtradas:', filteredCategories.length)
-      console.log('  - Categoria selecionada:', selectedCategory)
-      console.log('  - Termo de busca:', searchTerm)
-      console.log('  - Total de combos:', categories.reduce((total, cat) => total + (cat.combos?.length || 0), 0))
-    }
-  }, [categories, filteredCategories, selectedCategory, searchTerm, loading])
-
   // Obter categorias para os filtros rápidos
   const getQuickFilterCategories = () => {
     return categories
@@ -701,7 +631,7 @@ export default function MenuPage() {
               <p className="text-gray-500">Carregando produtos...</p>
             </div>
           ) : (() => {
-            // DEBUG: Forçar mostrar todas as categorias com combos
+            // Exibe todas as categorias ativas que tenham combos
             const categoriesToShow = categories.filter(cat => {
               const hasCombos = cat && 
                                cat.combos && 
@@ -710,17 +640,7 @@ export default function MenuPage() {
                                cat.isActive !== false
               return hasCombos
             })
-            
-            console.log('🔍 DEBUG RENDER:', {
-              totalCategories: categories.length,
-              categoriesWithCombos: categoriesToShow.length,
-              filteredCategories: filteredCategories.length,
-              selectedCategory,
-              searchTerm,
-              categoriesToShowNames: categoriesToShow.map(c => c.name)
-            })
-            
-            // Se não há categorias para mostrar, mostrar mensagem
+
             if (categoriesToShow.length === 0) {
               return (
                 <div className="text-center py-12">
@@ -736,7 +656,6 @@ export default function MenuPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('🔄 Botão de recarregar clicado')
                       setLoading(true)
                       fetchCategories()
                     }}
@@ -775,7 +694,7 @@ export default function MenuPage() {
             // Renderizar categorias
             return finalCategories.map((category) => {
               // Filtrar combos dentro da categoria baseado na busca
-              // IMPORTANTE: Manter a ordem original dos combos (ordenados por campo 'order')
+              // Mantém a ordem original dos combos (campo 'order')
               const filteredCombos = (category.combos || []).filter(combo => {
                 if (!combo) return false
                 if (combo.isActive === false) return false
@@ -798,10 +717,10 @@ export default function MenuPage() {
                 return (a.name || '').localeCompare(b.name || '')
               })
 
-              // IMPORTANTE: Mostrar categoria mesmo se não tiver combos após filtro
+              // Mostra a categoria mesmo se não sobrar combo após o filtro
               // Isso ajuda a identificar problemas
               if (filteredCombos.length === 0 && category.combos && category.combos.length > 0) {
-                console.warn('⚠️ Categoria sem combos após filtro:', category.name, 'Combos originais:', category.combos.length)
+                console.warn('Categoria sem combos após filtro:', category.name, 'Combos originais:', category.combos.length)
                 // Se há combos originais mas foram filtrados, mostrar mensagem
                 return (
                   <div key={category.id} className="text-center py-8 text-gray-500">

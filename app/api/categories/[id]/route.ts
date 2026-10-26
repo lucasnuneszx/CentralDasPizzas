@@ -140,7 +140,7 @@ export async function DELETE(
           where: { categoryId: categoryId },
           data: { categoryId: combosCategory.id }
         })
-        console.log(`✅ ${updateResult.count} produto(s) movido(s) para categoria "Combos"`)
+        console.log(`${updateResult.count} produto(s) movido(s) para categoria "Combos"`)
       }
 
       // Verificar se ainda há combos na categoria (pode ter havido algum problema)

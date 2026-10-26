@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 Atualizando configurações dos combos...')
+    console.log('Atualizando configurações dos combos...')
 
     // Mapeamento de combos com suas configurações
     const combosConfig: { [key: string]: { pizzaQuantity: number; allowCustomization: boolean; showFlavors: boolean } } = {
@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
             name: combo.name,
             ...config
           })
-          console.log(`✅ Combo atualizado: ${combo.name}`)
+          console.log(`Combo atualizado: ${combo.name}`)
         } catch (error) {
-          console.error(`❌ Erro ao atualizar ${combo.name}:`, error)
+          console.error(`Erro ao atualizar ${combo.name}:`, error)
         }
       } else {
         // Para combos sem pizza, manter configurações padrão
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             showFlavors: false
           })
         } catch (error) {
-          console.error(`❌ Erro ao atualizar ${combo.name}:`, error)
+          console.error(`Erro ao atualizar ${combo.name}:`, error)
         }
       }
     }
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Erro ao atualizar combos:', error)
+    console.error('Erro ao atualizar combos:', error)
     return NextResponse.json({
       success: false,
       message: 'Erro ao atualizar combos',

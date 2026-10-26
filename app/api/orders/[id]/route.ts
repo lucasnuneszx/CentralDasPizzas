@@ -35,11 +35,6 @@ export async function PUT(
     const body = await request.json()
     const { deliveryPerson, status } = body
 
-    console.log('=== ATUALIZANDO PEDIDO ===')
-    console.log('Order ID:', orderId)
-    console.log('Body recebido:', body)
-    console.log('Status:', status)
-    console.log('Delivery Person:', deliveryPerson)
 
     // Validar que há algo para atualizar
     if (status === undefined && deliveryPerson === undefined) {
@@ -73,7 +68,6 @@ export async function PUT(
       }
     }
 
-    console.log('Dados para atualizar:', updateData)
 
     // Se não há nada para atualizar, retornar erro
     if (Object.keys(updateData).length === 0) {

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('🔧 Iniciando adição de colunas de hambúrguer...')
+    console.log('Iniciando adição de colunas de hambúrguer...')
 
     const results: string[] = []
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
       if (isPostgres) {
         // PostgreSQL
-        console.log('📊 Detectado PostgreSQL')
+        console.log('Detectado PostgreSQL')
 
         // Verificar se coluna isBurger existe
         try {
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         }
       } else if (isMySQL) {
         // MySQL
-        console.log('📊 Detectado MySQL')
+        console.log('Detectado MySQL')
 
         // Verificar e criar isBurger
         try {
@@ -138,12 +138,12 @@ export async function GET(request: NextRequest) {
         }
       } else if (isSQLite) {
         // SQLite - não suporta ALTER TABLE ADD COLUMN facilmente em algumas versões
-        console.log('📊 Detectado SQLite')
-        console.log('⚠️ SQLite requer migration manual. Execute: npx prisma migrate dev')
+        console.log('Detectado SQLite')
+        console.log('SQLite requer migration manual. Execute: npx prisma migrate dev')
         results.push('⚠️ SQLite detectado. Execute manualmente: npx prisma migrate dev')
       } else {
         // Tentar genérico (funciona para a maioria dos bancos)
-        console.log('📊 Tipo de banco não detectado, tentando genérico...')
+        console.log('Tipo de banco não detectado, tentando genérico...')
 
         try {
           await prisma.$executeRaw`ALTER TABLE combos ADD COLUMN isBurger BOOLEAN DEFAULT false`
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      console.log('✅ Colunas de hambúrguer adicionadas com sucesso!')
+      console.log('Colunas de hambúrguer adicionadas com sucesso!')
       
       return NextResponse.json({
         success: true,
@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
         results
       })
     } catch (error: any) {
-      console.error('❌ Erro ao adicionar colunas:', error)
+      console.error('Erro ao adicionar colunas:', error)
       return NextResponse.json(
         {
           success: false,
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
       )
     }
   } catch (error: any) {
-    console.error('❌ Erro na autenticação:', error)
+    console.error('Erro na autenticação:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

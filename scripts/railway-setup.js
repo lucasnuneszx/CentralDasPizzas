@@ -8,11 +8,11 @@ async function railwaySetup() {
   let prisma = null
   
   try {
-    console.log('🚀 Configurando aplicação para Railway...')
+    console.log('Configurando aplicação para Railway...')
     
     // Verificar se DATABASE_URL está disponível
     if (!process.env.DATABASE_URL) {
-      console.log('⚠️ DATABASE_URL não configurada. Pulando setup do banco.')
+      console.log('DATABASE_URL não configurada. Pulando setup do banco.')
       return
     }
     
@@ -20,11 +20,11 @@ async function railwaySetup() {
     const isProduction = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('postgres')
     
     if (isProduction) {
-      console.log('📦 Ambiente de produção detectado (PostgreSQL)')
+      console.log('Ambiente de produção detectado (PostgreSQL)')
       
       // Aplicar schema ao banco de dados
-      console.log('🔄 Aplicando schema ao banco de dados...')
-      console.log('📋 DATABASE_URL:', process.env.DATABASE_URL ? '✅ Configurada' : '❌ Não configurada')
+      console.log('Aplicando schema ao banco de dados...')
+      console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Configurada' : 'Não configurada')
       try {
         const { stdout, stderr } = await execAsync('npx prisma db push --accept-data-loss --skip-generate', {
           timeout: 60000, // 60 segundos de timeout (aumentado)
@@ -32,34 +32,34 @@ async function railwaySetup() {
         })
         if (stdout) console.log(stdout)
         if (stderr && !stderr.includes('Warning')) console.error(stderr)
-        console.log('✅ Schema aplicado com sucesso')
+        console.log('Schema aplicado com sucesso')
         
         // Verificar se as colunas foram criadas (após criar Prisma Client)
         // Isso será feito depois, quando o Prisma Client for criado
         if (testQuery && Array.isArray(testQuery) && testQuery.length > 0) {
-          console.log('✅ Coluna printerName criada com sucesso')
+          console.log('Coluna printerName criada com sucesso')
         } else {
-          console.log('⚠️ Coluna printerName não encontrada - pode precisar de migração manual')
+          console.log('Coluna printerName não encontrada - pode precisar de migração manual')
         }
       } catch (error) {
-        console.error('⚠️ Erro ao aplicar schema:', error.message)
-        console.error('⚠️ Stack:', error.stack)
+        console.error('Erro ao aplicar schema:', error.message)
+        console.error('Stack:', error.stack)
         // Tentar migrate como alternativa
         try {
-          console.log('🔄 Tentando migração alternativa...')
+          console.log('Tentando migração alternativa...')
           const { stdout, stderr } = await execAsync('npx prisma migrate deploy', {
             timeout: 60000,
             maxBuffer: 1024 * 1024 * 10
           })
           if (stdout) console.log(stdout)
           if (stderr && !stderr.includes('Warning')) console.error(stderr)
-          console.log('✅ Migração aplicada com sucesso')
+          console.log('Migração aplicada com sucesso')
         } catch (migrateError) {
-          console.error('⚠️ Erro na migração também:', migrateError.message)
+          console.error('Erro na migração também:', migrateError.message)
         }
       }
     } else {
-      console.log('💾 Ambiente de desenvolvimento detectado (SQLite)')
+      console.log('Ambiente de desenvolvimento detectado (SQLite)')
       
       // Para desenvolvimento, também aplicar o schema
       try {
@@ -69,9 +69,9 @@ async function railwaySetup() {
         })
         if (stdout) console.log(stdout)
         if (stderr && !stderr.includes('Warning')) console.error(stderr)
-        console.log('✅ Schema aplicado com sucesso')
+        console.log('Schema aplicado com sucesso')
       } catch (error) {
-        console.error('⚠️ Erro ao aplicar schema:', error.message)
+        console.error('Erro ao aplicar schema:', error.message)
       }
     }
 
@@ -86,19 +86,19 @@ async function railwaySetup() {
       
       // Testar conexão
       await prisma.$connect()
-      console.log('✅ Conexão com banco estabelecida')
+      console.log('Conexão com banco estabelecida')
       
       // Verificar se as colunas foram criadas
-      console.log('🔍 Verificando colunas criadas...')
+      console.log('Verificando colunas criadas...')
       try {
         const testQuery = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'system_settings' AND column_name = 'printerName'`
         if (testQuery && Array.isArray(testQuery) && testQuery.length > 0) {
-          console.log('✅ Coluna printerName criada com sucesso')
+          console.log('Coluna printerName criada com sucesso')
         } else {
-          console.log('⚠️ Coluna printerName não encontrada - pode precisar de migração manual')
+          console.log('Coluna printerName não encontrada - pode precisar de migração manual')
         }
       } catch (error) {
-        console.log('⚠️ Não foi possível verificar colunas:', error.message)
+        console.log('Não foi possível verificar colunas:', error.message)
       }
 
       // Verificar se já existem configurações
@@ -106,7 +106,7 @@ async function railwaySetup() {
         const existingSettings = await prisma.systemSettings.findFirst()
         
         if (!existingSettings) {
-          console.log('📝 Criando configurações iniciais...')
+          console.log('Criando configurações iniciais...')
           
           // Criar configurações padrão para Railway
           await prisma.systemSettings.create({
@@ -129,12 +129,12 @@ async function railwaySetup() {
             }
           })
           
-          console.log('✅ Configurações iniciais criadas')
+          console.log('Configurações iniciais criadas')
         } else {
-          console.log('ℹ️ Configurações já existem')
+          console.log('Configurações já existem')
         }
       } catch (error) {
-        console.error('⚠️ Erro ao criar configurações:', error.message)
+        console.error('Erro ao criar configurações:', error.message)
         // Continuar mesmo se houver erro
       }
 
@@ -143,37 +143,37 @@ async function railwaySetup() {
         const categoriesCount = await prisma.category.count()
         
         if (categoriesCount === 0) {
-          console.log('🍕 Criando dados do cardápio...')
+          console.log('Criando dados do cardápio...')
           
           try {
             await execAsync('node scripts/populate-menu-data.js', {
               timeout: 60000, // 60 segundos
               maxBuffer: 1024 * 1024 * 10
             })
-            console.log('✅ Dados do cardápio criados')
+            console.log('Dados do cardápio criados')
           } catch (error) {
-            console.log('⚠️ Erro ao popular dados do cardápio:', error.message)
+            console.log('Erro ao popular dados do cardápio:', error.message)
           }
         } else {
-          console.log('ℹ️ Dados do cardápio já existem')
+          console.log('Dados do cardápio já existem')
         }
       } catch (error) {
-        console.error('⚠️ Erro ao verificar categorias:', error.message)
+        console.error('Erro ao verificar categorias:', error.message)
       }
     } catch (error) {
-      console.error('⚠️ Erro ao conectar ao banco:', error.message)
+      console.error('Erro ao conectar ao banco:', error.message)
       prisma = null
     }
 
-    console.log('🎉 Setup do Railway concluído!')
-    console.log('📱 Aplicação pronta para uso')
-    console.log('🌐 Acesse a URL do Railway para ver o cardápio')
+    console.log('Setup do Railway concluído!')
+    console.log('Aplicação pronta para uso')
+    console.log('Acesse a URL do Railway para ver o cardápio')
 
   } catch (error) {
-    console.error('❌ Erro no setup do Railway:', error)
+    console.error('Erro no setup do Railway:', error)
     console.error('Stack:', error.stack)
     // Não fazer exit(1) para não bloquear o deploy
-    console.log('⚠️ Continuando deploy mesmo com erros...')
+    console.log('Continuando deploy mesmo com erros...')
   } finally {
     if (prisma) {
       try {
@@ -191,14 +191,14 @@ if (require.main === module) {
   setImmediate(() => {
     railwaySetup()
       .then(() => {
-        console.log('✅ Script finalizado com sucesso')
+        console.log('Script finalizado com sucesso')
         // Aguardar um pouco antes de sair para garantir que tudo foi escrito
         setTimeout(() => {
           process.exit(0)
         }, 100)
       })
       .catch((error) => {
-        console.error('❌ Erro fatal no script:', error)
+        console.error('Erro fatal no script:', error)
         if (error.stack) {
           console.error('Stack:', error.stack)
         }

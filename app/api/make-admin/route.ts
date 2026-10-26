@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 Criando/atualizando usuário ADMIN...')
+    console.log('Criando/atualizando usuário ADMIN...')
 
     // Verificar se o usuário existe
     const existingUser = await prisma.user.findUnique({
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         where: { email: 'admin@teste.com' },
         data: { role: 'ADMIN' }
       })
-      console.log('✅ Usuário atualizado para ADMIN!')
+      console.log('Usuário atualizado para ADMIN!')
     } else {
       // Criar novo usuário ADMIN
       const bcrypt = require('bcryptjs')
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           phone: '(11) 99999-9999'
         }
       })
-      console.log('✅ Usuário ADMIN criado!')
+      console.log('Usuário ADMIN criado!')
     }
 
     return NextResponse.json({
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ Erro:', error)
+    console.error('Erro:', error)
     return NextResponse.json({
       message: '❌ Erro ao configurar usuário ADMIN',
       error: error instanceof Error ? error.message : 'Erro desconhecido'

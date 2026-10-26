@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function reorganizeCategories() {
   try {
-    console.log('🔄 Reorganizando categorias...')
+    console.log('Reorganizando categorias...')
 
     // Limpar categorias existentes (manter combos)
     const existingCategories = await prisma.category.findMany({
@@ -80,8 +80,8 @@ async function reorganizeCategories() {
       }
     })
 
-    console.log('✅ Categorias reorganizadas com sucesso!')
-    console.log('📋 Nova ordem:')
+    console.log('Categorias reorganizadas com sucesso!')
+    console.log('Nova ordem:')
     console.log('1. Combos')
     console.log('2. Pizzas Tradicionais')
     console.log('3. Pizzas Especiais')
@@ -90,7 +90,7 @@ async function reorganizeCategories() {
     console.log('6. Bebidas')
 
   } catch (error) {
-    console.error('❌ Erro ao reorganizar categorias:', error)
+    console.error('Erro ao reorganizar categorias:', error)
   } finally {
     await prisma.$disconnect()
   }

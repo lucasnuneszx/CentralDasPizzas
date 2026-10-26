@@ -35,18 +35,18 @@ const openai = new OpenAI({
  */
 async function processWhatsAppOrder(message, customerPhone, customerName) {
   try {
-    console.log('📱 Processando mensagem do WhatsApp...');
+    console.log('Processando mensagem do WhatsApp...');
     console.log('Cliente:', customerName, customerPhone);
     console.log('Mensagem:', message);
 
     // 1. Buscar cardápio do sistema
-    console.log('📋 Buscando cardápio...');
+    console.log('Buscando cardápio...');
     const menuResponse = await axios.get(`${SYSTEM_URL}/api/whatsapp/menu`);
     const menu = menuResponse.data;
-    console.log('✅ Cardápio carregado');
+    console.log('Cardápio carregado');
 
     // 2. Processar mensagem com IA
-    console.log('🤖 Processando com IA...');
+    console.log('Processando com IA...');
     const orderData = await processMessageWithAI(message, menu, customerName);
     
     if (!orderData || orderData.error) {
@@ -67,7 +67,7 @@ async function processWhatsAppOrder(message, customerPhone, customerName) {
     }
 
     // 4. Criar pedido no sistema
-    console.log('💾 Criando pedido no sistema...');
+    console.log('Criando pedido no sistema...');
     const orderPayload = {
       phone: customerPhone,
       customer: {
@@ -88,7 +88,7 @@ async function processWhatsAppOrder(message, customerPhone, customerName) {
     );
 
     if (orderResponse.data.success) {
-      console.log('✅ Pedido criado:', orderResponse.data.orderId);
+      console.log('Pedido criado:', orderResponse.data.orderId);
       return {
         success: true,
         orderId: orderResponse.data.orderId,
@@ -100,7 +100,7 @@ async function processWhatsAppOrder(message, customerPhone, customerName) {
     }
 
   } catch (error) {
-    console.error('❌ Erro ao processar pedido:', error.message);
+    console.error('Erro ao processar pedido:', error.message);
     return {
       success: false,
       message: 'Erro ao processar pedido. Tente novamente.',
@@ -115,9 +115,6 @@ async function processWhatsAppOrder(message, customerPhone, customerName) {
 function getMilaGreeting(customerName) {
   const name = customerName ? `, ${customerName}` : '';
   return `Olá${name}! Sou a *Mila*! 🍕\n\nAtendente virtual da *Central Das Pizzas* e vou prosseguir e auxiliar com o seu pedido hoje! Vamos lá? 😊`;
-  
-  // Versão alternativa sem nome (se preferir):
-  // return `Olá, sou a Mila! Atendente virtual da Central Das Pizzas e vou prosseguir e auxiliar com o seu pedido hoje! Vamos lá? 😊`;
 }
 
 /**
@@ -263,7 +260,7 @@ async function exemplo() {
     "5511999999999",
     "João Silva"
   );
-  console.log('\n📋 Resultado:', JSON.stringify(resultado1, null, 2));
+  console.log('\nResultado:', JSON.stringify(resultado1, null, 2));
 
   // Exemplo 2: Pedido complexo
   const resultado2 = await processWhatsAppOrder(
@@ -271,13 +268,13 @@ async function exemplo() {
     "5511888888888",
     "Maria Santos"
   );
-  console.log('\n📋 Resultado:', JSON.stringify(resultado2, null, 2));
+  console.log('\nResultado:', JSON.stringify(resultado2, null, 2));
 }
 
 // Executar exemplo se rodado diretamente
 if (require.main === module) {
   if (!OPENAI_API_KEY) {
-    console.error('❌ OPENAI_API_KEY não configurada no .env');
+    console.error('OPENAI_API_KEY não configurada no .env');
     process.exit(1);
   }
   

@@ -3,18 +3,18 @@ import { prisma } from '@/lib/prisma'
 
 /**
  * Rota PÚBLICA para criar sabores imediatamente (SEM autenticação)
- * ⚠️ ATENÇÃO: Esta rota é pública para facilitar o setup inicial
+ * ATENÇÃO: Esta rota é pública para facilitar o setup inicial
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🚀 Iniciando criação de sabores...')
+    console.log('Iniciando criação de sabores...')
     
     // Verificar quantos sabores já existem
     const existingCount = await prisma.pizzaFlavor.count()
-    console.log(`📊 Sabores existentes: ${existingCount}`)
+    console.log(`Sabores existentes: ${existingCount}`)
     
     if (existingCount > 0) {
-      console.log('✅ Sabores já existem. Pulando criação.')
+      console.log('Sabores já existem. Pulando criação.')
       return NextResponse.json({
         success: true,
         message: 'Sabores já existem no banco',
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       { name: 'Strogonoff de Camarão', description: 'Mussarela, strogonoff de camarão, batata palha e orégano' }
     ]
 
-    console.log('📝 Criando sabores tradicionais...')
+    console.log('Criando sabores tradicionais...')
     const tradicionais = await Promise.all(
       saboresTradicionais.map(sabor =>
         prisma.pizzaFlavor.create({
@@ -88,9 +88,9 @@ export async function GET(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${tradicionais.length} sabores tradicionais criados`)
+    console.log(`${tradicionais.length} sabores tradicionais criados`)
 
-    console.log('📝 Criando sabores especiais...')
+    console.log('Criando sabores especiais...')
     const especiais = await Promise.all(
       saboresEspeciais.map(sabor =>
         prisma.pizzaFlavor.create({
@@ -103,9 +103,9 @@ export async function GET(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${especiais.length} sabores especiais criados`)
+    console.log(`${especiais.length} sabores especiais criados`)
 
-    console.log('📝 Criando sabores premiums...')
+    console.log('Criando sabores premiums...')
     const premiums = await Promise.all(
       saboresPremiums.map(sabor =>
         prisma.pizzaFlavor.create({
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
         })
       )
     )
-    console.log(`✅ ${premiums.length} sabores premiums criados`)
+    console.log(`${premiums.length} sabores premiums criados`)
 
     const total = tradicionais.length + especiais.length + premiums.length
 
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error: any) {
-    console.error('❌ Erro ao criar sabores:', error)
+    console.error('Erro ao criar sabores:', error)
     return NextResponse.json(
       { 
         success: false,

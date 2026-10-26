@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
   const force = searchParams.get('force') // Parâmetro para forçar atualização
   
   // Log para debug
-  console.log('🔍 Health endpoint chamado:', { action, url: request.url, timestamp, force })
   
   // Se houver ação, executar funcionalidade de setup
   if (action === 'create-users') {

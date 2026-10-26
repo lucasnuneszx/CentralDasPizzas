@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 
 async function setupPizzaCategories() {
   try {
-    console.log('🍕 Iniciando configuração de categorias de pizza...')
+    console.log('Iniciando configuração de categorias de pizza...')
 
     // Preços por tipo e tamanho
     const prices = {
@@ -43,14 +43,14 @@ async function setupPizzaCategories() {
             order: catData.order
           }
         })
-        console.log(`✅ Categoria criada: ${catData.name}`)
+        console.log(`Categoria criada: ${catData.name}`)
       } else {
         // Atualizar ordem se necessário
         await prisma.category.update({
           where: { id: category.id },
           data: { order: catData.order }
         })
-        console.log(`ℹ️  Categoria já existe: ${catData.name}`)
+        console.log(`Categoria já existe: ${catData.name}`)
       }
 
       // Criar produtos (Pizza Grande e Pizza Família)
@@ -84,7 +84,7 @@ async function setupPizzaCategories() {
               showFlavors: true
             }
           })
-          console.log(`  ✅ Produto criado: ${product.name} - R$ ${price.toFixed(2)}`)
+          console.log(`  Produto criado: ${product.name} - R$ ${price.toFixed(2)}`)
 
           // Criar tamanho da pizza
           await prisma.pizzaSize.create({
@@ -97,7 +97,7 @@ async function setupPizzaCategories() {
               isActive: true
             }
           })
-          console.log(`    ✅ Tamanho criado: ${product.size} (${product.slices} fatias, ${product.maxFlavors} sabores)`)
+          console.log(`    Tamanho criado: ${product.size} (${product.slices} fatias, ${product.maxFlavors} sabores)`)
         } else {
           // Atualizar preço se necessário
           await prisma.combo.update({
@@ -130,13 +130,13 @@ async function setupPizzaCategories() {
               }
             })
           }
-          console.log(`  ℹ️  Produto já existe: ${product.name} - Preço atualizado para R$ ${price.toFixed(2)}`)
+          console.log(`   Produto já existe: ${product.name} - Preço atualizado para R$ ${price.toFixed(2)}`)
         }
       }
     }
 
-    console.log('\n✅ Configuração concluída com sucesso!')
-    console.log('\n📋 Resumo:')
+    console.log('\nConfiguração concluída com sucesso!')
+    console.log('\nResumo:')
     console.log('  - 3 Categorias criadas')
     console.log('  - 6 Produtos criados (2 por categoria)')
     console.log('  - Preços configurados:')
@@ -145,7 +145,7 @@ async function setupPizzaCategories() {
     console.log('    Premium: Grande R$ 72,00 | Família R$ 82,00')
 
   } catch (error) {
-    console.error('❌ Erro ao configurar categorias:', error)
+    console.error('Erro ao configurar categorias:', error)
     throw error
   } finally {
     await prisma.$disconnect()
@@ -156,11 +156,11 @@ async function setupPizzaCategories() {
 if (require.main === module) {
   setupPizzaCategories()
     .then(() => {
-      console.log('\n✨ Processo finalizado!')
+      console.log('\nProcesso finalizado!')
       process.exit(0)
     })
     .catch((error) => {
-      console.error('❌ Erro fatal:', error)
+      console.error('Erro fatal:', error)
       process.exit(1)
     })
 }

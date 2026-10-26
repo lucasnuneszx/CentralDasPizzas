@@ -186,41 +186,30 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
     const categoryName = ((item as any).category?.name || '').toLowerCase()
     const itemName = (item.name || '').toLowerCase()
     
-    console.log('🔍 [DETECÇÃO] Analisando categoria:', {
-      categoryName,
-      itemName,
-      fullCategory: (item as any).category
-    })
 
     // Detecção por nome da categoria (mais confiável)
     if (categoryName.includes('tradicionais') || categoryName.includes('tradicional')) {
-      console.log('✅ [DETECÇÃO] Tipo: TRADICIONAL (por categoria)')
       return 'TRADICIONAL'
     }
     if (categoryName.includes('especiais') || categoryName.includes('especial')) {
-      console.log('✅ [DETECÇÃO] Tipo: ESPECIAL (por categoria)')
       return 'ESPECIAL'
     }
     if (categoryName.includes('premiums') || categoryName.includes('premium')) {
-      console.log('✅ [DETECÇÃO] Tipo: PREMIUM (por categoria)')
       return 'PREMIUM'
     }
 
     // Fallback: detecção por nome do item
     if (itemName.includes('tradicional')) {
-      console.log('✅ [DETECÇÃO] Tipo: TRADICIONAL (por nome do item)')
       return 'TRADICIONAL'
     }
     if (itemName.includes('especial')) {
-      console.log('✅ [DETECÇÃO] Tipo: ESPECIAL (por nome do item)')
       return 'ESPECIAL'
     }
     if (itemName.includes('premium')) {
-      console.log('✅ [DETECÇÃO] Tipo: PREMIUM (por nome do item)')
       return 'PREMIUM'
     }
 
-    console.warn('⚠️ [DETECÇÃO] Tipo não detectado, retornando null (mostrará todos)')
+    console.warn('[DETECÇÃO] Tipo não detectado, retornando null (mostrará todos)')
     return null
   }
 
@@ -236,14 +225,8 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       const detectedType = detectCategoryType()
       const categoryName = (item as any).category?.name || 'N/A'
       
-      console.log('🚀 [FETCH] Iniciando busca de sabores...', {
-        detectedType,
-        categoryName,
-        itemName: item.name
-      })
 
       // ESTRATÉGIA 1: Buscar TODOS os sabores primeiro (sem filtro)
-      console.log('📡 [FETCH] Buscando TODOS os sabores (sem filtro)...')
       
       // Adicionar timestamp para evitar cache
       const cacheBuster = `?t=${Date.now()}`
@@ -251,16 +234,15 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       
       if (!allFlavorsRes.ok) {
         const errorText = await allFlavorsRes.text()
-        console.error(`❌ [FETCH] Erro HTTP ${allFlavorsRes.status}:`, errorText)
+        console.error(`[FETCH] Erro HTTP ${allFlavorsRes.status}:`, errorText)
         throw new Error(`Erro HTTP ${allFlavorsRes.status}: ${errorText}`)
       }
 
       const allFlavors: PizzaFlavor[] = await allFlavorsRes.json()
-      console.log(`✅ [FETCH] Total de sabores recebidos da API: ${allFlavors.length}`)
       
       // Verificar se é um array válido
       if (!Array.isArray(allFlavors)) {
-        console.error('❌ [FETCH] Resposta da API não é um array:', typeof allFlavors, allFlavors)
+        console.error('[FETCH] Resposta da API não é um array:', typeof allFlavors, allFlavors)
         throw new Error('Resposta da API inválida')
       }
       
@@ -268,19 +250,12 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       let flavorsToUse = allFlavors
       
       if (allFlavors.length === 0) {
-        console.warn('⚠️ [FETCH] NENHUM sabor encontrado na API! Usando sabores fixos...')
+        console.warn('[FETCH] NENHUM sabor encontrado na API! Usando sabores fixos...')
         flavorsToUse = FIXED_FLAVORS
-        console.log(`✅ [FETCH] Usando ${FIXED_FLAVORS.length} sabores fixos`)
       }
 
       // Log dos tipos disponíveis
       const availableTypes = Array.from(new Set(flavorsToUse.map(f => f.type)))
-      console.log('📋 [FETCH] Tipos disponíveis:', availableTypes)
-      console.log('📊 [FETCH] Distribuição:', {
-        TRADICIONAL: flavorsToUse.filter(f => f.type === 'TRADICIONAL').length,
-        ESPECIAL: flavorsToUse.filter(f => f.type === 'ESPECIAL').length,
-        PREMIUM: flavorsToUse.filter(f => f.type === 'PREMIUM').length
-      })
 
       // ESTRATÉGIA 2: Filtrar no cliente baseado no tipo detectado
       let finalFlavors: PizzaFlavor[] = []
@@ -290,20 +265,17 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         finalFlavors = flavorsToUse.filter(f => 
           (f.type || '').toUpperCase() === detectedType.toUpperCase()
         )
-        console.log(`✅ [FETCH] Filtrados ${finalFlavors.length} sabores do tipo ${detectedType}`)
         
         // Se não encontrou nenhum do tipo, mostrar TODOS como fallback
         if (finalFlavors.length === 0) {
-          console.warn(`⚠️ [FETCH] Nenhum sabor do tipo ${detectedType} encontrado. Mostrando TODOS os sabores como fallback.`)
+          console.warn(`[FETCH] Nenhum sabor do tipo ${detectedType} encontrado. Mostrando TODOS os sabores como fallback.`)
           finalFlavors = flavorsToUse
         }
       } else {
         // Se não detectou tipo, mostrar TODOS
-        console.log('ℹ️ [FETCH] Tipo não detectado. Mostrando TODOS os sabores.')
         finalFlavors = flavorsToUse
       }
 
-      console.log(`🎯 [FETCH] Sabores finais que serão exibidos: ${finalFlavors.length}`)
       setFlavors(finalFlavors)
       
       setDebugInfo({
@@ -374,7 +346,7 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
         setExtraItems([])
       }
     } catch (error: any) {
-      console.error('❌ [FETCH] Erro ao carregar dados:', error)
+      console.error('[FETCH] Erro ao carregar dados:', error)
       setFlavors([])
       setDebugInfo({
         error: error.message || 'Erro desconhecido'
@@ -519,12 +491,6 @@ export default function ItemCustomizer({ item, onAddToCart, onClose }: ItemCusto
       PREMIUM: flavors.filter(f => (f.type || '').toUpperCase() === 'PREMIUM')
     }
     
-    console.log('📊 [GROUPED] Sabores agrupados:', {
-      TRADICIONAL: grouped.TRADICIONAL.length,
-      ESPECIAL: grouped.ESPECIAL.length,
-      PREMIUM: grouped.PREMIUM.length,
-      total: flavors.length
-    })
     
     return grouped
   }, [flavors])

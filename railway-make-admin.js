@@ -7,7 +7,7 @@ async function makeUserAdmin() {
   const prisma = new PrismaClient()
   
   try {
-    console.log('🔧 Tornando admin@teste.com como ADMINISTRADOR...')
+    console.log('Tornando admin@teste.com como ADMINISTRADOR...')
 
     // Atualizar o usuário para ADMIN
     const updatedUser = await prisma.user.update({
@@ -19,12 +19,12 @@ async function makeUserAdmin() {
       }
     })
 
-    console.log('✅ Usuário atualizado com sucesso!')
-    console.log(`📧 Email: ${updatedUser.email}`)
-    console.log(`👑 Role: ${updatedUser.role}`)
+    console.log('Usuário atualizado com sucesso!')
+    console.log(`Email: ${updatedUser.email}`)
+    console.log(`Role: ${updatedUser.role}`)
 
   } catch (error) {
-    console.error('❌ Erro:', error.message)
+    console.error('Erro:', error.message)
   } finally {
     await prisma.$disconnect()
   }
