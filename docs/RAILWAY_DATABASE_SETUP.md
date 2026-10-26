@@ -76,7 +76,7 @@ Crie um script de setup no `package.json`:
 ```json
 {
   "scripts": {
-    "railway:setup": "prisma generate && prisma db push && node create-users-railway.js"
+    "railway:setup": "prisma generate && prisma db push && node scripts/create-default-users.js"
   }
 }
 ```
@@ -96,7 +96,7 @@ https://www.centraldaspizzas.com/api/setup/create-users
 Ou execute localmente conectado ao banco do Railway:
 
 ```bash
-DATABASE_URL="postgresql://..." node create-users-railway.js
+DATABASE_URL="postgresql://..." node scripts/create-default-users.js
 ```
 
 ## 📋 Checklist

@@ -22,7 +22,7 @@ Olá, sou a Mila! Atendente virtual da Central Das Pizzas e vou prosseguir e aux
 ## 📁 Arquivos Criados
 
 ### 1. Script Principal
-- **`scripts/whatsapp-ia-example.js`**
+- **`scripts/whatsapp-order-processor.js`**
   - Processa mensagens com OpenAI
   - Cria pedidos no sistema
   - Gera mensagens de confirmação da Mila
@@ -135,7 +135,7 @@ Pode me ajudar com isso? Assim consigo processar seu pedido rapidinho! 🍕
 
 ### Alterar Mensagem de Apresentação
 
-Edite a função `getMilaGreeting()` em `scripts/whatsapp-ia-example.js`:
+Edite a função `getMilaGreeting()` em `scripts/whatsapp-order-processor.js`:
 
 ```javascript
 function getMilaGreeting(customerName) {
@@ -146,7 +146,7 @@ function getMilaGreeting(customerName) {
 
 ### Alterar Personalidade
 
-Edite o objeto `AI_IDENTITY` em `scripts/whatsapp-ia-example.js`:
+Edite o objeto `AI_IDENTITY` em `scripts/whatsapp-order-processor.js`:
 
 ```javascript
 const AI_IDENTITY = {

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { printToSerialPort, requestSerialPort, getAvailablePorts, getPortInfo } from '@/lib/printer-client'
 import toast from 'react-hot-toast'
 
-// Tipo para SerialPort (definido em printer-client.ts)
+// Tipo para SerialPort (também declarado em lib/printer-client.ts)
 declare global {
   interface SerialPort {
     readable: ReadableStream<Uint8Array> | null

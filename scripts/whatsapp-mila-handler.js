@@ -13,7 +13,7 @@ const {
   generateClarificationMessage,
   generateErrorMessage,
   AI_IDENTITY 
-} = require('./whatsapp-ia-example');
+} = require('./whatsapp-order-processor');
 
 // Simulação de armazenamento de conversas (em produção, usar banco de dados)
 const conversations = new Map();
