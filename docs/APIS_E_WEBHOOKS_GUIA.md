@@ -1,10 +1,10 @@
-# 🔑 Guia Completo: APIs e Webhooks para WhatsApp
+# Guia Completo: APIs e Webhooks para WhatsApp
 
-## 📋 Visão Geral
+## Visão Geral
 
 Este guia mostra exatamente onde obter e como configurar todas as APIs necessárias para a Mila funcionar via WhatsApp.
 
-## 🎯 APIs Necessárias
+## APIs Necessárias
 
 ### 1. **OpenAI API** (Processamento de IA)
 ### 2. **Evolution API** ou **WhatsApp Business API** (WhatsApp)
@@ -12,7 +12,7 @@ Este guia mostra exatamente onde obter e como configurar todas as APIs necessár
 
 ---
 
-## 1️⃣ OpenAI API - Processamento de Linguagem Natural
+## 1⃣ OpenAI API - Processamento de Linguagem Natural
 
 ### Onde Obter
 
@@ -29,7 +29,7 @@ Este guia mostra exatamente onde obter e como configurar todas as APIs necessár
    - Vá em: https://platform.openai.com/account/billing
    - Clique em "Add payment method"
    - Adicione cartão de crédito
-   - ⚠️ **Importante:** Configure limite de gastos para evitar surpresas
+   - **Importante:** Configure limite de gastos para evitar surpresas
 
 3. **Criar API Key**
    - Acesse: https://platform.openai.com/api-keys
@@ -47,13 +47,13 @@ Este guia mostra exatamente onde obter e como configurar todas as APIs necessár
    - **Custo estimado:** ~$0.01-0.05 por pedido processado
 
 ### Links Úteis
-- 📚 Documentação: https://platform.openai.com/docs
-- 💰 Preços: https://openai.com/api/pricing/
-- 🎓 Tutoriais: https://platform.openai.com/docs/guides
+- Documentação: https://platform.openai.com/docs
+- Preços: https://openai.com/api/pricing/
+- Tutoriais: https://platform.openai.com/docs/guides
 
 ---
 
-## 2️⃣ Evolution API - WhatsApp (RECOMENDADO)
+## 2⃣ Evolution API - WhatsApp (RECOMENDADO)
 
 ### Onde Obter
 
@@ -61,11 +61,11 @@ Este guia mostra exatamente onde obter e como configurar todas as APIs necessár
 
 ### Por que Evolution API?
 
-✅ Mais fácil de configurar que WhatsApp Business API oficial  
-✅ Não precisa de aprovação do Meta  
-✅ Suporta múltiplas instâncias  
-✅ Webhooks nativos  
-✅ Documentação em português disponível  
+- Mais fácil de configurar que WhatsApp Business API oficial
+- Não precisa de aprovação do Meta
+- Suporta múltiplas instâncias
+- Webhooks nativos
+- Documentação em português disponível
 
 ### Passo a Passo
 
@@ -140,13 +140,13 @@ Este guia mostra exatamente onde obter e como configurar todas as APIs necessár
    ```
 
 ### Links Úteis
-- 📚 Documentação: https://doc.evolution-api.com/
-- 💬 Discord: https://discord.gg/evolutionapi
-- 📖 GitHub: https://github.com/EvolutionAPI/evolution-api
+- Documentação: https://doc.evolution-api.com/
+- Discord: https://discord.gg/evolutionapi
+- GitHub: https://github.com/EvolutionAPI/evolution-api
 
 ---
 
-## 3️⃣ WhatsApp Business API (Oficial do Meta)
+## 3⃣ WhatsApp Business API (Oficial do Meta)
 
 ### Onde Obter
 
@@ -191,13 +191,13 @@ GET /webhook/whatsapp?hub.mode=subscribe&hub.verify_token=SEU_TOKEN&hub.challeng
 Seu servidor deve retornar o `hub.challenge`.
 
 ### Links Úteis
-- 📚 Documentação: https://developers.facebook.com/docs/whatsapp
-- 🎓 Guia Inicial: https://developers.facebook.com/docs/whatsapp/cloud-api/get-started
-- 💰 Preços: https://developers.facebook.com/docs/whatsapp/pricing
+- Documentação: https://developers.facebook.com/docs/whatsapp
+- Guia Inicial: https://developers.facebook.com/docs/whatsapp/cloud-api/get-started
+- Preços: https://developers.facebook.com/docs/whatsapp/pricing
 
 ---
 
-## 4️⃣ Twilio WhatsApp API (Alternativa Enterprise)
+## 4⃣ Twilio WhatsApp API (Alternativa Enterprise)
 
 ### Onde Obter
 
@@ -224,12 +224,12 @@ Seu servidor deve retornar o `hub.challenge`.
    - URL: `https://seu-servidor.com/webhook/whatsapp`
 
 ### Links Úteis
-- 📚 Documentação: https://www.twilio.com/docs/whatsapp
-- 💰 Preços: https://www.twilio.com/whatsapp/pricing
+- Documentação: https://www.twilio.com/docs/whatsapp
+- Preços: https://www.twilio.com/whatsapp/pricing
 
 ---
 
-## 🔧 Configuração do Webhook no Seu Servidor
+## Configuração do Webhook no Seu Servidor
 
 ### 1. Atualizar Handler
 
@@ -306,7 +306,7 @@ ngrok http 3001
 
 ---
 
-## 🧪 Testar Configuração
+## Testar Configuração
 
 ### 1. Testar OpenAI
 ```bash
@@ -340,34 +340,34 @@ curl -X POST "http://localhost:3001/webhook/whatsapp" \
 
 ---
 
-## 📊 Comparação de Opções
+## Comparação de Opções
 
 | Recurso | Evolution API | WhatsApp Business API | Twilio |
 |---------|---------------|----------------------|--------|
-| **Facilidade** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
+| **Facilidade** | | | |
 | **Custo** | $$ | $$ | $$$ |
-| **Aprovação Necessária** | ❌ | ✅ | ✅ |
-| **Webhooks** | ✅ | ✅ | ✅ |
-| **Documentação PT** | ✅ | ⚠️ | ❌ |
+| **Aprovação Necessária** | | | |
+| **Webhooks** | | | |
+| **Documentação PT** | | | |
 | **Recomendado para** | Início rápido | Produção oficial | Enterprise |
 
 ---
 
-## 🚀 Recomendação Final
+## Recomendação Final
 
 ### Para Começar Rápido:
-1. ✅ **OpenAI API** (obrigatório para IA)
-2. ✅ **Evolution API** (mais fácil para WhatsApp)
-3. ✅ **ngrok** (para testar localmente)
+1. **OpenAI API** (obrigatório para IA)
+2. **Evolution API** (mais fácil para WhatsApp)
+3. **ngrok** (para testar localmente)
 
 ### Para Produção:
-1. ✅ **OpenAI API**
-2. ✅ **WhatsApp Business API** (oficial) ou **Evolution API** (se preferir)
-3. ✅ **Railway** ou **Vercel** (hospedagem)
+1. **OpenAI API**
+2. **WhatsApp Business API** (oficial) ou **Evolution API** (se preferir)
+3. **Railway** ou **Vercel** (hospedagem)
 
 ---
 
-## 📞 Suporte
+## Suporte
 
 - **OpenAI:** https://help.openai.com/
 - **Evolution API:** Discord ou GitHub
@@ -375,5 +375,5 @@ curl -X POST "http://localhost:3001/webhook/whatsapp" \
 
 ---
 
-**Pronto para configurar!** 🚀
+**Pronto para configurar!**
 

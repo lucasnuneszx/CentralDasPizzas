@@ -1,10 +1,10 @@
-# 👋 Configuração da Mila - Atendente Virtual
+# Configuração da Mila - Atendente Virtual
 
-## 📋 Visão Geral
+## Visão Geral
 
 A **Mila** é a atendente virtual da Central Das Pizzas que automatiza pedidos via WhatsApp usando Inteligência Artificial.
 
-## 🎯 Identidade da Mila
+## Identidade da Mila
 
 ### Apresentação Padrão
 ```
@@ -12,14 +12,14 @@ Olá, sou a Mila! Atendente virtual da Central Das Pizzas e vou prosseguir e aux
 ```
 
 ### Personalidade
-- ✅ Amigável e acolhedora
-- ✅ Profissional e prestativa
-- ✅ Sempre pronta para ajudar
-- ✅ Usa emojis moderadamente (🍕, 😊, ✅)
-- ✅ Confirma pedidos antes de finalizar
-- ✅ Assina mensagens como "— Mila, sua atendente virtual"
+- Amigável e acolhedora
+- Profissional e prestativa
+- Sempre pronta para ajudar
+- Usa emojis moderadamente (, , )
+- Confirma pedidos antes de finalizar
+- Assina mensagens como "— Mila, sua atendente virtual"
 
-## 📁 Arquivos Criados
+## Arquivos Criados
 
 ### 1. Script Principal
 - **`scripts/whatsapp-order-processor.js`**
@@ -42,7 +42,7 @@ Olá, sou a Mila! Atendente virtual da Central Das Pizzas e vou prosseguir e aux
 - **`app/api/whatsapp/menu/route.ts`**
   - Fornece cardápio para a Mila consultar
 
-## 🚀 Como Usar
+## Como Usar
 
 ### 1. Configurar Variáveis de Ambiente
 
@@ -76,7 +76,7 @@ Configure seu serviço de WhatsApp (Evolution API, WhatsApp Business API, etc.) 
 POST http://seu-servidor:3001/webhook/whatsapp
 ```
 
-## 💬 Fluxo de Conversa
+## Fluxo de Conversa
 
 ### Primeira Interação
 1. Cliente envia: "Oi"
@@ -92,7 +92,7 @@ POST http://seu-servidor:3001/webhook/whatsapp
 1. Cliente: "Quero uma pizza"
 2. Mila: Solicita informações faltantes (sabor, tamanho, entrega/retirada)
 
-## 📝 Exemplo de Mensagens
+## Exemplo de Mensagens
 
 ### Apresentação
 ```
@@ -131,7 +131,7 @@ Para finalizar seu pedido, preciso de algumas informações:
 Pode me ajudar com isso? Assim consigo processar seu pedido rapidinho! 🍕
 ```
 
-## 🔧 Personalização
+## Personalização
 
 ### Alterar Mensagem de Apresentação
 
@@ -157,7 +157,7 @@ const AI_IDENTITY = {
 };
 ```
 
-## 📊 Integração com Evolution API
+## Integração com Evolution API
 
 Exemplo de configuração com Evolution API:
 
@@ -177,7 +177,7 @@ async function sendWhatsAppMessage(phone, message) {
 }
 ```
 
-## 🎨 Melhorias Futuras
+## Melhorias Futuras
 
 - [ ] Suporte a múltiplos idiomas
 - [ ] Integração com pagamento via WhatsApp
@@ -187,7 +187,7 @@ async function sendWhatsAppMessage(phone, message) {
 - [ ] Suporte a cupons e promoções
 - [ ] Integração com sistema de avaliações
 
-## 📞 Suporte
+## Suporte
 
 Para dúvidas sobre a configuração da Mila:
 - Consulte `docs/WHATSAPP_IA_INTEGRATION.md`
@@ -196,5 +196,5 @@ Para dúvidas sobre a configuração da Mila:
 
 ---
 
-**Desenvolvido para Central Das Pizzas** 🍕
+**Desenvolvido para Central Das Pizzas**
 

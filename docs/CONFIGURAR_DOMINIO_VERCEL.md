@@ -1,6 +1,6 @@
-# 🌐 Configurar Domínio centraldaspizzas.com no Vercel
+# Configurar Domínio centraldaspizzas.com no Vercel
 
-## 📋 Passo a Passo
+## Passo a Passo
 
 ### 1. Adicionar Domínio no Vercel
 
@@ -63,7 +63,7 @@ curl https://centraldaspizzas.com/api/health
 curl https://www.centraldaspizzas.com/api/health
 ```
 
-## 🔧 URLs de Webhook
+## URLs de Webhook
 
 Após configurar o domínio, atualize os webhooks:
 
@@ -78,7 +78,7 @@ Webhook URL: https://centraldaspizzas.com/api/whatsapp/webhook
 Verify Token: [seu WHATSAPP_WEBHOOK_TOKEN]
 ```
 
-## ✅ Checklist
+## Checklist
 
 - [ ] Domínio adicionado no Vercel
 - [ ] DNS configurado no provedor
@@ -87,7 +87,7 @@ Verify Token: [seu WHATSAPP_WEBHOOK_TOKEN]
 - [ ] Webhooks atualizados com novo domínio
 - [ ] Testado acesso ao site
 
-## 🚨 Problemas Comuns
+## Problemas Comuns
 
 ### Domínio não resolve
 - Aguarde propagação DNS (até 48h)
@@ -104,12 +104,12 @@ Verify Token: [seu WHATSAPP_WEBHOOK_TOKEN]
 - Verifique variável `NEXTAUTH_URL`
 - Faça redeploy após mudanças
 
-## 📞 Suporte
+## Suporte
 
 - **Vercel Docs:** https://vercel.com/docs/concepts/projects/domains
 - **Vercel Support:** https://vercel.com/support
 
 ---
 
-**Domínio configurado:** centraldaspizzas.com ✅
+**Domínio configurado:** centraldaspizzas.com
 

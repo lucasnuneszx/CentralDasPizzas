@@ -1,6 +1,6 @@
-# Customização do Sistema de Alerta Sonoro 🎵
+# Customização do Sistema de Alerta Sonoro
 
-## 🎛️ Ajustes Rápidos
+## Ajustes Rápidos
 
 ### 1. **Mudar o Intervalo de Som**
 
@@ -94,7 +94,7 @@ osc2.stop(now + duration)
 - `0.6` = 600ms (beep mais longo)
 - `1.0` = 1000ms (muito longo)
 
-## 🎨 Customizações Visuais
+## Customizações Visuais
 
 ### 1. **Mudar Cores do Alerta**
 
@@ -162,7 +162,7 @@ osc2.stop(now + duration)
 </p>
 ```
 
-## 🔧 Integração com Arquivo de Áudio Customizado
+## Integração com Arquivo de Áudio Customizado
 
 ### 1. **Adicionar Arquivo MP3**
 
@@ -190,7 +190,7 @@ osc2.stop(now + duration)
 }
 ```
 
-## 🎵 Recursos Recomendados
+## Recursos Recomendados
 
 ### Geradores de Som Online
 - [Freesound.org](https://freesound.org) - Sons gratuitos
@@ -205,7 +205,7 @@ osc2.stop(now + duration)
 - Som de caixa registradora
 - Notificação mobile
 
-## 📱 Comportamentos Customizáveis
+## Comportamentos Customizáveis
 
 ### 1. **Aceitar Apenas com Som Ativo**
 
@@ -250,7 +250,7 @@ useEffect(() => {
 }, [showAlert])
 ```
 
-## 🚀 Exemplos de Configuração
+## Exemplos de Configuração
 
 ### Configuração "Agressiva" (Máxima Atenção)
 ```typescript
@@ -303,7 +303,7 @@ useContinuousSound({
 // Usar arquivo de áudio customizado professional
 ```
 
-## 🔍 Debugging
+## Debugging
 
 ### 1. **Verificar se Som está Tocando**
 
@@ -331,7 +331,7 @@ osc.frequency.value = 800
 console.log('Frequência:', osc.frequency.value)
 ```
 
-## 📋 Checklist de Customização
+## Checklist de Customização
 
 - [ ] Intervalo de som ajustado
 - [ ] Volume testado

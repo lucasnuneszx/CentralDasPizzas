@@ -1,10 +1,10 @@
-# 🌐 Como Configurar DNS para centraldaspizzas.com
+# Como Configurar DNS para centraldaspizzas.com
 
-## 📋 O que você precisa fazer
+## O que você precisa fazer
 
 Adicionar um registro **CNAME** no seu provedor de domínio apontando para o Railway.
 
-## 🔧 Configuração DNS
+## Configuração DNS
 
 ### Registro necessário:
 
@@ -12,7 +12,7 @@ Adicionar um registro **CNAME** no seu provedor de domínio apontando para o Rai
 |------|------|-------|
 | **CNAME** | `www` | `t6k1h7tm.up.railway.app` |
 
-## 📝 Passo a Passo por Provedor
+## Passo a Passo por Provedor
 
 ### 1. Registro.br (Mais comum no Brasil)
 
@@ -77,7 +77,7 @@ Adicionar um registro **CNAME** no seu provedor de domínio apontando para o Rai
    - Nome: `www`
    - Valor: `t6k1h7tm.up.railway.app`
 
-## ⚠️ Importante
+## Importante
 
 ### Para o domínio raiz (centraldaspizzas.com sem www)
 
@@ -93,7 +93,7 @@ Alguns provedores não permitem CNAME no domínio raiz. Nesse caso:
   - Nome: @ (ou vazio)
   - Valor: IP fornecido pelo Railway
 
-## ✅ Verificar se funcionou
+## Verificar se funcionou
 
 Após adicionar o registro, aguarde alguns minutos e verifique:
 
@@ -111,13 +111,13 @@ dig www.centraldaspizzas.com
 - Digite: `www.centraldaspizzas.com`
 - Verifique se está apontando para `t6k1h7tm.up.railway.app`
 
-## ⏱️ Tempo de Propagação
+## ⏱Tempo de Propagação
 
 - **Mínimo:** 5-15 minutos
 - **Médio:** 1-2 horas
 - **Máximo:** 72 horas (raro)
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### "Registro ainda não detectado"
 - Aguarde mais alguns minutos
@@ -135,12 +135,12 @@ dig www.centraldaspizzas.com
 - Verifique se o domínio está configurado no Railway
 - Aguarde propagação completa
 
-## 📞 Suporte
+## Suporte
 
 - **Registro.br:** https://registro.br/atendimento
 - **Railway:** https://railway.app/help
 
 ---
 
-**Após configurar, aguarde alguns minutos e o Railway detectará automaticamente!** ✅
+**Após configurar, aguarde alguns minutos e o Railway detectará automaticamente!**
 

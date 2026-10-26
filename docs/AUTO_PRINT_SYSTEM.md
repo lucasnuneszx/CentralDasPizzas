@@ -4,8 +4,8 @@
 
 O sistema de impressão automática imprime automaticamente **2 notas** quando um novo pedido chega:
 
-1. **🍳 Nota da Cozinha** - Para preparação do pedido
-2. **📦 Nota de Entrega** - Para o cliente/entregador
+1. **Nota da Cozinha** - Para preparação do pedido
+2. **Nota de Entrega** - Para o cliente/entregador
 
 ## Como Funciona
 

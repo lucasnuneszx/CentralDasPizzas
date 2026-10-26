@@ -1,19 +1,19 @@
-# 🤖 Integração de IA para WhatsApp - Central Das Pizzas
+# Integração de IA para WhatsApp - Central Das Pizzas
 
-## 📋 Visão Geral
+## Visão Geral
 
 Este documento explica como integrar uma Inteligência Artificial para automatizar pedidos via WhatsApp e conectá-la ao sistema Central Das Pizzas.
 
-## ✅ É Totalmente Possível!
+## É Totalmente Possível!
 
 Sim, você pode integrar uma IA de WhatsApp para:
-- ✅ Receber pedidos automaticamente via WhatsApp
-- ✅ Processar mensagens de texto dos clientes
-- ✅ Criar pedidos automaticamente no sistema
-- ✅ Confirmar pedidos com os clientes
-- ✅ Atualizar status dos pedidos
+- Receber pedidos automaticamente via WhatsApp
+- Processar mensagens de texto dos clientes
+- Criar pedidos automaticamente no sistema
+- Confirmar pedidos com os clientes
+- Atualizar status dos pedidos
 
-## 🏗️ Arquitetura da Solução
+## Arquitetura da Solução
 
 ```
 WhatsApp → IA (Processamento) → Webhook → Sistema Central Das Pizzas
@@ -43,30 +43,30 @@ WhatsApp → IA (Processamento) → Webhook → Sistema Central Das Pizzas
 6. **IA confirma com cliente**
    - Envia mensagem de confirmação no WhatsApp
 
-## 🔧 Opções de IA para WhatsApp
+## Opções de IA para WhatsApp
 
 ### 1. **Evolution API** (Recomendado)
-- ✅ API completa para WhatsApp
-- ✅ Suporte a webhooks
-- ✅ Fácil integração
-- 📍 Site: https://evolution-api.com
+- API completa para WhatsApp
+- Suporte a webhooks
+- Fácil integração
+- Site: https://evolution-api.com
 
 ### 2. **WhatsApp Business API** (Oficial)
-- ✅ Solução oficial do Meta
-- ⚠️ Requer aprovação e processo mais complexo
-- 📍 Site: https://business.whatsapp.com/products/cloud-api
+- Solução oficial do Meta
+- Requer aprovação e processo mais complexo
+- Site: https://business.whatsapp.com/products/cloud-api
 
 ### 3. **Twilio WhatsApp API**
-- ✅ Solução enterprise
-- ✅ Boa documentação
-- 📍 Site: https://www.twilio.com/whatsapp
+- Solução enterprise
+- Boa documentação
+- Site: https://www.twilio.com/whatsapp
 
-### 4. **ChatGPT/OpenAI + Evolution API**
-- ✅ IA mais avançada para processamento de linguagem natural
-- ✅ Melhor compreensão de pedidos complexos
-- 📍 Combine: OpenAI API + Evolution API
+### 4. **OpenAI + Evolution API**
+- IA mais avançada para processamento de linguagem natural
+- Melhor compreensão de pedidos complexos
+- Combine: OpenAI API + Evolution API
 
-## 📡 Endpoints Disponíveis
+## Endpoints Disponíveis
 
 ### 1. Obter Cardápio
 ```http
@@ -162,7 +162,7 @@ Content-Type: application/json
 }
 ```
 
-## 👋 A Mila - Atendente Virtual
+## A Mila - Atendente Virtual
 
 A IA se identifica como **Mila**, atendente virtual da Central Das Pizzas.
 
@@ -178,13 +178,13 @@ Atendente virtual da Central Das Pizzas e vou prosseguir e auxiliar com o seu pe
 
 ### Personalidade da Mila
 
-- ✅ Amigável e acolhedora
-- ✅ Profissional e prestativa
-- ✅ Sempre pronta para ajudar
-- ✅ Usa emojis moderadamente (🍕, 😊, ✅)
-- ✅ Confirma pedidos antes de finalizar
+- Amigável e acolhedora
+- Profissional e prestativa
+- Sempre pronta para ajudar
+- Usa emojis moderadamente (, , )
+- Confirma pedidos antes de finalizar
 
-## 🤖 Exemplo de Implementação com IA
+## Exemplo de Implementação com IA
 
 ### Usando OpenAI + Evolution API
 
@@ -273,7 +273,7 @@ Retorne um JSON com:
 }
 ```
 
-## 🔐 Configuração de Segurança
+## Configuração de Segurança
 
 ### 1. Adicionar Token de Verificação
 
@@ -285,12 +285,12 @@ WHATSAPP_WEBHOOK_TOKEN=seu-token-secreto-aqui
 ### 2. Validar Requisições
 
 O webhook valida:
-- ✅ Dados obrigatórios
-- ✅ Existência dos combos
-- ✅ Formato dos dados
-- ✅ Token de verificação (GET)
+- Dados obrigatórios
+- Existência dos combos
+- Formato dos dados
+- Token de verificação (GET)
 
-## 📝 Exemplo de Conversas com a Mila
+## Exemplo de Conversas com a Mila
 
 ### Conversa 1: Primeira Interação
 ```
@@ -380,7 +380,7 @@ Para finalizar seu pedido, preciso de algumas informações:
 Pode me ajudar com isso? Assim consigo processar seu pedido rapidinho! 🍕"
 ```
 
-## 🚀 Passos para Implementar
+## Passos para Implementar
 
 1. **Escolher plataforma de IA**
    - Recomendado: Evolution API + OpenAI
@@ -405,7 +405,7 @@ Pode me ajudar com isso? Assim consigo processar seu pedido rapidinho! 🍕"
    - Verificar criação de pedidos
    - Validar confirmações
 
-## 💡 Melhorias Futuras
+## Melhorias Futuras
 
 - [ ] Suporte a múltiplos idiomas
 - [ ] Integração com pagamento via WhatsApp
@@ -414,7 +414,7 @@ Pode me ajudar com isso? Assim consigo processar seu pedido rapidinho! 🍕"
 - [ ] Recomendações personalizadas
 - [ ] Suporte a cupons e promoções
 
-## 📞 Suporte
+## Suporte
 
 Para dúvidas sobre a integração, consulte:
 - Documentação da Evolution API
@@ -423,5 +423,5 @@ Para dúvidas sobre a integração, consulte:
 
 ---
 
-**Desenvolvido para Central Das Pizzas** 🍕
+**Desenvolvido para Central Das Pizzas**
 

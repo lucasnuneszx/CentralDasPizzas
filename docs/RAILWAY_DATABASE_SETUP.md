@@ -1,12 +1,12 @@
-# 🗄️ Configurar DATABASE_URL no Railway
+# Configurar DATABASE_URL no Railway
 
-## ❌ Erro
+## Erro
 
 ```
 Error: Environment variable not found: DATABASE_URL
 ```
 
-## ✅ Solução
+## Solução
 
 ### Opção 1: Usar PostgreSQL do Railway (Recomendado)
 
@@ -48,7 +48,7 @@ Se você já tem um banco PostgreSQL externo:
 
 ### Opção 3: Usar SQLite (Apenas desenvolvimento - NÃO recomendado para produção)
 
-⚠️ **Atenção:** SQLite não é recomendado para produção no Railway.
+- **Atenção:** SQLite não é recomendado para produção no Railway.
 
 Se quiser usar temporariamente:
 
@@ -59,7 +59,7 @@ Se quiser usar temporariamente:
 2. **Atualizar schema.prisma:**
    - Mude `provider = "postgresql"` para `provider = "sqlite"`
 
-## 🔧 Após Configurar
+## Após Configurar
 
 ### 1. Fazer Migração do Banco
 
@@ -99,7 +99,7 @@ Ou execute localmente conectado ao banco do Railway:
 DATABASE_URL="postgresql://..." node scripts/create-default-users.js
 ```
 
-## 📋 Checklist
+## Checklist
 
 - [ ] Banco PostgreSQL criado no Railway
 - [ ] `DATABASE_URL` copiado do banco
@@ -108,7 +108,7 @@ DATABASE_URL="postgresql://..." node scripts/create-default-users.js
 - [ ] Tabelas criadas (via `prisma db push`)
 - [ ] Usuários criados (via `/api/setup/create-users`)
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Erro: "relation does not exist"
 - Execute: `prisma db push` ou `prisma migrate deploy`
@@ -125,5 +125,5 @@ DATABASE_URL="postgresql://..." node scripts/create-default-users.js
 
 ---
 
-**Após configurar DATABASE_URL, faça redeploy!** ✅
+**Após configurar DATABASE_URL, faça redeploy!**
 
